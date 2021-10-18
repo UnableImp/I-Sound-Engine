@@ -107,9 +107,9 @@ jobs:
       run: cmake --build ${{github.workspace}}/buildRelease --config Release --target ISEBenchmark
       
     - name: Copy Test Debug
-      run: cp ${{github.workspace}}/buildDebug/Testing/ISETests ${{github.workspace}}/Testing
+      run: cp ${{github.workspace}}/buildDebug/Testing/ISETests.exe ${{github.workspace}}/Testing
     - name: Copy Benchmark Debug
-      run: cp ${{github.workspace}}/buildDebug/Testing/ISEBenchmark ${{github.workspace}}/Testing
+      run: cp ${{github.workspace}}/buildDebug/Testing/ISEBenchmark.exe ${{github.workspace}}/Testing
     
     - name: Test Debug
       working-directory: ${{github.workspace}}/Testing
@@ -118,9 +118,9 @@ jobs:
       run: ./ISETests
     
     - name: Copy Test Release
-      run: cp ${{github.workspace}}/buildRelease/Testing/ISETests ${{github.workspace}}/Testing
+      run: cp ${{github.workspace}}/buildRelease/Testing/ISETests.exe ${{github.workspace}}/Testing
     - name: Copy Benchmark Release
-      run: cp ${{github.workspace}}/buildRelease/Testing/ISEBenchmark ${{github.workspace}}/Testing
+      run: cp ${{github.workspace}}/buildRelease/Testing/ISEBenchmark.exe ${{github.workspace}}/Testing
  
     - name: Test Release
       working-directory: ${{github.workspace}}/Testing
