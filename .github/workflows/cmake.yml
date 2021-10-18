@@ -85,28 +85,17 @@ jobs:
     - name: Install Clang
     # You may pin to the exact commit or the version.
   # uses: egor-tensin/setup-clang@01d437c0618e76d3c44e7d58f5d175c75cb37bac
-      uses: egor-tensin/setup-clang@v1
-      with:
-    # Version to install
-        version: latest # optional, default is latest
-    # Target platform
-        platform: x64# optional, default is x64
-    # Install Cygwin packages     
-        cygwin: 0 # optional, default is 0
-    # Set up cc/clang/c++/clang++ executables
-        cc: 1# optional, default is 1
-    # On Cygwin, replace executable symlinks with hardlinks
-        hardlinks: 0 # optional, default is 0
+      run: echo "::add-path::C:\msys64\mingw64\bin"
     
     - name: Configure CMake Debug
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/buildDebug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -T "v141_clang_c2"
+      run: cmake -B ${{github.workspace}}/buildDebug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
       
     - name: Configure CMake Release
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/buildRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -T "v141_clang_c2"
+      run: cmake -B ${{github.workspace}}/buildRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
     
     - name: Build Tests Debug
       # Build your program with the given configuration
