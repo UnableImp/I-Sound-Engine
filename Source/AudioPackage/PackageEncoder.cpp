@@ -27,9 +27,9 @@ ErrorNum PackageEncoder::WritePackage(std::string path)
 
     //bank.write(reinterpret_cast<char*>(&bufferSize), sizeof(uint32_t));
 
-    char* buffer = new char[bufferSize + sizeof(uint32_t)];
+    char* buffer = new char[bufferSize];
 
-    uint32_t offset = sizeof(uint32_t);
+    uint32_t offset = 0;
 
     // Store all data in bank
     for(auto& file : filesToEncode)
@@ -43,8 +43,6 @@ ErrorNum PackageEncoder::WritePackage(std::string path)
             offset += WriteOpus(buffer + offset, file);
         }
     }
-
-    *reinterpret_cast<uint32_t *>(buffer) = offset - sizeof(uint32_t);
 
     bank.write(buffer, offset);
     bank.close();

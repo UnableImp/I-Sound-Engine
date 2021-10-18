@@ -78,8 +78,8 @@ void TestPackages(std::string outName, T... toRead)
     //--------------------------------------------------
 
     std::unordered_map<uint64_t, SoundData> ParsedData;
-    char* dataPointer;
-    PackageDecoder::DecodePackage(ParsedData, &dataPointer, outName);
+    IO::MemoryMappedFile bank(outName);
+    PackageDecoder::DecodePackage(ParsedData, bank);
 
     //delete [] dataPointer;
 
@@ -112,8 +112,8 @@ void TestOpusPackages(std::string outName, T... toRead)
     //--------------------------------------------------
 
     std::unordered_map<uint64_t, SoundData> ParsedData;
-    char* dataPointer;
-    PackageDecoder::DecodePackage(ParsedData, &dataPointer, outName);
+    IO::MemoryMappedFile bank(outName);
+    PackageDecoder::DecodePackage(ParsedData, bank);
 
     for(int i = 0;  i < files.size(); ++i)
     {
@@ -228,10 +228,9 @@ static void Read1_100FilePackExpected(benchmark::State& state)
     for (auto _ : state)
     {
         std::unordered_map<uint64_t, SoundData> ParsedData;
-        char* dataPointer;
-        PackageDecoder::DecodePackage(ParsedData, &dataPointer, testPakFilepath);
+        IO::MemoryMappedFile bank(testPakFilepath);
+        PackageDecoder::DecodePackage(ParsedData, bank);
         benchmark::DoNotOptimize(ParsedData);
-        delete [] dataPointer;
     }
 }
 BENCHMARK(Read1_100FilePackExpected);
@@ -253,10 +252,9 @@ static void Read1_100FilePackBrutal(benchmark::State& state)
     for (auto _ : state)
     {
         std::unordered_map<uint64_t, SoundData> ParsedData;
-        char* dataPointer;
-        PackageDecoder::DecodePackage(ParsedData, &dataPointer, testPakFilepath);
+        IO::MemoryMappedFile bank(testPakFilepath);
+        PackageDecoder::DecodePackage(ParsedData, bank);
         benchmark::DoNotOptimize(ParsedData);
-        delete [] dataPointer;
     }
 }
 BENCHMARK(Read1_100FilePackBrutal);
@@ -314,10 +312,9 @@ static void Read1_100OpusPack(benchmark::State& state)
     for (auto _ : state)
     {
         std::unordered_map<uint64_t, SoundData> ParsedData;
-        char* dataPointer;
-        PackageDecoder::DecodePackage(ParsedData, &dataPointer, testPakFilepath);
+        IO::MemoryMappedFile bank(testPakFilepath);
+        PackageDecoder::DecodePackage(ParsedData, bank);
         benchmark::DoNotOptimize(ParsedData);
-        delete [] dataPointer;
     }
 }
 BENCHMARK(Read1_100OpusPack);

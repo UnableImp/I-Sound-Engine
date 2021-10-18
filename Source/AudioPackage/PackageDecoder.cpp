@@ -140,21 +140,21 @@ namespace PackageDecoder
         }
     }
 
-    ErrorNum DecodePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, char** data, std::string path)
+    ErrorNum DecodePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, IO::MemoryMappedFile& file)
     {
         // Check if bank exists
-        if (!IO::FileExists(path))
-            return ErrorNum::FailedToFindFile;
+        //if (!IO::FileExists(path))
+        //    return ErrorNum::FailedToFindFile;
 
-        IO::MemoryMappedFile file(path);
+        //IO::MemoryMappedFile file(path);
 
         // Find start point of all data files
         int processedSize = GetDataStartAndLength(lookUpTable, const_cast<char*>(file.Data()), file.Size());
 
         // Create buffer to store PCM as floats in continues memory
-        *data = new char[processedSize];
+        //*data = new char[processedSize];
 
-        ConvertToFloat(lookUpTable, *data);
+        //ConvertToFloat(lookUpTable, *data);
 
         return ErrorNum::NoErrors;
     }

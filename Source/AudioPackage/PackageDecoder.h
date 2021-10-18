@@ -7,6 +7,7 @@
 
 #include "ErrorList.h"
 #include "SoundData.h"
+#include "IO/MemoryMappedFile.h"
 #include <unordered_map>
 
 namespace PackageDecoder
@@ -19,7 +20,7 @@ namespace PackageDecoder
      * @return NoErrors - there were no errors
      *         Anything else there was errors with decoding
      */
-    ErrorNum DecodePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, char** data, std::string path);
+    ErrorNum DecodePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, IO::MemoryMappedFile& fileh);
 
     ErrorNum ReleasePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, char** data);
 
