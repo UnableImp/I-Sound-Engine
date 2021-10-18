@@ -2,8 +2,8 @@
 #include <fstream>
 #include <memory>
 #include <cstdint>
-#include <OpusEncoderWrapper.h>
-#include "OpusHeader.h"
+#include "AudioFormats/OpusEncoderWrapper.h"
+#include "AudioFormats/OpusHeader.h"
 
 ErrorNum PackageEncoder::AddFile(WavFile& wav, uint32_t id, Encoding format)
 {

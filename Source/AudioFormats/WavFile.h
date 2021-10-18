@@ -8,7 +8,7 @@
 #include <string>
 #include <fstream>
 #include "WavHeader.h"
-#include "../ErrorList.h"
+#include "ErrorList.h"
 
 class WavFile
 {

@@ -7,10 +7,12 @@
 
 #include "gtest/gtest.h"
 
-#include "PackageEncoder.h"
-#include "PackageDecoder.h"
-#include "WavFile.h"
+#include "AudioPackage/PackageEncoder.h"
+#include "AudioPackage/PackageDecoder.h"
+#include "AudioFormats/WavFile.h"
 #include "benchmark/benchmark.h"
+
+#include "IO/IOUtility.h"
 
 void addFile(std::vector<WavFile>&)
 {
@@ -194,7 +196,7 @@ static void Encode100WavExpectedFilePack(benchmark::State& state)
 }
 BENCHMARK(Encode100WavExpectedFilePack);
 
-static void Encode100WavBurtalFilePack(benchmark::State& state)
+static void Encode100WavBrutalFilePack(benchmark::State& state)
 {
     for(auto _ : state)
     {
@@ -204,47 +206,57 @@ static void Encode100WavBurtalFilePack(benchmark::State& state)
         {
             encoder.AddFile(wav, i, PCM);
         }
-        encoder.WritePackage("TestFiles/TEST100WavFilesBurtal.pak");
+        encoder.WritePackage("TestFiles/TEST100WavFilesBrutal.pak");
     }
 }
-BENCHMARK(Encode100WavBurtalFilePack);
+BENCHMARK(Encode100WavBrutalFilePack);
 
 static void Read1_100FilePackExpected(benchmark::State& state)
 {
-    PackageEncoder encoder;
-    WavFile wav("TestFiles/Slash2.wav");
-    for(int i = 0; i < 100; ++i)
+    std::string testPakFilepath = "TestFiles/TEST100WavFilesExpected.pak";
+    if (!IO::FileExists(testPakFilepath))
     {
+      PackageEncoder encoder;
+      WavFile wav("TestFiles/Slash2.wav");
+      for (int i = 0; i < 100; ++i)
+      {
         encoder.AddFile(wav, i, PCM);
+      }
+      encoder.WritePackage(testPakFilepath);
     }
-    encoder.WritePackage("TestFiles/TEST100WavFilesExpected.pak");
 
     for (auto _ : state)
     {
         std::unordered_map<uint64_t, SoundData> ParsedData;
         char* dataPointer;
-        PackageDecoder::DecodePackage(ParsedData, &dataPointer, "TestFiles/TEST100WavFilesExpected.pak");
-        //delete [] dataPointer;
+        PackageDecoder::DecodePackage(ParsedData, &dataPointer, testPakFilepath);
+        benchmark::DoNotOptimize(ParsedData);
+        delete [] dataPointer;
     }
 }
 BENCHMARK(Read1_100FilePackExpected);
 
 static void Read1_100FilePackBrutal(benchmark::State& state)
 {
-    PackageEncoder encoder;
-    WavFile wav("TestFiles/level.wav");
-    for(int i = 0; i < 100; ++i)
+    std::string testPakFilepath = "TestFiles/TEST100WavFilesBrutal.pak";
+    if (!IO::FileExists(testPakFilepath))
     {
-        encoder.AddFile(wav, i, PCM);
+        PackageEncoder encoder;
+        WavFile wav("TestFiles/level.wav");
+        for (int i = 0; i < 100; ++i)
+        {
+            encoder.AddFile(wav, i, PCM);
+        }
+        encoder.WritePackage(testPakFilepath);
     }
-    encoder.WritePackage("TestFiles/TEST100WavFilesBurtal.pak");
 
     for (auto _ : state)
     {
         std::unordered_map<uint64_t, SoundData> ParsedData;
         char* dataPointer;
-        PackageDecoder::DecodePackage(ParsedData, &dataPointer, "TestFiles/TEST100WavFilesBurtal.pak");
-        //delete [] dataPointer;
+        PackageDecoder::DecodePackage(ParsedData, &dataPointer, testPakFilepath);
+        benchmark::DoNotOptimize(ParsedData);
+        delete [] dataPointer;
     }
 }
 BENCHMARK(Read1_100FilePackBrutal);
@@ -281,27 +293,31 @@ static void Encode100Opus(benchmark::State& state)
         {
             encoder.AddFile(wav, i, Opus);
         }
-        encoder.WritePackage("TestFiles/TEST100WavFilesOpusBurtal.pak");
+        encoder.WritePackage("TestFiles/TEST100WavFilesOpusBrutal.pak");
     }
 }
 BENCHMARK(Encode100Opus);
 
 static void Read1_100OpusPack(benchmark::State& state)
 {
-
-    PackageEncoder encoder;
-    WavFile wav("TestFiles/level.wav");
-    for(int i = 0; i < 100; ++i)
+    std::string testPakFilepath = "TestFiles/TEST100WavFilesOpusBrutal.pak";
+    if (!IO::FileExists(testPakFilepath))
     {
+      PackageEncoder encoder;
+      WavFile wav("TestFiles/level.wav");
+      for (int i = 0; i < 100; ++i)
+      {
         encoder.AddFile(wav, i, Opus);
+      }
+      encoder.WritePackage(testPakFilepath);
     }
-    encoder.WritePackage("TestFiles/TEST100WavFilesOpusBurtal.pak");
     for (auto _ : state)
     {
         std::unordered_map<uint64_t, SoundData> ParsedData;
         char* dataPointer;
-        PackageDecoder::DecodePackage(ParsedData, &dataPointer, "TestFiles/TEST100WavFilesOpusBurtal.pak");
-        //delete [] dataPointer;
+        PackageDecoder::DecodePackage(ParsedData, &dataPointer, testPakFilepath);
+        benchmark::DoNotOptimize(ParsedData);
+        delete [] dataPointer;
     }
 }
 BENCHMARK(Read1_100OpusPack);

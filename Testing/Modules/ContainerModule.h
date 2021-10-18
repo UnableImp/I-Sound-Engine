@@ -5,11 +5,11 @@
 #ifndef I_SOUND_ENGINE_CONTAINERMODULE_H
 #define I_SOUND_ENGINE_CONTAINERMODULE_H
 
-#include <OpusEncoderWrapper.h>
+#include "AudioFormats/OpusEncoderWrapper.h"
 #include "gtest/gtest.h"
-#include "WavFile.h"
+#include "AudioFormats/WavFile.h"
 #include "benchmark/benchmark.h"
-#include "../../Source/Filters/OpusContainer.h"
+#include "Filters/OpusContainer.h"
 
 void readWaveFile(std::string name);
 

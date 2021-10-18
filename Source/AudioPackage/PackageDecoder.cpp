@@ -3,13 +3,14 @@
 //
 
 #include <fstream>
-#include "../Parsers/WavHeader.h"
+#include "AudioFormats/WavHeader.h"
 #include "PackageDecoder.h"
-#include <sys/mman.h>
-#include "../Parsers/OpusHeader.h"
-#include "../Parsers/OpusFile.h"
 
-#include <fcntl.h>
+#include "AudioFormats/OpusHeader.h"
+#include "AudioFormats/OpusFile.h"
+
+#include "IO/IOUtility.h"
+#include "IO/MemoryMappedFile.h"
 
 constexpr int samplesPerPacket = 960;
 
@@ -142,42 +143,19 @@ namespace PackageDecoder
     ErrorNum DecodePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, char** data, std::string path)
     {
         // Check if bank exists
-        std::fstream file(path, std::ios_base::binary | std::ios_base::in);
-        if(!file.is_open())
-            return  ErrorNum::FailedToFindFile;
+        if (!IO::FileExists(path))
+            return ErrorNum::FailedToFindFile;
 
-        // Read in the entire file in one read so all work is done from memory
-        uint32_t fileSize;
-        file.read(reinterpret_cast<char*>(&fileSize), sizeof(uint32_t));
-
-        // reading
-//        int bufferRead = open("read.dat", O_CREAT | O_RDWR,
-//        S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP, 0);
-
-        int file_read = open(path.c_str(), O_RDWR, 0);
-        // writing
-        int bufferWrite = open("write.dat", O_CREAT | O_RDWR,
-                              S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
-
-        //
-        char *fileBuffer = reinterpret_cast<char*>(
-                mmap(NULL, fileSize+4, PROT_READ | PROT_WRITE , MAP_SHARED, file_read, 0));
-        //char* fileBuffer = new char[fileSize];
-        //posix_fallocate(bufferRead, 0, fileSize);
-
-        //file.read(fileBuffer, fileSize);
+        IO::MemoryMappedFile file(path);
 
         // Find start point of all data files
-        int processedSize = GetDataStartAndLength(lookUpTable, fileBuffer+4, fileSize);
+        int processedSize = GetDataStartAndLength(lookUpTable, const_cast<char*>(file.Data()), file.Size());
 
         // Create buffer to store PCM as floats in continues memory
-        //*data = new char[processedSize];
+        *data = new char[processedSize];
 
-        //ConvertToFloat(lookUpTable, *data);
+        ConvertToFloat(lookUpTable, *data);
 
-        //munmap(fileBuffer,fileSize);
-
-        //delete [] fileBuffer;
         return ErrorNum::NoErrors;
     }
 }

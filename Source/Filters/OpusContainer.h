@@ -6,10 +6,10 @@
 #define I_SOUND_ENGINE_OPUSCONTAINER_H
 
 #include "SoundContainer.h"
-#include "OpusDecoderWrapper.h"
-#include "OpusHeader.h"
-#include "cstring"
-#include "OpusFile.h"
+#include "AudioFormats/OpusDecoderWrapper.h"
+#include "AudioFormats/OpusHeader.h"
+#include <cstring>
+#include "AudioFormats/OpusFile.h"
 
 constexpr int OpusFrameSize = 960;
 

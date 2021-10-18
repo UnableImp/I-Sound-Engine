@@ -4,9 +4,9 @@
 
 #include <vector>
 #include <string>
-#include "../Parsers/WavFile.h"
-#include "../ErrorList.h"
-#include "../SoundData.h"
+#include "AudioFormats/WavFile.h"
+#include "ErrorList.h"
+#include "SoundData.h"
 // TODO make system to handle all errors
 
 

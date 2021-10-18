@@ -5,8 +5,8 @@
 #ifndef I_SOUND_ENGINE_PACKAGEDECODER_H
 #define I_SOUND_ENGINE_PACKAGEDECODER_H
 
-#include "../ErrorList.h"
-#include "../SoundData.h"
+#include "ErrorList.h"
+#include "SoundData.h"
 #include <unordered_map>
 
 namespace PackageDecoder

@@ -3,7 +3,7 @@
 //
 #include "ContainerModule.h"
 #include <string>
-#include "WavFile.h"
+#include "AudioFormats/WavFile.h"
 
 void readWaveFile(std::string name)
 {
