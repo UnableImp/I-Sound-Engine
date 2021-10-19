@@ -28,7 +28,7 @@ jobs:
     - name: Configure CMake Release
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/buildRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSTDLIB_LINUX=True
+      run: cmake -B ${{github.workspace}}/buildRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang  -DCMAKE_CXX_COMPILER=clang++ -DSTDLIB_LINUX=True
     
     - name: Build Tests Debug
       # Build your program with the given configuration
@@ -69,6 +69,17 @@ jobs:
     - name: Benchmark Release
       working-directory: ${{github.workspace}}/Testing
       run: ./ISEBenchmark
+      
+    - name: Install Valgrind
+      run: sudo apt install -y valgrind
+        
+    - name: Copy Test Debug2
+      run: cp ${{github.workspace}}/buildDebug/Testing/ISETests ${{github.workspace}}/Testing
+      
+    - name: Memory Check
+      working-directory: ${{github.workspace}}/Testing
+      run: valgrind --leak-check=full --leak-resolution=med --track-origins=yes -- ./ISETests
+      
   Windows-Test:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
@@ -81,16 +92,16 @@ jobs:
       with:
         submodules: recursive
         lfs: 'true'
-
+      
     - name: Configure CMake Debug
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/buildDebug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSTDLIB_LINUX=True
-      
+      run: cmake -B ${{github.workspace}}/buildDebug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=C:\msys64\mingw64\bin\clang.exe -DCMAKE_CXX_COMPILER=C:\msys64\mingw64\bin\clang++.exe
+    
     - name: Configure CMake Release
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/buildRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSTDLIB_LINUX=True
+      run: cmake -B ${{github.workspace}}/buildRelease -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=C:\msys64\mingw64\bin\clang.exe -DCMAKE_CXX_COMPILER=C:\msys64\mingw64\bin\clang++.exe
     
     - name: Build Tests Debug
       # Build your program with the given configuration
