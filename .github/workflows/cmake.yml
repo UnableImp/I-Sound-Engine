@@ -72,11 +72,13 @@ jobs:
       
     - name: Install Valgrind
       run: sudo apt install -y valgrind
-    
+        
+    - name: Copy Test Debug2
+      run: cp ${{github.workspace}}/buildDebug/Testing/ISETests ${{github.workspace}}/Testing
+      
     - name: Memory Check
       working-directory: ${{github.workspace}}/Testing
-      run: cp ${{github.workspace}}/buildDebug/Testing/ISETests ${{github.workspace}}/Testing
-        valgrind --leak-check=full --leak-resolution=med --track-origins=yes -- ./ISETests
+      run: valgrind --leak-check=full --leak-resolution=med --track-origins=yes -- ./ISETests
       
   Windows-Test:
     # The CMake configure and build commands are platform agnostic and should work equally
