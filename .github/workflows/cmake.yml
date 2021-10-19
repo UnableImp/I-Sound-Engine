@@ -82,17 +82,10 @@ jobs:
         submodules: recursive
         lfs: 'true'
       
-    - name: Install Clang
-    # You may pin to the exact commit or the version.
-  # uses: egor-tensin/setup-clang@01d437c0618e76d3c44e7d58f5d175c75cb37bac
-      run: echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true" 
-    - name: Enable Clang
-      run: echo "::add-path::C:\msys64\mingw64\bin"
-    
     - name: Configure CMake Debug
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-      run: cmake -B ${{github.workspace}}/buildDebug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+      run: cmake -B ${{github.workspace}}/buildDebug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
       
     - name: Configure CMake Release
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
