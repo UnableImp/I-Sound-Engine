@@ -10,6 +10,7 @@
 #include "AudioFormats/OpusHeader.h"
 #include <cstring>
 #include "AudioFormats/OpusFile.h"
+#include "SoundData.h"
 
 constexpr int OpusFrameSize = 960;
 
@@ -18,66 +19,88 @@ class OpusContainer : public SoundContainer<sampleType>
 {
 public:
 
-    OpusContainer(char* opusData, ChannelType channels) : type(channels),
-                                          decoder(48000, channels == ChannelType::Mono ? 1 : 2),
-                                          opusData(opusData),
-                                          offsetIntoOpusFrame(std::numeric_limits<int>::max()),
-                                          offsetIntoRawOpus(0)
+    OpusContainer(SoundData data) : data(data),
+                                    decoder(48000, data.channels == ChannelType::Mono ? 1 : 2),
+                                    offsetIntoOpusFrame(std::numeric_limits<int>::max()),
+                                    offsetIntoRawOpus(0),
+                                    totalOffset(0)
     {
 
     }
 
-    Frame<sampleType> GetNextSample() override
+    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer) override
     {
-        // Does a new frame need to be decoded
-        if(offsetIntoOpusFrame >= OpusFrameSize * (type == ChannelType::Stereo ? 2 : 1))
+        int frames = 0;
+        for(int i = 0; i < numSamples; ++i)
         {
-            // SanityCheck
-            char OggSMagicNum[4];
-            memcpy(OggSMagicNum, opusData + offsetIntoRawOpus, 4);
+            if(totalOffset >= data.sampleCount)
+            {
+                FillZeros(numSamples - i, buffer + i);
+                return frames;
+            }
+            // Does a new frame need to be decoded
+            if (offsetIntoOpusFrame >= OpusFrameSize * (data.channels == ChannelType::Stereo ? 2 : 1))
+            {
+                decodeFrame();
+            }
 
-            assert(OggSMagicNum[0] == 'O'  && "OggS magic number not found in offset");
-
-            int opusPacketSize;
-            int tableIndex = OpusFile::GetSegementSize(opusData + offsetIntoRawOpus, opusPacketSize);
-
-            offsetIntoRawOpus += tableIndex;
-            int returnValue = decoder.Decode(opusData + offsetIntoRawOpus, opusPacketSize, decodedOpusFrame, OpusFrameSize);
-
-            assert(returnValue >= 0 && "Opus decoder failed");
-
-            offsetIntoRawOpus += opusPacketSize;
-            offsetIntoOpusFrame = 0;
+            // Read samples into output
+            if (data.channels == ChannelType::Mono)
+            {
+                buffer[i].leftChannel = decodedOpusFrame[offsetIntoOpusFrame];
+                buffer[i].rightChannel = decodedOpusFrame[offsetIntoOpusFrame];
+                ++offsetIntoOpusFrame;
+            } else
+            {
+                buffer[i].leftChannel = decodedOpusFrame[offsetIntoOpusFrame];
+                ++offsetIntoOpusFrame;
+                buffer[i].rightChannel = decodedOpusFrame[offsetIntoOpusFrame];
+                ++offsetIntoOpusFrame;
+            }
+            ++frames;
         }
-
-        // Read samples into output
-        Frame<sampleType> output;
-        if(type == ChannelType::Mono)
-        {
-            output.leftChannel = decodedOpusFrame[offsetIntoOpusFrame];
-            output.rightChannel = decodedOpusFrame[offsetIntoOpusFrame];
-            ++offsetIntoOpusFrame;
-        }
-        else
-        {
-            output.leftChannel = decodedOpusFrame[offsetIntoOpusFrame];
-            ++offsetIntoOpusFrame;
-            output.rightChannel = decodedOpusFrame[offsetIntoOpusFrame];
-            ++offsetIntoOpusFrame;
-        }
-        return output;
+        return frames;
     }
 
 private:
-    ChannelType type;
+
+    void decodeFrame()
+    {
+        // SanityCheck
+        assert(*(data.data + offsetIntoRawOpus) == 'O'  && "OggS magic number not found in offset");
+
+        // find size of next opus packet
+        int opusPacketSize;
+        int tableIndex = OpusFile::GetSegementSize(data.data + offsetIntoRawOpus, opusPacketSize);
+
+        // Read packet
+        offsetIntoRawOpus += tableIndex;
+        int returnValue = decoder.DecodeFloat(data.data + offsetIntoRawOpus, opusPacketSize, decodedOpusFrame, OpusFrameSize);
+
+        assert(returnValue >= 0 && "Opus decoder failed");
+
+        offsetIntoRawOpus += opusPacketSize;
+        offsetIntoOpusFrame = 0;
+    }
+
+    void FillZeros(int count,  Frame<sampleType>* buffer)
+    {
+        for(int i = 0; i < count; ++i)
+        {
+            buffer[i].leftChannel = 0;
+            buffer[i].rightChannel = 0;
+        }
+    }
+
+    SoundData data;
     OpusDecoderWrapper decoder;
 
-    char* opusData;
     uint64_t offsetIntoRawOpus;
 
-    short decodedOpusFrame[OpusFrameSize * 2];
+    float decodedOpusFrame[OpusFrameSize * 2];
     int offsetIntoOpusFrame;
 
+    uint64_t totalOffset;
 };
 
 #endif //I_SOUND_ENGINE_OPUSCONTAINER_H

@@ -70,16 +70,22 @@ void encodeWaveToOggThenWav(const char* inFile, const char* outFileOgg, const ch
     std::fstream oggFile(outFileOgg, std::ios_base::binary | std::ios_base::out);
     oggFile.write(output, fileSize);
 
-    OpusContainer<float> filter(output, ChannelType::Stereo);
+    SoundData soundData;
+    soundData.sampleCount = (file.GetDataSize() / 2 )   - ((file.GetDataSize() / 2)  % 960);
+    soundData.channels = file.GetFormat().channel_count;
+    soundData.data =  output;
+
+    OpusContainer<float> filter(soundData);
 
     //memset(data, 0, file.GetDataSize());
-    char *data = new char[file.GetDataSize() * 10]();
+    char *data = new char[file.GetDataSize()]();
 
-    for (int i = 0; i < file.GetDataSize() - 960 * 4; i  += 4)
+    for (int i = 0; i < file.GetDataSize(); i  += 4)
     {
-        Frame<float> frame = filter.GetNextSample();
-        short  left = static_cast<short>(frame.leftChannel);
-        short  right = static_cast<short>(frame.rightChannel);
+        Frame<float> frame;
+        filter.GetNextSamples(1, &frame);
+        short  left = static_cast<short>(frame.leftChannel * (1 << 15));
+        short  right = static_cast<short>(frame.rightChannel * (1 << 15));
 
         *reinterpret_cast<short*>(data + i) = left;
         *reinterpret_cast<short*>(data + i + 2) = right;
@@ -95,4 +101,6 @@ void encodeWaveToOggThenWav(const char* inFile, const char* outFileOgg, const ch
     dataChunk.chunkSize = file.GetDataSize();
     tesConvert.write(reinterpret_cast<char*>(&dataChunk), sizeof(dataChunk));
     tesConvert.write(data, file.GetDataSize());
+
+    delete [] data;
 }

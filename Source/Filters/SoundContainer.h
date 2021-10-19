@@ -44,10 +44,12 @@ public:
                         playbackModifier(static_cast<sampleType>(1)) {}
 
     /*!
-     * Gets the next sample from current position based on play back speed
-     * @return The next sample
+     * Fills a buffer with audio samples, if no audio data is available zeros are filled
+     * @param numSamples Number of samples to fill buffer with
+     * @param buffer Buffer to fill
+     * @return Number of samples filled
      */
-    virtual Frame<sampleType> GetNextSample()                 = 0;
+    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer)                 = 0;
 
     /*!
      * Gets a sample from current position to offset based on play back speed

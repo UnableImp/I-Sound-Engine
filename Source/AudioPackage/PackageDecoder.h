@@ -20,7 +20,7 @@ namespace PackageDecoder
      * @return NoErrors - there were no errors
      *         Anything else there was errors with decoding
      */
-    ErrorNum DecodePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, IO::MemoryMappedFile& fileh);
+    ErrorNum DecodePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, IO::MemoryMappedFile& file);
 
     ErrorNum ReleasePackage(std::unordered_map<uint64_t, SoundData>& lookUpTable, char** data);
 
