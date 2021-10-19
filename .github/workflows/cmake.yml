@@ -85,7 +85,7 @@ jobs:
     - name: Install Clang
     # You may pin to the exact commit or the version.
   # uses: egor-tensin/setup-clang@01d437c0618e76d3c44e7d58f5d175c75cb37bac
-      run: echo "::add-path::C:\msys64\mingw64\bin"
+      run: echo "ACTIONS_ALLOW_UNSECURE_COMMANDS=true"| echo "::add-path::C:\msys64\mingw64\bin"
     
     - name: Configure CMake Debug
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
