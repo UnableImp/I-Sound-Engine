@@ -14,13 +14,13 @@
 
 #include "IO/IOUtility.h"
 
-void addFile(std::vector<WavFile>&)
+static  void addFile(std::vector<WavFile>&)
 {
 
 }
 
 template<typename... T>
-void addFile(std::vector<WavFile> &vec, std::string fileName, T... files)
+static void addFile(std::vector<WavFile> &vec, std::string fileName, T... files)
 {
     vec.emplace_back(WavFile{fileName});
     ASSERT_TRUE(vec.back());
@@ -156,6 +156,17 @@ TEST(PackageWav, Encode2DiffertBitRate)
     TestPackages("TestFiles/TESTBank1Wav.pak", "TestFiles/8_bit_simple.wav", "TestFiles/16_bit_simple.wav");
 }
 
+TEST(PackageWav, EncodeLevel)
+{
+    TestPackages("TestFiles/TESTBank1Wav.pak", "TestFiles/level.wav");
+}
+
+TEST(PackageWav, EncodeCredits)
+{
+    TestPackages("TestFiles/TESTBank1Wav.pak", "TestFiles/credits.wav");
+}
+
+
 TEST(PackageWav, Encode10)
 {
     TestPackages("TestFiles/TESTBank1Wav.pak", "TestFiles/16_bit_reaper.wav",
@@ -241,7 +252,7 @@ static void Read1_100FilePackBrutal(benchmark::State& state)
     if (!IO::FileExists(testPakFilepath))
     {
         PackageEncoder encoder;
-        WavFile wav("TestFiles/level.wav");
+        WavFile wav("TestFiles/16_bit_reaper.wav");
         for (int i = 0; i < 100; ++i)
         {
             encoder.AddFile(wav, i, PCM);
@@ -258,6 +269,29 @@ static void Read1_100FilePackBrutal(benchmark::State& state)
     }
 }
 BENCHMARK(Read1_100FilePackBrutal);
+
+static void Read1_100OpusPack(benchmark::State& state)
+{
+    std::string testPakFilepath = "TestFiles/TEST100WavFilesOpusBrutal.pak";
+    if (!IO::FileExists(testPakFilepath))
+    {
+        PackageEncoder encoder;
+        WavFile wav("TestFiles/level.wav");
+        for (int i = 0; i < 100; ++i)
+        {
+            encoder.AddFile(wav, i, Opus);
+        }
+        encoder.WritePackage(testPakFilepath);
+    }
+    for (auto _ : state)
+    {
+        std::unordered_map<uint64_t, SoundData> ParsedData;
+        IO::MemoryMappedFile bank(testPakFilepath);
+        PackageDecoder::DecodePackage(ParsedData, bank);
+        benchmark::DoNotOptimize(ParsedData);
+    }
+}
+BENCHMARK(Read1_100OpusPack);
 
 static void EncodeLevel44100ToOpus(benchmark::State& state)
 {
@@ -281,40 +315,3 @@ static void EncodeCredits48000ToOpus(benchmark::State& state)
 }
 BENCHMARK(EncodeCredits48000ToOpus);
 
-static void Encode100Opus(benchmark::State& state)
-{
-    for(auto _ : state)
-    {
-        PackageEncoder encoder;
-        WavFile wav("TestFiles/level.wav");
-        for(int i = 0; i < 100; ++i)
-        {
-            encoder.AddFile(wav, i, Opus);
-        }
-        encoder.WritePackage("TestFiles/TEST100WavFilesOpusBrutal.pak");
-    }
-}
-BENCHMARK(Encode100Opus);
-
-static void Read1_100OpusPack(benchmark::State& state)
-{
-    std::string testPakFilepath = "TestFiles/TEST100WavFilesOpusBrutal.pak";
-    if (!IO::FileExists(testPakFilepath))
-    {
-      PackageEncoder encoder;
-      WavFile wav("TestFiles/level.wav");
-      for (int i = 0; i < 100; ++i)
-      {
-        encoder.AddFile(wav, i, Opus);
-      }
-      encoder.WritePackage(testPakFilepath);
-    }
-    for (auto _ : state)
-    {
-        std::unordered_map<uint64_t, SoundData> ParsedData;
-        IO::MemoryMappedFile bank(testPakFilepath);
-        PackageDecoder::DecodePackage(ParsedData, bank);
-        benchmark::DoNotOptimize(ParsedData);
-    }
-}
-BENCHMARK(Read1_100OpusPack);

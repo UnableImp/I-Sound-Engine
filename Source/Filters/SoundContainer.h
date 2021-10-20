@@ -11,17 +11,13 @@
 #define I_SOUND_ENGINE_SOUNDCONTAINER_H
 
 #include <cmath>
+#include "Filter.h"
 
 // TODO find a proper location for sample
 /*!
  * Left and right samples for given index
  */
-template <typename sampleType>
-struct Frame
-{
-    sampleType leftChannel;  //! Sample for left channel
-    sampleType rightChannel; //! Sample for right Channel
-};
+
 
 // TODO find a proper location for channel type
 /*!
@@ -34,7 +30,7 @@ enum ChannelType
 };
 
 template<typename sampleType>
-class SoundContainer
+class SoundContainer : public Filter<sampleType>
 {
 public:
     /*!
@@ -49,7 +45,7 @@ public:
      * @param buffer Buffer to fill
      * @return Number of samples filled
      */
-    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer)                 = 0;
+    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer) override { return 0;}
 
     /*!
      * Gets a sample from current position to offset based on play back speed
@@ -89,6 +85,15 @@ public:
     //virtural const storageType& GetAllSamples()      = 0;
 
 protected:
+    void FillZeros(int count,  Frame<sampleType>* buffer)
+    {
+        for(int i = 0; i < count; ++i)
+        {
+            buffer[i].leftChannel = 0;
+            buffer[i].rightChannel = 0;
+        }
+    }
+
     /*!
      * The playback modifier to control speed of sound playback
      */

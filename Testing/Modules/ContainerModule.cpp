@@ -18,35 +18,35 @@ void readWaveFile(std::string name)
     int samples = wavFile.GetDataSize() / (wavFile.GetFormat().bits_per_sample / 8);
 
     // Get Converted data
-    std::unique_ptr<float*> floatSamples = std::make_unique<float*>(new float[samples]);
+    float* floatSamples = new float[samples];
     uint32_t dataSize = samples * sizeof(float);
 
-    std::unique_ptr<char*> nativeSamples = std::make_unique<char*>(new char[wavFile.GetDataSize()]);
+   char* nativeSamples = new char[wavFile.GetDataSize()];
 
-    wavFile.GetDataAsFloat(*floatSamples);
+    wavFile.GetDataAsFloat(floatSamples);
 
-    wavFile.GetDataInNativeType(*nativeSamples);
+    wavFile.GetDataInNativeType(nativeSamples);
 
     switch (wavFile.GetFormat().bits_per_sample)
     {
         case 8:
             for(int i = 0; i < samples; ++i)
             {
-                float f = (*((*floatSamples.get()) + i));
+                float f = (*((floatSamples) + i));
                 short fValue = (f * (127)) ;
                 fValue += (128);
 
-                unsigned char sampleValue = *((*nativeSamples.get()) + i);
+                unsigned char sampleValue = *((nativeSamples) + i);
                 ASSERT_TRUE((fValue >= sampleValue -1 && fValue <= sampleValue + 1)) << "Float conversion failed";
             }
             break;
         case 16:
             for(int i = 0; i < samples; ++i)
             {
-                float f = (*floatSamples)[i];
+                float f = (floatSamples)[i];
                 short fValue = f * ((1<<15) - 1);
 
-                short sampleValue = reinterpret_cast<short*>((*nativeSamples))[i];
+                short sampleValue = reinterpret_cast<short*>((nativeSamples))[i];
                 ASSERT_TRUE((fValue >= sampleValue -1 && fValue <= sampleValue + 1)) << "Float conversion failed";
             }
             break;
@@ -55,7 +55,8 @@ void readWaveFile(std::string name)
             ASSERT_FALSE(true) << "Unsupported file format";
             return;
     }
-
+    delete [] floatSamples;
+    delete [] nativeSamples;
     return;
 }
 
@@ -64,14 +65,14 @@ void encodeWaveToOggThenWav(const char* inFile, const char* outFileOgg, const ch
     WavFile file(inFile);
     ASSERT_TRUE(file);
 
-    char *output = new char[file.GetDataSize()];
+    char *output = new char[file.GetDataSize()]();
     // Write as ogg file to check compresstion ratio
     int fileSize = file.GetDataAsOpus(output);
     std::fstream oggFile(outFileOgg, std::ios_base::binary | std::ios_base::out);
     oggFile.write(output, fileSize);
 
     SoundData soundData;
-    soundData.sampleCount = (file.GetDataSize() / 2 )   - ((file.GetDataSize() / 2)  % 960);
+    soundData.sampleCount = (file.GetDataSize() / 4 )  - 968;
     soundData.channels = file.GetFormat().channel_count;
     soundData.data =  output;
 
@@ -82,7 +83,7 @@ void encodeWaveToOggThenWav(const char* inFile, const char* outFileOgg, const ch
 
     for (int i = 0; i < file.GetDataSize(); i  += 4)
     {
-        Frame<float> frame;
+        Frame<float> frame {0,0};
         filter.GetNextSamples(1, &frame);
         short  left = static_cast<short>(frame.leftChannel * (1 << 15));
         short  right = static_cast<short>(frame.rightChannel * (1 << 15));
@@ -102,5 +103,6 @@ void encodeWaveToOggThenWav(const char* inFile, const char* outFileOgg, const ch
     tesConvert.write(reinterpret_cast<char*>(&dataChunk), sizeof(dataChunk));
     tesConvert.write(data, file.GetDataSize());
 
+    delete [] output;
     delete [] data;
 }

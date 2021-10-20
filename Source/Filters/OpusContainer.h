@@ -19,7 +19,7 @@ class OpusContainer : public SoundContainer<sampleType>
 {
 public:
 
-    OpusContainer(SoundData data) : data(data),
+    OpusContainer(SoundData& data) : data(data),
                                     decoder(48000, data.channels == ChannelType::Mono ? 1 : 2),
                                     offsetIntoOpusFrame(std::numeric_limits<int>::max()),
                                     offsetIntoRawOpus(0),
@@ -35,7 +35,7 @@ public:
         {
             if(totalOffset >= data.sampleCount)
             {
-                FillZeros(numSamples - i, buffer + i);
+                this->FillZeros(numSamples - i, buffer + i);
                 return frames;
             }
             // Does a new frame need to be decoded
@@ -47,16 +47,17 @@ public:
             // Read samples into output
             if (data.channels == ChannelType::Mono)
             {
-                buffer[i].leftChannel = decodedOpusFrame[offsetIntoOpusFrame];
-                buffer[i].rightChannel = decodedOpusFrame[offsetIntoOpusFrame];
+                buffer[i].leftChannel += decodedOpusFrame[offsetIntoOpusFrame];
+                buffer[i].rightChannel += decodedOpusFrame[offsetIntoOpusFrame];
                 ++offsetIntoOpusFrame;
             } else
             {
-                buffer[i].leftChannel = decodedOpusFrame[offsetIntoOpusFrame];
+                buffer[i].leftChannel += decodedOpusFrame[offsetIntoOpusFrame];
                 ++offsetIntoOpusFrame;
-                buffer[i].rightChannel = decodedOpusFrame[offsetIntoOpusFrame];
+                buffer[i].rightChannel += decodedOpusFrame[offsetIntoOpusFrame];
                 ++offsetIntoOpusFrame;
             }
+            ++totalOffset;
             ++frames;
         }
         return frames;
@@ -81,15 +82,6 @@ private:
 
         offsetIntoRawOpus += opusPacketSize;
         offsetIntoOpusFrame = 0;
-    }
-
-    void FillZeros(int count,  Frame<sampleType>* buffer)
-    {
-        for(int i = 0; i < count; ++i)
-        {
-            buffer[i].leftChannel = 0;
-            buffer[i].rightChannel = 0;
-        }
     }
 
     SoundData data;

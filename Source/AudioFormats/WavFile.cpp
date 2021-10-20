@@ -200,7 +200,7 @@ int WavFile::GetDataAsOpus(char* buffer)
     //TODO Have more than one chunk per OggS
     int offset = 0;
     int readOffset = 0;
-    while(readOffset <= dataSize - (EncodeSize * 3))
+    while(readOffset <= dataSize - ((EncodeSize * 4) + 8))
     {
         int size = encoder.Encode(reinterpret_cast<short*>(buffer + readOffset), EncodeSize, writeBuffer, EncodeSize * 2);
         readOffset += EncodeSize * 4;

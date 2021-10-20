@@ -20,7 +20,9 @@ set(ISE_SOURCES
   "IO/MemoryMappedFile.h"
   "ErrorList.h"
   "SoundData.h"
-)
+  "Events/Event.h"
+  "Events/Event.cpp"
+  "AudioFrame.h" AudioPackage/PackageManager.cpp AudioPackage/PackageManager.h Events/EventManager.cpp Events/EventManager.h)
 
 # append platform specific sources
 if (OS_Windows)

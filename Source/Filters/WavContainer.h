@@ -11,31 +11,49 @@
 #ifndef I_SOUND_ENGINE_WAVCONTAINER_H
 #define I_SOUND_ENGINE_WAVCONTAINER_H
 
+#include "SoundData.h"
 #include "SoundContainer.h"
-#include <memory>
-
 
 template<typename sampleType>
 class WavContainer : public SoundContainer<sampleType>
 {
 public:
-    WavContainer(const std::unique_ptr<sampleType*>, ChannelType type) : index(0), channelType(type)
+    WavContainer(SoundData& data) : index(0), data(data)
     {
-
+        totalOffset = 0;
     }
 
     // Fully contaioned sound object
     //WavContainer()
 
 
-    Sample<sampleType> GetNextSample()
+    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer) override
     {
-        return 0.0f;
-    }
+        int frames = 0;
+        for(int i = 0; i < numSamples; ++i)
+        {
+            if(index >= data.sampleCount)
+            {
+                this->FillZeros(numSamples - i, buffer + i);
+                return frames;
+            }
 
-    Sample<sampleType> GetSampleFromOffset(int offset)
-    {
-        return 0.0f;
+            if (data.channels == ChannelType::Mono)
+            {
+                buffer[i].leftChannel += data.data[totalOffset];
+                buffer[i].rightChannel += data.data[totalOffset];
+                ++totalOffset;
+            } else
+            {
+                buffer[i].leftChannel += data.data[totalOffset];
+                ++totalOffset;
+                buffer[i].rightChannel += data.data[totalOffset];
+                ++totalOffset;
+            }
+            ++index;
+            ++frames;
+        }
+        return frames;
     }
 
     void Seek(int position)
@@ -45,7 +63,8 @@ public:
 
 private:
     int index;
-    ChannelType channelType;
+    int totalOffset = 0;
+    SoundData data;
 };
 
 #endif //I_SOUND_ENGINE_WAVCONTAINER_H
