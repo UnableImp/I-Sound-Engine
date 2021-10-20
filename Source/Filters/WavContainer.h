@@ -18,7 +18,7 @@ template<typename sampleType>
 class WavContainer : public SoundContainer<sampleType>
 {
 public:
-    WavContainer(SoundData& data) : index(0), data(data)
+    WavContainer(SoundData& data) : data(data)
     {
         totalOffset = 0;
     }
@@ -32,7 +32,7 @@ public:
         int frames = 0;
         for(int i = 0; i < numSamples; ++i)
         {
-            if(index >= data.sampleCount)
+            if(totalOffset >= data.sampleCount)
             {
                 this->FillZeros(numSamples - i, buffer + i);
                 return frames;
@@ -40,17 +40,16 @@ public:
 
             if (data.channels == ChannelType::Mono)
             {
-                buffer[i].leftChannel += data.data[totalOffset];
-                buffer[i].rightChannel += data.data[totalOffset];
+                buffer[i].leftChannel += reinterpret_cast<float *>(data.data)[totalOffset];
+                buffer[i].rightChannel += reinterpret_cast<float *>(data.data)[totalOffset];
                 ++totalOffset;
             } else
             {
-                buffer[i].leftChannel += data.data[totalOffset];
+                buffer[i].leftChannel += reinterpret_cast<float *>(data.data)[totalOffset];
                 ++totalOffset;
-                buffer[i].rightChannel += data.data[totalOffset];
+                buffer[i].rightChannel += reinterpret_cast<float *>(data.data)[totalOffset];
                 ++totalOffset;
             }
-            ++index;
             ++frames;
         }
         return frames;
@@ -62,7 +61,6 @@ public:
     }
 
 private:
-    int index;
     int totalOffset = 0;
     SoundData data;
 };

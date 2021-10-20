@@ -11,6 +11,7 @@ template<typename sampleType>
 class Filter
 {
 public:
+    virtual ~Filter() {}
     /*!
      * Fills a buffer with audio samples, if no audio data is available zeros are filled
      * @param numSamples Number of samples to fill buffer with

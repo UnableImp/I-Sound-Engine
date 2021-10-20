@@ -31,7 +31,7 @@ static void addFile(std::vector<WavFile> &vec, std::string fileName, T... files)
 }
 
 template<typename... T>
-void BuildPackageAllPCM(char* outName, T... toRead)
+void BuildPackageAllPCM(const char* outName, T... toRead)
 {
     //--------------------------------------------------
     // ENCODING
@@ -51,7 +51,7 @@ void BuildPackageAllPCM(char* outName, T... toRead)
 }
 
 template<typename... T>
-void BuildPackageAllOpus(char* outName, T... toRead)
+void BuildPackageAllOpus(const char* outName, T... toRead)
 {
     //--------------------------------------------------
     // ENCODING
@@ -71,7 +71,7 @@ void BuildPackageAllOpus(char* outName, T... toRead)
 }
 
 template<typename... T>
-void BuildPackageAlternating(char * outName, T... toRead)
+void BuildPackageAlternating(const char * outName, T... toRead)
 {
     //--------------------------------------------------
     // ENCODING
@@ -90,7 +90,7 @@ void BuildPackageAlternating(char * outName, T... toRead)
     ASSERT_TRUE(encoder.WritePackage(outName) == ErrorNum::NoErrors);
 }
 
-void SumAllInPackage(char* packageName, char* outFileName)
+void SumAllInPackage(const char* packageName, const char* outFileName)
 {
     IO::MemoryMappedFile package(packageName);
     std::unordered_map<uint64_t, SoundData> data;
@@ -100,31 +100,32 @@ void SumAllInPackage(char* packageName, char* outFileName)
 
     unsigned largestSize = 0;
 
-    for(auto iter = data.begin(); iter != data.end(); ++iter)
+    Filter<float> *filter = nullptr;
+
+    for (auto iter = data.begin(); iter != data.end(); ++iter)
     {
         largestSize = std::max(iter->second.sampleCount, largestSize);
-        if(iter->second.audioType == Encoding::PCM)
+        if (iter->second.audioType == Encoding::PCM)
         {
-            WavContainer<float>* wavContainer = new WavContainer<float>(iter->second);
-            eventManager.AddEvent(wavContainer);
-        }
-        else
+            filter = new WavContainer<float>(iter->second);
+            eventManager.AddEvent(filter);
+        } else
         {
-            OpusContainer<float>* opusContainer = new OpusContainer<float>(iter->second);
-            eventManager.AddEvent(opusContainer);
+            filter = new OpusContainer<float>(iter->second);
+            eventManager.AddEvent(filter);
         }
     }
 
     WavFile wav("TestFiles/level.wav");
     std::fstream tesConvert(outFileName, std::ios_base::binary | std::ios_base::out);
-    RiffHeader riffHeader{{'R','I','F','F'},
+    RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
                           0,
-                          {'W','A','V','E'}};
-    tesConvert.write(reinterpret_cast<char*>(&riffHeader), sizeof(riffHeader));
-    tesConvert.write(reinterpret_cast<const char*>(&wav.GetFormat()), sizeof(FormatHeader));
-    GenericHeaderChunk dataChunk{{'d', 'a','t','a'}, wav.GetDataSize()};
+                          {'W', 'A', 'V', 'E'}};
+    tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConvert.write(reinterpret_cast<const char *>(&wav.GetFormat()), sizeof(FormatHeader));
+    GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
     dataChunk.chunkSize = wav.GetDataSize();
-    tesConvert.write(reinterpret_cast<char*>(&dataChunk), sizeof(dataChunk));
+    tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
     //tesConvert.write(data[0].data, wav.GetDataSize());
 
@@ -132,25 +133,19 @@ void SumAllInPackage(char* packageName, char* outFileName)
 //    wav.GetDataInNativeType(correctData);
 //    tesConvert.write(correctData, wav.GetDataSize());
 
-    for(int i = 0; i < data[0].sampleCount; ++i)
-    {
-        short right = static_cast<short>(data[0].data[i] * (1<<15));
-
-        tesConvert.write(reinterpret_cast<char*>(&right), sizeof(short));
-    }
-
-
     int samples = 0;
     do
     {
-        Frame<float> frame = {0,0};
+        Frame<float> frame = {0, 0};
         samples = eventManager.GetSamplesFromAllEvents(1, &frame);
-        short right = static_cast<short>(frame.rightChannel * (1<<15));
-        short left = static_cast<short>(frame.leftChannel * (1<<15));
+        short right = static_cast<short>(frame.rightChannel * (1 << 15));
+        short left = static_cast<short>(frame.leftChannel * (1 << 15));
 
-        //tesConvert.write(reinterpret_cast<char*>(&left), sizeof(short));
-        //tesConvert.write(reinterpret_cast<char*>(&right), sizeof(short));
-    }while(samples > 0);
+        tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
+        tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
+    } while (samples > 0);
+
+    delete filter;
 }
 
 TEST(Events, WavPlayback)
@@ -165,11 +160,22 @@ TEST(Events, OpusPlayback)
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventOpusSum.wav");
 }
 
+TEST(Events, SumTwoWavPlayback)
+{
+    BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
+    SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventWavSum2.wav");
+}
+
 TEST(Events, SumTwoOpusPlayback)
 {
     BuildPackageAllOpus("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventOpusSum2.wav");
 }
 
+TEST(Events, SumTwoBothPlayback)
+{
+    BuildPackageAlternating("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
+    SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventBothSum2.wav");
+}
 
 #endif //I_SOUND_ENGINE_EVENTMODULE_H
