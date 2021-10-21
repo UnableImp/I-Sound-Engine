@@ -9,7 +9,7 @@
 #include "Filters/Filter.h"
 #include <unordered_map>
 
-constexpr int buffSize =  1024  ;
+constexpr int buffSize =  1024;
 
 class EventManager
 {

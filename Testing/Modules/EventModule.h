@@ -31,7 +31,7 @@ static void addFile(std::vector<WavFile> &vec, std::string fileName, T... files)
 }
 
 template<typename... T>
-void BuildPackageAllPCM(const char* outName, T... toRead)
+static void BuildPackageAllPCM(const char* outName, T... toRead)
 {
     //--------------------------------------------------
     // ENCODING
@@ -51,7 +51,7 @@ void BuildPackageAllPCM(const char* outName, T... toRead)
 }
 
 template<typename... T>
-void BuildPackageAllOpus(const char* outName, T... toRead)
+static void BuildPackageAllOpus(const char* outName, T... toRead)
 {
     //--------------------------------------------------
     // ENCODING
@@ -71,7 +71,7 @@ void BuildPackageAllOpus(const char* outName, T... toRead)
 }
 
 template<typename... T>
-void BuildPackageAlternating(const char * outName, T... toRead)
+static  void BuildPackageAlternating(const char * outName, T... toRead)
 {
     //--------------------------------------------------
     // ENCODING
@@ -90,7 +90,7 @@ void BuildPackageAlternating(const char * outName, T... toRead)
     ASSERT_TRUE(encoder.WritePackage(outName) == ErrorNum::NoErrors);
 }
 
-void SumAllInPackage(const char* packageName, const char* outFileName)
+static void SumAllInPackage(const char* packageName, const char* outFileName)
 {
     IO::MemoryMappedFile package(packageName);
     std::unordered_map<uint64_t, SoundData> data;

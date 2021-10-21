@@ -22,7 +22,7 @@ set(ISE_SOURCES
   "SoundData.h"
   "Events/Event.h"
   "Events/Event.cpp"
-  "AudioFrame.h" AudioPackage/PackageManager.cpp AudioPackage/PackageManager.h Events/EventManager.cpp Events/EventManager.h)
+  "AudioFrame.h" AudioPackage/PackageManager.cpp AudioPackage/PackageManager.h Events/EventManager.cpp Events/EventManager.h RealTimeAudio/RealTimeAudio.cpp RealTimeAudio/RealTimeAudio.h)
 
 # append platform specific sources
 if (OS_Windows)
@@ -39,4 +39,4 @@ endif()
 
 add_library(ISoundEngine ${ISE_SOURCES})
 target_include_directories(ISoundEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(ISoundEngine opus)
+target_link_libraries(ISoundEngine opus PortAudio)

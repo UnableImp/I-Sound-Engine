@@ -8,6 +8,7 @@
 EventManager::EventManager() : eventID(100000)
 {}
 
+
 int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
 {
     // Clear entire  buffer, no need for any input data
@@ -42,9 +43,12 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
         }
         generated += samplesToGet;
     }
-    for(int i = 0; i < numSamples; ++i)
+    if(events.size())
     {
-        buffer[i] /= static_cast<int>(events.size());
+        for (int i = 0; i < numSamples; ++i)
+        {
+            buffer[i] /= static_cast<int>(events.size());
+        }
     }
     return totalSamplesGenerated;
 }

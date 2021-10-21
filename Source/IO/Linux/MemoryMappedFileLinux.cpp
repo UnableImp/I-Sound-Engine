@@ -6,7 +6,7 @@
 #include <fcntl.h>
 
 #include "IO/IOUtility.h"
-#include <cassert>
+#include <cassert>EncodeSimpleWav
 
 namespace IO
 {

@@ -7,4 +7,6 @@
 [submodule "Libraries/benchmark"]
 	path = Libraries/benchmark
 	url = git@github.com:alisenai/benchmark.git
-
+[submodule "Libraries/portaudio"]
+	path = Libraries/portaudio
+	url = git@github.com:PortAudio/portaudio.git
