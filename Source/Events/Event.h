@@ -13,6 +13,8 @@ class Event
 {
 public:
 
+    ~Event();
+
     void AddFilter(Filter<float>* filter);
 
     int GetSamples(int numSamples, Frame<float>* frame);

@@ -219,7 +219,7 @@ static void readEventFromBuffer(benchmark::State& state, int bufSize)
 
     Frame<float>* buf = new Frame<float>[bufSize];
 
-    SumAllInPackageNoFileIo(data, buf, bufSize);
+    //SumAllInPackageNoFileIo(data, buf, bufSize);
 
     for (auto _ : state)
     {

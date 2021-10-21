@@ -4,6 +4,15 @@
 
 #include "Event.h"
 
+Event::~Event()
+{
+    for(auto& filter : filters)
+    {
+        delete filter;
+        filter = nullptr;
+    }
+}
+
 void Event::AddFilter(Filter<float>* filter)
 {
     filters.push_back(filter);
