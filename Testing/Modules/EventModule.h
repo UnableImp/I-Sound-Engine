@@ -144,8 +144,6 @@ static void SumAllInPackage(const char* packageName, const char* outFileName)
         tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
         tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
     } while (samples > 0);
-
-    delete filter;
 }
 
 void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Frame<float>* buf, int bufSize)
