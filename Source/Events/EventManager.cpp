@@ -18,7 +18,7 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     int generated = 0;
     while(numSamples - generated > 0)
     {
-        int samplesToGet = numSamples > 32 ?  32 : numSamples;
+        int samplesToGet = numSamples;
         for(auto iter = events.begin(); iter != events.end(); ++iter)
         {
             // Clear local buffer for filters to use as needed
@@ -29,7 +29,7 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
 
             for(int i = 0; i < samplesToGet; ++i)
             {
-                buffer[i + generated] += (localBuffer[i] / events.size());
+                buffer[i + generated] += (localBuffer[i]);
             }
 
             if(indexesFilled == 0)
@@ -41,6 +41,10 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
             }
         }
         generated += samplesToGet;
+    }
+    for(int i = 0; i < numSamples; ++i)
+    {
+        buffer[i] /= static_cast<int>(events.size());
     }
     return totalSamplesGenerated;
 }

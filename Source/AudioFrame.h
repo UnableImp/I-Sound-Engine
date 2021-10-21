@@ -25,5 +25,19 @@ struct Frame
         return value;
     }
 
+    Frame<sampleType>& operator/=(Frame<sampleType>& rhs)
+    {
+        leftChannel /= rhs.leftChannel;
+        rightChannel /= rhs.rightChannel;
+        return *this;
+    }
+
+    Frame<sampleType>& operator/=(int rhs)
+    {
+        leftChannel /= rhs;
+        rightChannel /= rhs;
+        return *this;
+    }
+
 };
 #endif //I_SOUND_ENGINE_AUDIOFRAME_H
