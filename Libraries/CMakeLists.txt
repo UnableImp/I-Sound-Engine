@@ -1,4 +1,3 @@
-set(PA_DLL_LINK_WITH_STATIC_RUNTIME OFF)
 add_subdirectory(portaudio)
 add_subdirectory(Opus)
 add_subdirectory(googletest)

@@ -242,6 +242,79 @@ TEST(EventParser, EventFromNameWav)
     simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav");
 }
 
+TEST(EventParser, EventFromIdOpus)
+{
+    BuildPackageAllOpus("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    eventManager.ParseEvents("TestFiles/EventLevelOpus.json");
+    eventManager.AddEvent((uint64_t)10);
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventOpus.wav");
+}
+
+TEST(EventParser, EventFromStringOpus)
+{
+    BuildPackageAllOpus("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    eventManager.ParseEvents("TestFiles/EventLevelOpus.json");
+    eventManager.AddEvent("Play_Level");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventOpus.wav");
+}
+
+TEST(EventParser, EventFromIDBoth)
+{
+    BuildPackageAlternating("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
+    eventManager.AddEvent((uint64_t)10);
+    eventManager.AddEvent((uint64_t)11);
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
+}
+
+TEST(EventParser, EventFromStringBoth)
+{
+    BuildPackageAlternating("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
+    eventManager.AddEvent("Play_Level");
+    eventManager.AddEvent("Play_Credit");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
+}
+
+TEST(EventParser, EventFromMixBoth)
+{
+    BuildPackageAlternating("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
+    eventManager.AddEvent((uint64_t)10);
+    eventManager.AddEvent("Play_Credit");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
+}
+
 static void readEventFromBuffer(benchmark::State& state, int bufSize)
 {
     BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/Slash2.wav");

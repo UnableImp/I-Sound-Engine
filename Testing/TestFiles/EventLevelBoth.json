@@ -1,0 +1,16 @@
+{
+  "Play_Level": {
+    "ID": 10,
+    "OpusContainer": {
+      "PlayID": 0,
+      "Volume": 1
+    }
+  },
+  "Play_Credit": {
+    "ID": 11,
+    "WavContainer": {
+      "PlayID": 1,
+      "Volume": 1
+    }
+  }
+}

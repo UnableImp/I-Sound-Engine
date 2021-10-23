@@ -35,10 +35,11 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
 
             if(indexesFilled == 0)
             {
-                delete iter->second;
-                iter = events.erase(iter);
-                if (iter == events.end())
-                    break;
+                //TODO
+//                delete iter->second;
+//                iter = events.erase(iter);
+//                if (iter == events.end())
+//                    break;
             }
         }
         generated += samplesToGet;

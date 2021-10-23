@@ -8,6 +8,7 @@
 #include "rapidjson/filereadstream.h"
 #include <cstdio>
 #include "FilterParsers/DeserializedPCM.h"
+#include "FilterParsers/DeserializedOpus.h"
 #include "Event.h"
 
 constexpr const char* id = "id";
@@ -40,6 +41,10 @@ void EventParser::ParseEvents(const std::string& path)
             if(std::string("WavContainer") == filter->name.GetString())
             {
                 IdToEvent[eventID].push_back(new DeserializedPCM(filter->value));
+            }
+            if(std::string("OpusContainer") == filter->name.GetString())
+            {
+                IdToEvent[eventID].push_back(new DeserializedOpus(filter->value));
             }
         }
     }
