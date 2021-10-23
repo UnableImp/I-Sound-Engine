@@ -10,3 +10,6 @@
 [submodule "Libraries/portaudio"]
 	path = Libraries/portaudio
 	url = git@github.com:PortAudio/portaudio.git
+[submodule "Libraries/rapidjson"]
+	path = Libraries/rapidjson
+	url = git@github.com:Tencent/rapidjson.git

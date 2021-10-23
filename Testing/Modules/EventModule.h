@@ -90,32 +90,8 @@ static  void BuildPackageAlternating(const char * outName, T... toRead)
     ASSERT_TRUE(encoder.WritePackage(outName) == ErrorNum::NoErrors);
 }
 
-static void SumAllInPackage(const char* packageName, const char* outFileName)
+static void simulateEventManager(EventManager& eventManager, const char* outFileName)
 {
-    IO::MemoryMappedFile package(packageName);
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
-
-    EventManager eventManager;
-
-    unsigned largestSize = 0;
-
-    Filter<float> *filter = nullptr;
-
-    for (auto iter = data.begin(); iter != data.end(); ++iter)
-    {
-        largestSize = std::max(iter->second.sampleCount, largestSize);
-        if (iter->second.audioType == Encoding::PCM)
-        {
-            filter = new WavContainer<float>(iter->second);
-            eventManager.AddEvent(filter);
-        } else
-        {
-            filter = new OpusContainer<float>(iter->second);
-            eventManager.AddEvent(filter);
-        }
-    }
-
     WavFile wav("TestFiles/level.wav");
     std::fstream tesConvert(outFileName, std::ios_base::binary | std::ios_base::out);
     RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
@@ -146,9 +122,38 @@ static void SumAllInPackage(const char* packageName, const char* outFileName)
     } while (samples > 0);
 }
 
+static void SumAllInPackage(const char* packageName, const char* outFileName)
+{
+    IO::MemoryMappedFile package(packageName);
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    unsigned largestSize = 0;
+
+    Filter<float> *filter = nullptr;
+
+    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    {
+        largestSize = std::max(iter->second.sampleCount, largestSize);
+        if (iter->second.audioType == Encoding::PCM)
+        {
+            filter = new WavContainer<float>(iter->second);
+            eventManager.AddEvent(filter);
+        } else
+        {
+            filter = new OpusContainer<float>(iter->second);
+            eventManager.AddEvent(filter);
+        }
+    }
+
+    simulateEventManager(eventManager, outFileName);
+}
+
 void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Frame<float>* buf, int bufSize)
 {
-    EventManager eventManager;
+    EventManager eventManager(data);
 
     unsigned largestSize = 0;
 
@@ -175,8 +180,9 @@ void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Fram
     {
         eventManager.GetSamplesFromAllEvents(bufSize, buf);
     }
-
 }
+
+
 
 TEST(Events, WavPlayback)
 {
@@ -206,6 +212,34 @@ TEST(Events, SumTwoBothPlayback)
 {
     BuildPackageAlternating("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventBothSum2.wav");
+}
+
+TEST(EventParser, EventFromIDWav)
+{
+    BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    eventManager.ParseEvents("TestFiles/EventLevel.json");
+    eventManager.AddEvent((uint64_t)10);
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav");
+}
+
+TEST(EventParser, EventFromNameWav)
+{
+    BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    eventManager.ParseEvents("TestFiles/EventLevel.json");
+    eventManager.AddEvent("Play_Level");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav");
 }
 
 static void readEventFromBuffer(benchmark::State& state, int bufSize)

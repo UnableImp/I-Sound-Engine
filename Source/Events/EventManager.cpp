@@ -5,7 +5,7 @@
 #include "EventManager.h"
 #include "cstring"
 
-EventManager::EventManager() : eventID(100000)
+EventManager::EventManager(std::unordered_map<uint64_t, SoundData>& soundData) : eventID(100000), soundData(soundData)
 {}
 
 
@@ -51,4 +51,23 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
         }
     }
     return totalSamplesGenerated;
+}
+
+void EventManager::ParseEvents(const std::string& path)
+{
+    eventParser.ParseEvents(path);
+}
+
+int EventManager::AddEvent(uint64_t id)
+{
+    Event* event;
+    eventParser.GetEvent(id, &event, soundData);
+    return AddEvent(event);
+}
+
+int EventManager::AddEvent(const std::string& name)
+{
+    Event* event;
+    eventParser.GetEvent(name, &event, soundData);
+    return AddEvent(event);
 }

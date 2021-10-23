@@ -62,7 +62,7 @@ public:
 
 private:
     int totalOffset = 0;
-    SoundData data;
+    SoundData& data;
 };
 
 #endif //I_SOUND_ENGINE_WAVCONTAINER_H

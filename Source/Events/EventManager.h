@@ -8,13 +8,14 @@
 #include "Event.h"
 #include "Filters/Filter.h"
 #include <unordered_map>
+#include "EventParser.h"
 
 constexpr int buffSize =  1024;
 
 class EventManager
 {
 public:
-    EventManager();
+    EventManager(std::unordered_map<uint64_t, SoundData>& soundData);
 
     /*!
      * TEMPERARY untill a json or such system is set up to read events from
@@ -28,6 +29,11 @@ public:
         Event* newEvent = new Event();
         return AddEvent(newEvent, filter, filters...);
     }
+
+    int AddEvent(uint64_t id);
+    int AddEvent(const std::string& name);
+
+    void ParseEvents(const std::string& path);
 
     /*!
      * Fills buffer with data from  all data
@@ -55,7 +61,9 @@ private:
 
     int eventID;
     std::unordered_map<int, Event*> events; //!< TODO  MAKE THREAD SAFE
+    std::unordered_map<uint64_t, SoundData>& soundData;
     Frame<float> localBuffer[buffSize];
+    EventParser eventParser;
 };
 
 
