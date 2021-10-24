@@ -20,7 +20,7 @@ jobs:
         submodules: recursive
         lfs: 'true'
 
-    -name: Install Audio
+    - name: Install Audio
       run: sudo apt install -y libasound-dev
 
     - name: Configure CMake Debug
