@@ -1,4 +1,7 @@
-set(BUILD_SHARED_LIBS OFF)
+if (OS_Windows)
+    set(BUILD_SHARED_LIBS OFF)
+endif()
+
 add_subdirectory(portaudio)
 add_subdirectory(Opus)
 add_subdirectory(googletest)
