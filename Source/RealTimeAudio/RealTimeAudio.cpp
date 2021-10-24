@@ -38,7 +38,7 @@ RealTimeAudio::RealTimeAudio(EventManager& eventManager) : eventManager(eventMan
         return;
     m_output_params.channelCount = 2;
     m_output_params.sampleFormat = paFloat32;
-    m_output_params.suggestedLatency = Pa_GetDeviceInfo(m_output_params.device)->defaultLowOutputLatency;
+    m_output_params.suggestedLatency = 2*Pa_GetDeviceInfo(m_output_params.device)->defaultLowOutputLatency;
     m_output_params.hostApiSpecificStreamInfo = 0;
 }
 
