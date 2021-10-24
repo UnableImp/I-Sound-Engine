@@ -1,3 +1,4 @@
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(portaudio)
 add_subdirectory(Opus)
 add_subdirectory(googletest)

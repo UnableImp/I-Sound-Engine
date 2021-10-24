@@ -61,7 +61,7 @@ static void playSound(char* soundName)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager;
+    EventManager eventManager(data);
 
     unsigned largestSize = 0;
 
