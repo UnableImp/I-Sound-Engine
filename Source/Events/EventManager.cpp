@@ -17,10 +17,11 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     int totalSamplesGenerated = 0;
 
     int generated = 0;
-    while(numSamples - generated > 0)
+    while (numSamples - generated > 0)
     {
         int samplesToGet = numSamples;
-        for(auto iter = events.begin(); iter != events.end(); ++iter)
+        auto iter = events.begin();
+        while(iter != events.end())
         {
             // Clear local buffer for filters to use as needed
             memset(localBuffer, 0, samplesToGet * sizeof(Frame<float>));
@@ -28,22 +29,24 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
             int indexesFilled = iter->second->GetSamples(samplesToGet, localBuffer);
             totalSamplesGenerated += indexesFilled;
 
-            for(int i = 0; i < samplesToGet; ++i)
+            for (int i = 0; i < samplesToGet; ++i)
             {
                 buffer[i + generated] += (localBuffer[i]);
             }
 
-            if(indexesFilled == 0)
+            if (indexesFilled == 0)
             {
                 delete iter->second;
                 iter = events.erase(iter);
                 if (iter == events.end())
                     break;
+                continue;
             }
+            ++iter;
         }
         generated += samplesToGet;
     }
-    if(events.size())
+    if (events.size())
     {
         for (int i = 0; i < numSamples; ++i)
         {
