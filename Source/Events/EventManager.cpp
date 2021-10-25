@@ -35,11 +35,10 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
 
             if(indexesFilled == 0)
             {
-                //TODO
-//                delete iter->second;
-//                iter = events.erase(iter);
-//                if (iter == events.end())
-//                    break;
+                delete iter->second;
+                iter = events.erase(iter);
+                if (iter == events.end())
+                    break;
             }
         }
         generated += samplesToGet;
@@ -48,7 +47,8 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     {
         for (int i = 0; i < numSamples; ++i)
         {
-            buffer[i] /= static_cast<int>(events.size());
+            buffer[i].leftChannel = std::min(buffer[i].leftChannel, 1.0f);
+            buffer[i].rightChannel = std::min(buffer[i].rightChannel, 1.0f);
         }
     }
     return totalSamplesGenerated;

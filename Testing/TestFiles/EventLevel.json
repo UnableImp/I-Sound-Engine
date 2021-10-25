@@ -1,7 +1,7 @@
 {
   "Play_Level": {
     "ID": 10,
-    "WavContainer": {
+    "Sound": {
       "PlayID": 0,
       "Volume": 1
     }
