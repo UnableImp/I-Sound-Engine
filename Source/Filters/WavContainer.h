@@ -27,27 +27,27 @@ public:
     //WavContainer()
 
 
-    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer) override
+    virtual int GetNextSamples(int numSamples, float* left, float* right) override
     {
         int frames = 0;
         for(int i = 0; i < numSamples; ++i)
         {
             if(totalOffset >= data.sampleCount)
             {
-                this->FillZeros(numSamples - i, buffer + i);
+                this->FillZeros(numSamples - i, left + i, right + i);
                 return frames;
             }
 
             if (data.channels == ChannelType::Mono)
             {
-                buffer[i].leftChannel += reinterpret_cast<float *>(data.data)[totalOffset];
-                buffer[i].rightChannel += reinterpret_cast<float *>(data.data)[totalOffset];
+                left[i] += reinterpret_cast<float *>(data.data)[totalOffset];
+                right[i] += reinterpret_cast<float *>(data.data)[totalOffset];
                 ++totalOffset;
             } else
             {
-                buffer[i].leftChannel += reinterpret_cast<float *>(data.data)[totalOffset];
+                left[i] += reinterpret_cast<float *>(data.data)[totalOffset];
                 ++totalOffset;
-                buffer[i].rightChannel += reinterpret_cast<float *>(data.data)[totalOffset];
+                right[i] += reinterpret_cast<float *>(data.data)[totalOffset];
                 ++totalOffset;
             }
             ++frames;

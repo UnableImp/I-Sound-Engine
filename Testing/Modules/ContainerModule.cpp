@@ -84,7 +84,7 @@ void encodeWaveToOggThenWav(const char* inFile, const char* outFileOgg, const ch
     for (int i = 0; i < file.GetDataSize(); i  += 4)
     {
         Frame<float> frame {0,0};
-        filter.GetNextSamples(1, &frame);
+        filter.GetNextSamples(1, &frame.leftChannel, &frame.rightChannel);
         short  left = static_cast<short>(frame.leftChannel * (1 << 15));
         short  right = static_cast<short>(frame.rightChannel * (1 << 15));
 

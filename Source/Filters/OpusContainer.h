@@ -28,14 +28,14 @@ public:
 
     }
 
-    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer) override
+    virtual int GetNextSamples(int numSamples, float* left, float* right) override
     {
         int frames = 0;
         for(int i = 0; i < numSamples; ++i)
         {
             if(totalOffset >= data.sampleCount)
             {
-                this->FillZeros(numSamples - i, buffer + i);
+                this->FillZeros(numSamples - i, left + i, right + i);
                 return frames;
             }
             // Does a new frame need to be decoded
@@ -47,14 +47,14 @@ public:
             // Read samples into output
             if (data.channels == ChannelType::Mono)
             {
-                buffer[i].leftChannel += decodedOpusFrame[offsetIntoOpusFrame];
-                buffer[i].rightChannel += decodedOpusFrame[offsetIntoOpusFrame];
+                left[i] += decodedOpusFrame[offsetIntoOpusFrame];
+                right[i] += decodedOpusFrame[offsetIntoOpusFrame];
                 ++offsetIntoOpusFrame;
             } else
             {
-                buffer[i].leftChannel += decodedOpusFrame[offsetIntoOpusFrame];
+                left[i] += decodedOpusFrame[offsetIntoOpusFrame];
                 ++offsetIntoOpusFrame;
-                buffer[i].rightChannel += decodedOpusFrame[offsetIntoOpusFrame];
+                right[i] += decodedOpusFrame[offsetIntoOpusFrame];
                 ++offsetIntoOpusFrame;
             }
             ++totalOffset;

@@ -24,14 +24,16 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
         while(iter != events.end())
         {
             // Clear local buffer for filters to use as needed
-            memset(localBuffer, 0, samplesToGet * sizeof(Frame<float>));
+            memset(leftLocalBuffer, 0, samplesToGet * sizeof(float));
+            memset(rightLocalBuffer, 0, samplesToGet * sizeof(float));
 
-            int indexesFilled = iter->second->GetSamples(samplesToGet, localBuffer);
+            int indexesFilled = iter->second->GetSamples(samplesToGet, leftLocalBuffer, rightLocalBuffer);
             totalSamplesGenerated += indexesFilled;
 
             for (int i = 0; i < samplesToGet; ++i)
             {
-                buffer[i + generated] += (localBuffer[i]);
+                buffer[i + generated].leftChannel += leftLocalBuffer[i];
+                buffer[i + generated].rightChannel += rightLocalBuffer[i];
             }
 
             if (indexesFilled == 0)

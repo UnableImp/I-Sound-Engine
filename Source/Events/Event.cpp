@@ -18,12 +18,12 @@ void Event::AddFilter(Filter<float>* filter)
     filters.push_back(filter);
 }
 
-int Event::GetSamples(int numSamples, Frame<float> *frame)
+int Event::GetSamples(int numSamples, float* left, float* right)
 {
     int dataAdded = 0;
     for(auto& filter: filters)
     {
-        dataAdded += filter->GetNextSamples(numSamples, frame);
+        dataAdded += filter->GetNextSamples(numSamples, left, right);
     }
     return dataAdded;
 }

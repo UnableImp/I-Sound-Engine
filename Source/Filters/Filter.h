@@ -18,7 +18,7 @@ public:
      * @param buffer Buffer to fill
      * @return Number of samples filled
      */
-    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer) = 0;
+    virtual int GetNextSamples(int numSamples, float* left, float* right) = 0;
 };
 
 #endif //I_SOUND_ENGINE_FILTER_H

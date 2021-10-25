@@ -17,7 +17,7 @@ public:
 
     void AddFilter(Filter<float>* filter);
 
-    int GetSamples(int numSamples, Frame<float>* frame);
+    int GetSamples(int numSamples, float* left, float* right);
 private:
     std::vector<Filter<float> *> filters;
 };

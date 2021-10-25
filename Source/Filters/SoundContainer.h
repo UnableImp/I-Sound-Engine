@@ -45,7 +45,7 @@ public:
      * @param buffer Buffer to fill
      * @return Number of samples filled
      */
-    virtual int GetNextSamples(int numSamples, Frame<sampleType>* buffer) override { return 0;}
+    virtual int GetNextSamples(int numSamples, float* left, float* right) override { return 0;}
 
     /*!
      * Gets a sample from current position to offset based on play back speed
@@ -85,12 +85,12 @@ public:
     //virtural const storageType& GetAllSamples()      = 0;
 
 protected:
-    void FillZeros(int count,  Frame<sampleType>* buffer)
+    void FillZeros(int count,  float* left, float* right)
     {
         for(int i = 0; i < count; ++i)
         {
-            buffer[i].leftChannel = 0;
-            buffer[i].rightChannel = 0;
+            left[i] = 0;
+            right[i] = 0;
         }
     }
 

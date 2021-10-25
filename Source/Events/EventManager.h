@@ -62,7 +62,11 @@ private:
     int eventID;
     std::unordered_map<int, Event*> events; //!< TODO  MAKE THREAD SAFE
     std::unordered_map<uint64_t, SoundData>& soundData;
-    Frame<float> localBuffer[buffSize];
+
+    float leftLocalBuffer[buffSize];
+    float rightLocalBuffer[buffSize];
+
+    //Frame<float> localBuffer[buffSize];
     EventParser eventParser;
 };
 
