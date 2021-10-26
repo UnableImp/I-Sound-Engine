@@ -26,7 +26,7 @@ public:
     template<typename... T>
     int AddEvent(Filter<float>* filter, T... filters)
     {
-        Event* newEvent = new Event();
+        ISoundEngine::Event* newEvent = new ISoundEngine::Event();
         return AddEvent(newEvent, filter, filters...);
     }
 
@@ -46,13 +46,13 @@ public:
 private:
 
     template<typename... T>
-    int AddEvent(Event* event, Filter<float>* filter, T... filters)
+    int AddEvent(ISoundEngine::Event* event, Filter<float>* filter, T... filters)
     {
         event->AddFilter(filter);
         return AddEvent(event, filters...);
     }
 
-    int AddEvent(Event* event)
+    int AddEvent(ISoundEngine::Event* event)
     {
         ++eventID;
         events[eventID] = event;
@@ -60,7 +60,7 @@ private:
     }
 
     int eventID;
-    std::unordered_map<int, Event*> events; //!< TODO  MAKE THREAD SAFE
+    std::unordered_map<int, ISoundEngine::Event*> events; //!< TODO  MAKE THREAD SAFE
     std::unordered_map<uint64_t, SoundData>& soundData;
 
     float leftLocalBuffer[buffSize];

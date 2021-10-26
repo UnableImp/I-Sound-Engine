@@ -66,14 +66,14 @@ void EventManager::ParseEvents(const std::string& path)
 
 int EventManager::AddEvent(uint64_t id)
 {
-    Event* event;
+    ISoundEngine::Event* event;
     eventParser.GetEvent(id, &event, soundData);
     return AddEvent(event);
 }
 
 int EventManager::AddEvent(const std::string& name)
 {
-    Event* event;
+    ISoundEngine::Event* event;
     eventParser.GetEvent(name, &event, soundData);
     return AddEvent(event);
 }

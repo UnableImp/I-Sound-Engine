@@ -22,6 +22,6 @@ endif ()
 endif()
 
 add_subdirectory(Libraries)
-enable_testing()
+#enable_testing()
 add_subdirectory(Source)
-add_subdirectory(Testing)
+#add_subdirectory(Testing)
