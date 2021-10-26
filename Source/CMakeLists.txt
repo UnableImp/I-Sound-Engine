@@ -22,7 +22,7 @@ set(ISE_SOURCES
   "SoundData.h"
   "Events/Event.h"
   "Events/Event.cpp"
-  "AudioFrame.h" AudioPackage/PackageManager.cpp AudioPackage/PackageManager.h Events/EventManager.cpp Events/EventManager.h RealTimeAudio/RealTimeAudio.cpp RealTimeAudio/RealTimeAudio.h Events/EventParser.cpp Events/EventParser.h Events/FilterParsers/DeserializeFilter.h Events/FilterParsers/DeserializedSound.cpp Events/FilterParsers/DeserializedSound.h)
+  "AudioFrame.h" AudioPackage/PackageManager.cpp AudioPackage/PackageManager.h Events/EventManager.cpp Events/EventManager.h RealTimeAudio/RealTimeAudio.cpp RealTimeAudio/RealTimeAudio.h Events/EventParser.cpp Events/EventParser.h Events/FilterParsers/DeserializeFilter.h Events/FilterParsers/DeserializedSound.cpp Events/FilterParsers/DeserializedSound.h Interface/ISoundEngine.cpp Interface/ISoundEngine.h)
 
 # append platform specific sources
 if (OS_Windows)

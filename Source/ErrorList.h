@@ -14,7 +14,8 @@ enum ErrorNum
     UnsportedFile,
     OpusError,
     EventNotFound,
-    SoundNotLoaded
+    SoundNotLoaded,
+    PackageNotLoaded
 };
 
 #endif //I_SOUND_ENGINE_ERRORLIST_H
