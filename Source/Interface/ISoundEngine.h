@@ -8,8 +8,7 @@
 #include "AudioPackage/PackageManager.h"
 #include "Events/EventManager.h"
 #include "RealTimeAudio/RealTimeAudio.h"
-namespace ISoundEngine
-{
+
 class ISoundEngine
 {
 public:
@@ -80,5 +79,5 @@ private:
     RealTimeAudio realTimeAudio;
 };
 
-}
+
 #endif //I_SOUND_ENGINE_ISOUNDENGINE_H

@@ -4,10 +4,9 @@
 
 #include "ISoundEngine.h"
 
-namespace ISoundEngine
-{
 ISoundEngine::ISoundEngine() : packageManager(), eventManager(packageManager.GetSounds()), realTimeAudio(eventManager)
 {
+
 }
 
 ErrorNum ISoundEngine::Init()
@@ -19,7 +18,7 @@ ErrorNum ISoundEngine::Init()
 ErrorNum ISoundEngine::Update()
 {
     // TODO switch events to be buffer baised
-    return NoErrors;
+    return  NoErrors;
 }
 
 ErrorNum ISoundEngine::Shutdown()
@@ -32,7 +31,7 @@ ErrorNum ISoundEngine::LoadPackage(std::string path)
 {
     return packageManager.LoadPack(path);
 }
-    //
+
 ErrorNum ISoundEngine::UnloadPackage(std::string path)
 {
     return packageManager.UnloadPack(path);
@@ -58,5 +57,4 @@ uint64_t ISoundEngine::PostEvent(std::string eventName)
 uint64_t ISoundEngine::PostEvent(uint64_t id)
 {
     return eventManager.AddEvent(id);
-}
 }

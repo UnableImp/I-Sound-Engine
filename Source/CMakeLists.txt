@@ -37,6 +37,6 @@ elseif(OS_Linux)
   )
 endif()
 
-add_library(ISoundEngine ${ISE_SOURCES})
+add_library(ISoundEngine STATIC ${ISE_SOURCES})
 target_include_directories(ISoundEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ISoundEngine opus PortAudio rapidjson)

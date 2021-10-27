@@ -45,17 +45,17 @@ void EventParser::ParseEvents(const std::string& path)
     }
 }
 
-ErrorNum EventParser::GetEvent(const std::string& name, ISoundEngine::Event **event, std::unordered_map<uint64_t, SoundData>& soundData)
+ErrorNum EventParser::GetEvent(const std::string& name, Event **event, std::unordered_map<uint64_t, SoundData>& soundData)
 {
     return GetEvent(stringToId[name], event, soundData);
 }
 
-ErrorNum EventParser::GetEvent(uint64_t id, ISoundEngine::Event **event, std::unordered_map<uint64_t, SoundData>& soundData)
+ErrorNum EventParser::GetEvent(uint64_t id, Event **event, std::unordered_map<uint64_t, SoundData>& soundData)
 {
     if(IdToEvent.find(id) == IdToEvent.end())
         return ErrorNum::EventNotFound;
 
-    *event = new ISoundEngine::Event;
+    *event = new Event;
     auto& filtersInEvent = IdToEvent[id];
 
     for(auto sFilter : filtersInEvent)
