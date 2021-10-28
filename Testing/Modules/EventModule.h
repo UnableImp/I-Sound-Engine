@@ -15,7 +15,7 @@
 #include "AudioPackage/PackageDecoder.h"
 #include "Filters/WavContainer.h"
 #include "Filters/OpusContainer.h"
-
+#include "Filters/ConvolutionFreq.h"
 
 static void addFile(std::vector<WavFile>&)
 {
@@ -31,7 +31,7 @@ static void addFile(std::vector<WavFile> &vec, std::string fileName, T... files)
 }
 
 template<typename... T>
-static void BuildPackageAllPCM(const char* outName, T... toRead)
+static void BuildPackageAllPCM(int offset, const char* outName, T... toRead)
 {
     //--------------------------------------------------
     // ENCODING
@@ -44,14 +44,14 @@ static void BuildPackageAllPCM(const char* outName, T... toRead)
 
     for (int i = 0; i < files.size(); ++i)
     {
-        encoder.AddFile(files[i], i, Encoding::PCM);
+        encoder.AddFile(files[i], i+offset, Encoding::PCM);
     }
 
     ASSERT_TRUE(encoder.WritePackage(outName) == ErrorNum::NoErrors);
 }
 
 template<typename... T>
-static void BuildPackageAllOpus(const char* outName, T... toRead)
+static void BuildPackageAllOpus(int offset, const char* outName, T... toRead)
 {
     //--------------------------------------------------
     // ENCODING
@@ -64,7 +64,7 @@ static void BuildPackageAllOpus(const char* outName, T... toRead)
 
     for (int i = 0; i < files.size(); ++i)
     {
-        encoder.AddFile(files[i], i, Encoding::Opus);
+        encoder.AddFile(files[i], i + offset, Encoding::Opus);
     }
 
     ASSERT_TRUE(encoder.WritePackage(outName) == ErrorNum::NoErrors);
@@ -151,6 +151,67 @@ static void SumAllInPackage(const char* packageName, const char* outFileName)
     simulateEventManager(eventManager, outFileName);
 }
 
+static void SumAllInPackageWithFFT(const char* packageName, const char* outFileName)
+{
+    IO::MemoryMappedFile package(packageName);
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    unsigned largestSize = 0;
+
+    Filter<float> *filter = nullptr;
+
+    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    {
+        largestSize = std::max(iter->second.sampleCount, largestSize);
+        if (iter->second.audioType == Encoding::PCM)
+        {
+            filter = new WavContainer<float>(iter->second);
+
+        } else
+        {
+            filter = new OpusContainer<float>(iter->second);
+
+        }
+        eventManager.AddEvent(filter, new ConvolutionFreq);
+    }
+
+    simulateEventManager(eventManager, outFileName);
+}
+
+static void SumAllInTwoPackage(const char* packageName, const char* package2Name, const char* outFileName)
+{
+    IO::MemoryMappedFile package(packageName);
+    IO::MemoryMappedFile package2(package2Name);
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+    PackageDecoder::DecodePackage(data, package2);
+
+    EventManager eventManager(data);
+
+    unsigned largestSize = 0;
+
+    Filter<float> *filter = nullptr;
+
+    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    {
+        largestSize = std::max(iter->second.sampleCount, largestSize);
+        if (iter->second.audioType == Encoding::PCM)
+        {
+            filter = new WavContainer<float>(iter->second);
+            eventManager.AddEvent(filter);
+        } else
+        {
+            filter = new OpusContainer<float>(iter->second);
+            eventManager.AddEvent(filter);
+        }
+    }
+
+    simulateEventManager(eventManager, outFileName);
+}
+
 void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Frame<float>* buf, int bufSize)
 {
     EventManager eventManager(data);
@@ -186,25 +247,25 @@ void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Fram
 
 TEST(Events, WavPlayback)
 {
-    BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventPCMSum.wav");
 }
 
 TEST(Events, OpusPlayback)
 {
-    BuildPackageAllOpus("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    BuildPackageAllOpus(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventOpusSum.wav");
 }
 
 TEST(Events, SumTwoWavPlayback)
 {
-    BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
+    BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventWavSum2.wav");
 }
 
 TEST(Events, SumTwoOpusPlayback)
 {
-    BuildPackageAllOpus("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
+    BuildPackageAllOpus(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventOpusSum2.wav");
 }
 
@@ -216,7 +277,7 @@ TEST(Events, SumTwoBothPlayback)
 
 TEST(EventParser, EventFromIDWav)
 {
-    BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
@@ -230,7 +291,7 @@ TEST(EventParser, EventFromIDWav)
 
 TEST(EventParser, EventFromNameWav)
 {
-    BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
@@ -244,7 +305,7 @@ TEST(EventParser, EventFromNameWav)
 
 TEST(EventParser, EventFromIdOpus)
 {
-    BuildPackageAllOpus("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    BuildPackageAllOpus(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
@@ -258,7 +319,7 @@ TEST(EventParser, EventFromIdOpus)
 
 TEST(EventParser, EventFromStringOpus)
 {
-    BuildPackageAllOpus("TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    BuildPackageAllOpus(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
@@ -315,9 +376,37 @@ TEST(EventParser, EventFromMixBoth)
     simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
 }
 
+TEST(Events, EventsFromTwoBanks)
+{
+    BuildPackageAllOpus(0,"TestFiles/TESTEventPack1.pak", "MusicMain.wav");
+    BuildPackageAllPCM(1,"TestFiles/TESTEventPack2.pak", "Green.wav");
+    SumAllInTwoPackage("TestFiles/TESTEventPack1.pak", "TestFiles/TESTEventPack2.pak", "TestFiles/TESTSumTwoBanks.wav");
+}
+
+//TEST(Events, BuildWAVPackage)
+//{
+//    BuildPackageAllPCM(30, "TestFiles/TESTWavBank.pck",
+//                       "select.wav",
+//                       "hover.wav",
+//                       "Single_Shuriken_Throw.wav"
+//                       );
+//}
+//
+//TEST(Events, BuildOpusPackage)
+//{
+//    BuildPackageAllPCM(50, "TestFiles/TESTOpusBank.pck",
+//                       "Blue.wav",
+//                       "Green.wav",
+//                       "MusicMain.wav",
+//                       "Red.wav",
+//                       "Yellow.wav"
+//    );
+//}
+
+
 static void readEventFromBuffer(benchmark::State& state, int bufSize)
 {
-    BuildPackageAllPCM("TestFiles/TESTEventPack.pak", "TestFiles/Slash2.wav");
+    BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/Slash2.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
