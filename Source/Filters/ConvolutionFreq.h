@@ -25,35 +25,31 @@ public:
     {
         // Convert to frequency space
 
-        // -----------------------------------------
-        // First half of samples
-        // -----------------------------------------
-
-        // copy last half of last frame
+        // copy last half of last frame for overlap
         memcpy(jointBuffer, bufferLeft, (size / 2) * sizeof(float));
         memcpy(bufferLeft, left + (size / 2), (size / 2) * sizeof(float));
-        // copy first half of new frame
-        memcpy(jointBuffer + size / 2, left, (size / 2) * sizeof(float));
 
+        // Add in first half of current frame
+        for(int i = 0; i < size / 2; ++i)
+        {
+            jointBuffer[i] += left[i];
+        }
+
+        // copy the first half into second half  for overlap
+        memcpy(jointBuffer + (size /  2 ), left, (size / 2) * sizeof(float));
+
+        // Add in second half of current frame
+        for(int i = size / 2; i < size; ++i)
+        {
+            jointBuffer[i] = left[i];
+        }
+
+        // Convert to frequency space
         fft.forward(jointBuffer, currentLeftComplex);
 
-        // Add up last freq into current frequncy
-        for(int i = 0; i < size / 2; ++i)
-        {
-            currentLeftComplex[i] += lastLeftComplex[i + (size/2)];
-        }
+        // Apply windows and other effects
 
-        // ------------------------------------------
-        // Second half of samples
-        // ------------------------------------------
-
-        // first half of this block will continue to output, second to the next
-        fft.forward(left, lastLeftComplex);
-        for(int i = 0; i < size / 2; ++i)
-        {
-            currentLeftComplex[i + (size / 2)] += lastLeftComplex[i];
-        }
-
+        //convert back into time space
         fft.inverse(currentLeftComplex, left);
 
         return 0;
