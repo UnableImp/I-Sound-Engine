@@ -150,11 +150,11 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
     simulateEventManager(eventManager, outFileName, frameSize);
 }
 
-TEST(Filters, ConvolutionFreqFFTOnly)
-{
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
-    SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 512);
-}
+//TEST(Filters, ConvolutionFreqFFTOnly)
+//{
+//    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+//    SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 1024);
+//}
 
 TEST(Filters, FFTTest)
 {
