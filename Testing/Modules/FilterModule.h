@@ -117,6 +117,7 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
             tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
         }
     } while (samples > 0);
+    delete [] frame;
 }
 
 static void SumAllInPackageWithFFT(const char* packageName, const char* outFileName, int frameSize)
@@ -152,7 +153,7 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
 TEST(Filters, ConvolutionFreqFFTOnly)
 {
     BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
-    SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 1024);
+    SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 512);
 }
 
 #endif //I_SOUND_ENGINE_FILTERMODULE_H
