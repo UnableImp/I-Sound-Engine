@@ -144,7 +144,7 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
             filter = new OpusContainer<float>(iter->second);
 
         }
-        eventManager.AddEvent(filter, new ConvolutionFreq(1024));
+        eventManager.AddEvent(filter, new ConvolutionFreq(frameSize));
     }
 
     simulateEventManager(eventManager, outFileName, frameSize);
@@ -155,5 +155,202 @@ TEST(Filters, ConvolutionFreqFFTOnly)
     BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
     SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 512);
 }
+
+TEST(Filters, FFTTest)
+{
+    pffft::Fft<float> fft(32);
+    float vec[32] = {0};
+    float vec2[32] = {0};
+    vec[0] = 1;
+    std::complex<float> out[32] = {};
+    fft.forward(vec, out);
+
+    fft.inverse(out, vec2);
+
+    ASSERT_EQ(vec[0], vec2[0]/32);
+}
+
+static void PFFFT2048(benchmark::State& state)
+{
+    const int size = 2048;
+    float data[size] = {};
+    std::complex<float> complex[size] = {};
+    data[0] = 1;
+    pffft::Fft<float> fft(size);
+    for(auto _ : state)
+    {
+        fft.forward(data, complex);
+//        fft.inverse(complex, data);
+//        for(int i = 0; i < size; ++i)
+//        {
+//            data[i] /= size;
+//        }
+    }
+}
+BENCHMARK(PFFFT2048);
+
+static void PFFFT1024(benchmark::State& state)
+{
+    const int size = 1024;
+    float data[size] = {};
+    std::complex<float> complex[size] = {};
+    data[0] = 1;
+    pffft::Fft<float> fft(size);
+    for(auto _ : state)
+    {
+        fft.forward(data, complex);
+//        fft.inverse(complex, data);
+//        for(int i = 0; i < size; ++i)
+//        {
+//            data[i] /= size;
+//        }
+        fft.forward(data, complex);
+//        fft.inverse(complex, data);
+//        for(int i = 0; i < size; ++i)
+//        {
+//            data[i] /= size;
+//        }
+    }
+}
+BENCHMARK(PFFFT1024);
+
+static void PFFFT512(benchmark::State& state)
+{
+    const int size = 512;
+    float data[size] = {};
+    std::complex<float> complex[size] = {};
+    data[0] = 1;
+    pffft::Fft<float> fft(size);
+    for(auto _ : state)
+    {
+        fft.forward(data, complex);
+//        fft.inverse(complex, data);
+//        for(int i = 0; i < size; ++i)
+//        {
+//            data[i] /= size;
+//        }
+
+        fft.forward(data, complex);
+//        fft.inverse(complex, data);
+//        for(int i = 0; i < size; ++i)
+//        {
+//            data[i] /= size;
+//        }
+
+        fft.forward(data, complex);
+//        fft.inverse(complex, data);
+//        for(int i = 0; i < size; ++i)
+//        {
+//            data[i] /= size;
+//        }
+
+        fft.forward(data, complex);
+//        fft.inverse(complex, data);
+//        for(int i = 0; i < size; ++i)
+//        {
+//            data[i] /= size;
+//        }
+    }
+}
+BENCHMARK(PFFFT512);
+
+
+constexpr double PI = 3.1415926535897932,
+        DELTA = 0.00003051757; // 2^-15
+typedef std::vector<std::complex<double>> complexList;
+
+static void bitReverseOrder(complexList const& list, complexList& newList, unsigned n)
+{
+    int size = std::log2(n - 1) + 1;
+    int sum = 0;
+    newList[0] = list[0];
+
+    for(unsigned i = 1; i < n; ++i)
+    {
+        int shift = size - 1;
+        while(sum & 1 << shift)
+        {
+            sum ^= 1 << shift;
+            --shift;
+        }
+        sum |= 1 << shift;
+
+        newList[sum] = list[i];
+    }
+}
+
+
+
+static void fft2(complexList const& list, int n, complexList& rList)
+{
+
+    bitReverseOrder(list, rList, n);
+
+    for(int s = 1; s <= std::log2(n); ++s)
+    {
+        int m = 1 << s;
+        std::complex<double> wm(std::cos((2.0f * PI) / m ), -std::sin((2.0f * PI) / m));
+
+        for(int k = 0; k < n; k += m)
+        {
+            std::complex<double> w = 1;
+
+            for(int j = 0; j < (m/2.0); ++j)
+            {
+                std::complex<double> t = w * rList[k + j + m/2];
+
+                std::complex<double> u = rList[k + j];
+
+                rList[k + j] = u + t;
+                rList[k + j + m/2] = u - t;
+
+                w *= wm;
+            }
+        }
+    }
+}
+
+static void MyFFT2048(benchmark::State& state)
+{
+    const int size = 2048;
+    complexList data(size);
+    complexList complex(size);
+    data[0] = 1;
+    for(auto _ : state)
+    {
+        fft2(data, size, complex);
+    }
+}
+BENCHMARK(MyFFT2048);
+
+static void MyFFT1024(benchmark::State& state)
+{
+    const int size = 1024;
+    complexList data(size);
+    complexList complex(size);
+    data[0] = 1;
+    for(auto _ : state)
+    {
+        fft2(data, size, complex);
+        fft2(data, size, complex);
+    }
+}
+BENCHMARK(MyFFT1024);
+
+static void MyFFT512(benchmark::State& state)
+{
+    const int size = 512;
+    complexList data(size);
+    complexList complex(size);
+    data[0] = 1;
+    for(auto _ : state)
+    {
+        fft2(data, size, complex);
+        fft2(data, size, complex);
+        fft2(data, size, complex);
+        fft2(data, size, complex);
+    }
+}
+BENCHMARK(MyFFT512);
 
 #endif //I_SOUND_ENGINE_FILTERMODULE_H

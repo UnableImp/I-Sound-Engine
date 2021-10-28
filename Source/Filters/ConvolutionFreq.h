@@ -11,69 +11,41 @@
 class ConvolutionFreq : public Filter<float>
 {
 public:
-    ConvolutionFreq(int size) : fft(size), size(size)
+    ConvolutionFreq(int size) : fft(size)
     {
-        bufferLeft = new float[size/2]();
-        bufferRight = new float[size/2]();
-        jointBuffer = new float[size]();
-        lastLeftComplex= new std::complex<float>[size]();
-        lastRightComplex = new std::complex<float>[size]();
-        currentLeftComplex= new std::complex<float>[size]();
-        currentRightComplex = new std::complex<float>[size]();
+
+        currentComplex= new std::complex<float>[size]();
     }
 
     virtual ~ConvolutionFreq()
     {
-        delete [] bufferLeft;
-        delete [] bufferRight;
-        delete [] jointBuffer;
-        delete [] lastLeftComplex;
-        delete [] lastRightComplex;
-        delete [] currentLeftComplex;
-        delete [] currentRightComplex;
+
+        delete [] currentComplex;
     }
 
     virtual int GetNextSamples(int numSamples, float* left, float* right)
     {
-        // Convert to frequency space
 
-        // copy last half of last frame for overlap
-        memcpy(jointBuffer, bufferLeft, (size / 2) * sizeof(float));
-        memcpy(bufferLeft, left + (size / 2), (size / 2) * sizeof(float));
+        fft.forward(left, currentComplex);
+        fft.inverse(currentComplex, left);
 
-        // copy first half of frame into  second half of buffer
-        memcpy(jointBuffer + (size / 2), left, (size / 2) * sizeof(float));
-        // Convert to frequency space
-        fft.forward(jointBuffer, currentLeftComplex);
+        fft.forward(right, currentComplex);
+        fft.inverse(currentComplex, right);
 
-        // Apply windows and other effects
-
-        //convert back into time space
-        fft.inverse(currentLeftComplex, left);
-
-        fft.forward(left, currentLeftComplex);
-
-        fft.inverse(currentLeftComplex, jointBuffer);
-
-        for(int i = 0; i < size / 2; ++i)
+        for(int i = 0; i < numSamples; ++i)
         {
-            left[i + size /2 ] += jointBuffer[i];
+            left[i] /= numSamples;
+            right[i] /= numSamples;
         }
-
 
         return 0;
     }
 
 private:
-    float* bufferLeft;
-    float* bufferRight;
-    float* jointBuffer;
-    std::complex<float>* lastLeftComplex;
-    std::complex<float>* lastRightComplex;
-    std::complex<float>* currentLeftComplex;
-    std::complex<float>* currentRightComplex;
+
+    std::complex<float>* currentComplex;
     pffft::Fft<float> fft;
-    int size;
+
 };
 
 #endif //I_SOUND_ENGINE_CONVOLUTIONFREQ_H
