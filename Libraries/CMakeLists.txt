@@ -19,7 +19,13 @@ add_library(PFFFT STATIC ${FLOAT_SOURCES} pffft/pffft_common.c pffft/pffft_priv_
 set_target_properties(PFFFT PROPERTIES OUTPUT_NAME "pffft")
 target_compile_definitions(PFFFT PRIVATE _USE_MATH_DEFINES)
 target_compile_definitions(PFFFT PRIVATE PFFFT_SCALVEC_ENABLED=1)
-set(MATHLIB "m")
+
+if ( CMAKE_C_COMPILER_ID MATCHES "MSVC" )
+    set(MATHLIB "")
+else()
+    set(MATHLIB "m")
+endif()
+
 target_link_libraries( PFFFT ${MATHLIB} )
 target_include_directories(PFFFT PUBLIC pffft)
 

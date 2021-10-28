@@ -151,36 +151,6 @@ static void SumAllInPackage(const char* packageName, const char* outFileName)
     simulateEventManager(eventManager, outFileName);
 }
 
-static void SumAllInPackageWithFFT(const char* packageName, const char* outFileName)
-{
-    IO::MemoryMappedFile package(packageName);
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
-
-    EventManager eventManager(data);
-
-    unsigned largestSize = 0;
-
-    Filter<float> *filter = nullptr;
-
-    for (auto iter = data.begin(); iter != data.end(); ++iter)
-    {
-        largestSize = std::max(iter->second.sampleCount, largestSize);
-        if (iter->second.audioType == Encoding::PCM)
-        {
-            filter = new WavContainer<float>(iter->second);
-
-        } else
-        {
-            filter = new OpusContainer<float>(iter->second);
-
-        }
-        eventManager.AddEvent(filter, new ConvolutionFreq);
-    }
-
-    simulateEventManager(eventManager, outFileName);
-}
-
 static void SumAllInTwoPackage(const char* packageName, const char* package2Name, const char* outFileName)
 {
     IO::MemoryMappedFile package(packageName);
@@ -374,13 +344,6 @@ TEST(EventParser, EventFromMixBoth)
     eventManager.AddEvent((uint64_t)10);
     eventManager.AddEvent("Play_Credit");
     simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
-}
-
-TEST(Events, EventsFromTwoBanks)
-{
-    BuildPackageAllOpus(0,"TestFiles/TESTEventPack1.pak", "MusicMain.wav");
-    BuildPackageAllPCM(1,"TestFiles/TESTEventPack2.pak", "Green.wav");
-    SumAllInTwoPackage("TestFiles/TESTEventPack1.pak", "TestFiles/TESTEventPack2.pak", "TestFiles/TESTSumTwoBanks.wav");
 }
 
 //TEST(Events, BuildWAVPackage)
