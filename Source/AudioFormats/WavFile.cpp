@@ -181,7 +181,8 @@ bool WavFile::GetDataAsFloat(float *buffer)
 int WavFile::GetDataAsOpus(char* buffer)
 {
     // TODO Convert other types to 16 bit for opus, could also use floats
-    GetDataInNativeType(buffer);
+    float* fRawData = new float[GetDataSize() * 2];
+    GetDataAsFloat(fRawData);
 
     // Three buffers per ogg grouping
     char writeBuffer[EncodeSize];
@@ -200,10 +201,11 @@ int WavFile::GetDataAsOpus(char* buffer)
     //TODO Have more than one chunk per OggS
     int offset = 0;
     int readOffset = 0;
-    while(readOffset <= dataSize - ((EncodeSize * 4) + 8))
+    int numSamples = (dataSize / (fmtHeader.bits_per_sample/8));
+    while(readOffset <= numSamples)
     {
-        int size = encoder.Encode(reinterpret_cast<short*>(buffer + readOffset), EncodeSize, writeBuffer, EncodeSize * 2);
-        readOffset += EncodeSize * 4;
+        int size = encoder.Encode(fRawData + readOffset, EncodeSize, writeBuffer, EncodeSize * 2);
+        readOffset += EncodeSize * fmtHeader.channel_count;
         if(size < 0)
         {
             errorState = ErrorNum::OpusError;
