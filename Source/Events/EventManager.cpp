@@ -6,8 +6,16 @@
 #include "cstring"
 
 EventManager::EventManager(std::unordered_map<uint64_t, SoundData>& soundData) : eventID(100000), soundData(soundData)
-{}
+{
+    leftLocalBuffer = new float[buffSize];
+    rightLocalBuffer = new float[buffSize];
+}
 
+EventManager::~EventManager()
+{
+    delete [] leftLocalBuffer;
+    delete [] rightLocalBuffer;
+}
 
 int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
 {

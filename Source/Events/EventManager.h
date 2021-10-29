@@ -16,7 +16,7 @@ class EventManager
 {
 public:
     EventManager(std::unordered_map<uint64_t, SoundData>& soundData);
-
+    ~EventManager();
     /*!
      * TEMPERARY untill a json or such system is set up to read events from
      * @tparam T all filters to add types
@@ -63,8 +63,8 @@ private:
     std::unordered_map<int, Event*> events; //!< TODO  MAKE THREAD SAFE
     std::unordered_map<uint64_t, SoundData>& soundData;
 
-    float leftLocalBuffer[buffSize];
-    float rightLocalBuffer[buffSize];
+    float* leftLocalBuffer;
+    float* rightLocalBuffer;
 
     //Frame<float> localBuffer[buffSize];
     EventParser eventParser;

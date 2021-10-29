@@ -254,5 +254,6 @@ int WavFile::GetDataAsOpus(char* buffer)
 
         ++header.pageSequenceNumber;
     }
+    delete [] fRawData;
     return offset;
 }
