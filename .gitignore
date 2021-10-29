@@ -1,4 +1,4 @@
-/Source/Parsers/ctest/8_bit_reaper.wav
+/Source/Parsers/ctest/8_bit_reaper.wav        char temp2[4];
 /Source/Parsers/ctest/16_bit_reaper.wav
 /Source/Parsers/ctest/24_bit_reaper.wav
 /Source/Parsers/ctest/32_bit_reaper.wav
@@ -9,3 +9,4 @@
 out/
 CMakeSettings.json
 Testing/TestFiles/*.pak
+*.reapeaks

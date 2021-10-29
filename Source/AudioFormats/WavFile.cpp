@@ -144,7 +144,7 @@ bool WavFile::GetDataAsFloat(float *buffer)
 
     GetDataInNativeType(reinterpret_cast<char*>(buffer) + readPointer);
     //wavFile.read(reinterpret_cast<char*>(buffer) + readPointer, dataSize * fmtHeader.bytes_per_sample);
-
+    int loopSize = dataSize / (fmtHeader.bits_per_sample / 8);
     switch(fmtHeader.bits_per_sample)
     {
         // 8 bit conversion
@@ -164,7 +164,7 @@ bool WavFile::GetDataAsFloat(float *buffer)
             return true;
         // 16 bit conversion
         case 16:
-            int loopSize = dataSize / (fmtHeader.bits_per_sample / 8);
+
             for(unsigned i = 0; i < loopSize; ++i)
             {
                 buffer[writePos] = (*reinterpret_cast<short*>(reinterpret_cast<char *>(buffer) + (readPointer)))
@@ -174,6 +174,19 @@ bool WavFile::GetDataAsFloat(float *buffer)
                 readPointer += 2;
             }
             return true;
+        case 24:
+            for(int i = 0; i < numSamples;++i)
+            {
+
+                int value = 0;
+                memcpy(reinterpret_cast<char*>(&value), reinterpret_cast<char*>(buffer) + readPointer, 3);
+                readPointer += 3;
+                value <<= 8;
+
+                buffer[writePos] = value / static_cast<float>((1<<31));
+                ++writePos;
+            }
+           return true;
     }
     return false;
 }

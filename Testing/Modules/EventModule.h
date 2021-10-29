@@ -245,6 +245,12 @@ TEST(Events, SumTwoBothPlayback)
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventBothSum2.wav");
 }
 
+TEST(Events, Sum24BitAudioWav)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTEventPack.pak", "TestFiles/MusicMain44100.wav");
+    SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTMusicMain44100.wav");
+}
+
 TEST(EventParser, EventFromIDWav)
 {
     BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
