@@ -194,7 +194,7 @@ bool WavFile::GetDataAsFloat(float *buffer)
 int WavFile::GetDataAsOpus(char* buffer)
 {
     // TODO Convert other types to 16 bit for opus, could also use floats
-    float* fRawData = new float[GetDataSize() * 2];
+    float* fRawData = new float[GetDataSize() * 2]();
     GetDataAsFloat(fRawData);
 
     // Three buffers per ogg grouping
