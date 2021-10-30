@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include "EventParser.h"
 
-constexpr int buffSize =  1024;
+constexpr int buffSize =  2048;
 
 class EventManager
 {

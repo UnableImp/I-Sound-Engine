@@ -120,6 +120,7 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
     delete [] frame;
 }
 
+
 static void SumAllInPackageWithFFT(const char* packageName, const char* outFileName, int frameSize)
 {
     IO::MemoryMappedFile package(packageName);
@@ -170,21 +171,55 @@ TEST(Filters, FFTTest)
     ASSERT_EQ(vec[0], vec2[0]/32);
 }
 
+static void Get2048Samples(Frame<float>* samples)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTConvBank.pck");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    unsigned largestSize = 0;
+
+    Filter<float> *filter = nullptr;
+
+    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    {
+        largestSize = std::max(iter->second.sampleCount, largestSize);
+        if (iter->second.audioType == Encoding::PCM)
+        {
+            filter = new WavContainer<float>(iter->second);
+
+        } else
+        {
+            filter = new OpusContainer<float>(iter->second);
+        }
+        eventManager.AddEvent(filter);
+    }
+
+    for(int i = 0; i < 44100; i += 2048)
+    {
+        eventManager.GetSamplesFromAllEvents(2048, samples);
+    }
+
+}
+
 static void PFFFT2048(benchmark::State& state)
 {
     const int size = 2048;
     float data[size] = {};
     std::complex<float> complex[size] = {};
-    data[0] = 1;
+    Frame<float> songData[2048];
+    Get2048Samples(songData);
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
     pffft::Fft<float> fft(size);
     for(auto _ : state)
     {
         fft.forward(data, complex);
-//        fft.inverse(complex, data);
-//        for(int i = 0; i < size; ++i)
-//        {
-//            data[i] /= size;
-//        }
     }
 }
 BENCHMARK(PFFFT2048);
@@ -192,24 +227,21 @@ BENCHMARK(PFFFT2048);
 static void PFFFT1024(benchmark::State& state)
 {
     const int size = 1024;
-    float data[size] = {};
+    float data[2048] = {};
     std::complex<float> complex[size] = {};
-    data[0] = 1;
+    Frame<float> songData[2048];
+    Get2048Samples(songData);
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
     pffft::Fft<float> fft(size);
     for(auto _ : state)
     {
         fft.forward(data, complex);
-//        fft.inverse(complex, data);
-//        for(int i = 0; i < size; ++i)
-//        {
-//            data[i] /= size;
-//        }
+
         fft.forward(data, complex);
-//        fft.inverse(complex, data);
-//        for(int i = 0; i < size; ++i)
-//        {
-//            data[i] /= size;
-//        }
+
     }
 }
 BENCHMARK(PFFFT1024);
@@ -217,39 +249,27 @@ BENCHMARK(PFFFT1024);
 static void PFFFT512(benchmark::State& state)
 {
     const int size = 512;
-    float data[size] = {};
+    float data[2048] = {};
     std::complex<float> complex[size] = {};
-    data[0] = 1;
+    Frame<float> songData[2048];
+    Get2048Samples(songData);
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
     pffft::Fft<float> fft(size);
     for(auto _ : state)
     {
         fft.forward(data, complex);
-//        fft.inverse(complex, data);
-//        for(int i = 0; i < size; ++i)
-//        {
-//            data[i] /= size;
-//        }
 
-        fft.forward(data, complex);
-//        fft.inverse(complex, data);
-//        for(int i = 0; i < size; ++i)
-//        {
-//            data[i] /= size;
-//        }
 
-        fft.forward(data, complex);
-//        fft.inverse(complex, data);
-//        for(int i = 0; i < size; ++i)
-//        {
-//            data[i] /= size;
-//        }
+        fft.forward(data+512, complex);
 
-        fft.forward(data, complex);
-//        fft.inverse(complex, data);
-//        for(int i = 0; i < size; ++i)
-//        {
-//            data[i] /= size;
-//        }
+
+        fft.forward(data+1024, complex);
+
+
+        fft.forward(data + 1536, complex);
     }
 }
 BENCHMARK(PFFFT512);
@@ -257,7 +277,7 @@ BENCHMARK(PFFFT512);
 
 constexpr double PI = 3.1415926535897932,
         DELTA = 0.00003051757; // 2^-15
-typedef std::vector<std::complex<double>> complexList;
+typedef std::vector<std::complex<float>> complexList;
 
 static void bitReverseOrder(complexList const& list, complexList& newList, unsigned n)
 {
@@ -289,17 +309,17 @@ static void fft2(complexList const& list, int n, complexList& rList)
     for(int s = 1; s <= std::log2(n); ++s)
     {
         int m = 1 << s;
-        std::complex<double> wm(std::cos((2.0f * PI) / m ), -std::sin((2.0f * PI) / m));
+        std::complex<float> wm(std::cos((2.0f * PI) / m ), -std::sin((2.0f * PI) / m));
 
         for(int k = 0; k < n; k += m)
         {
-            std::complex<double> w = 1;
+            std::complex<float> w = 1;
 
-            for(int j = 0; j < (m/2.0); ++j)
+            for(int j = 0; j < (m/2.0f); ++j)
             {
-                std::complex<double> t = w * rList[k + j + m/2];
+                std::complex<float> t = w * rList[k + j + m/2];
 
-                std::complex<double> u = rList[k + j];
+                std::complex<float> u = rList[k + j];
 
                 rList[k + j] = u + t;
                 rList[k + j + m/2] = u - t;
@@ -316,6 +336,12 @@ static void MyFFT2048(benchmark::State& state)
     complexList data(size);
     complexList complex(size);
     data[0] = 1;
+    Frame<float> songData[2048];
+    Get2048Samples(songData);
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
     for(auto _ : state)
     {
         fft2(data, size, complex);
@@ -326,9 +352,14 @@ BENCHMARK(MyFFT2048);
 static void MyFFT1024(benchmark::State& state)
 {
     const int size = 1024;
-    complexList data(size);
+    complexList data(2048);
     complexList complex(size);
-    data[0] = 1;
+    Frame<float> songData[2048];
+    Get2048Samples(songData);
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
     for(auto _ : state)
     {
         fft2(data, size, complex);
@@ -340,9 +371,14 @@ BENCHMARK(MyFFT1024);
 static void MyFFT512(benchmark::State& state)
 {
     const int size = 512;
-    complexList data(size);
+    complexList data(2048);
     complexList complex(size);
-    data[0] = 1;
+    Frame<float> songData[2048];
+    Get2048Samples(songData);
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
     for(auto _ : state)
     {
         fft2(data, size, complex);
