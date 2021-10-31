@@ -277,7 +277,7 @@ BENCHMARK(PFFFT512);
 
 constexpr double PI = 3.1415926535897932,
         DELTA = 0.00003051757; // 2^-15
-typedef std::vector<std::complex<float>> complexList;
+typedef std::vector<std::complex<double>> complexList;
 
 static void bitReverseOrder(complexList const& list, complexList& newList, unsigned n)
 {
@@ -299,32 +299,50 @@ static void bitReverseOrder(complexList const& list, complexList& newList, unsig
     }
 }
 
+std::array<std::array<std::complex<double>,1024>,11> lookupTable = []
+{
+    std::array<std::array<std::complex<double>,1024>,11> arr = {};
+    for(int s = 1; s <= 11; ++s)
+    {
+        int m = 1 << s;
+        std::complex<double> wm(std::cos((2.0f * PI) / m ), -std::sin((2.0f * PI) / m));
+        std::complex<double> w = 1;
+        for(int j = 0; j < (m/2.0f); ++j)
+        {
+            arr[s-1][j] = w;
+            w *= wm;
 
+        }
+        arr[10][1023] = w;
+    }
+    return arr;
+}();
 
+template<typename Type>
 static void fft2(complexList const& list, int n, complexList& rList)
 {
-
     bitReverseOrder(list, rList, n);
 
     for(int s = 1; s <= std::log2(n); ++s)
     {
         int m = 1 << s;
-        std::complex<float> wm(std::cos((2.0f * PI) / m ), -std::sin((2.0f * PI) / m));
+        std::complex<Type> wm(std::cos((2.0f * PI) / m ), -std::sin((2.0f * PI) / m));
 
         for(int k = 0; k < n; k += m)
         {
-            std::complex<float> w = 1;
+            std::complex<Type> w = 1;
 
             for(int j = 0; j < (m/2.0f); ++j)
             {
-                std::complex<float> t = w * rList[k + j + m/2];
 
-                std::complex<float> u = rList[k + j];
+                std::complex<Type> t = w * rList[k + j + m/2];
+
+                std::complex<Type> u = rList[k + j];
 
                 rList[k + j] = u + t;
                 rList[k + j + m/2] = u - t;
 
-                w *= wm;
+                w = lookupTable[s-1][j];
             }
         }
     }
@@ -335,16 +353,16 @@ static void MyFFT2048(benchmark::State& state)
     const int size = 2048;
     complexList data(size);
     complexList complex(size);
-    data[0] = 1;
     Frame<float> songData[2048];
     Get2048Samples(songData);
     for(int i = 0; i < 2048; ++i)
     {
         data[i] = songData[i].leftChannel;
     }
+
     for(auto _ : state)
     {
-        fft2(data, size, complex);
+        fft2<double>(data, size, complex);
     }
 }
 BENCHMARK(MyFFT2048);
@@ -362,8 +380,8 @@ static void MyFFT1024(benchmark::State& state)
     }
     for(auto _ : state)
     {
-        fft2(data, size, complex);
-        fft2(data, size, complex);
+        fft2<double>(data, size, complex);
+        fft2<double>(data, size, complex);
     }
 }
 BENCHMARK(MyFFT1024);
@@ -381,10 +399,10 @@ static void MyFFT512(benchmark::State& state)
     }
     for(auto _ : state)
     {
-        fft2(data, size, complex);
-        fft2(data, size, complex);
-        fft2(data, size, complex);
-        fft2(data, size, complex);
+        fft2<double>(data, size, complex);
+        fft2<double>(data, size, complex);
+        fft2<double>(data, size, complex);
+        fft2<double>(data, size, complex);
     }
 }
 BENCHMARK(MyFFT512);

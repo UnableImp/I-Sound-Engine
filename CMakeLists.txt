@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_CXX_EXTENSIONS false)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Ofast -ffast-math -mavx -mtune=intel" )
 #-g -fsanitize=address
-
+# -Ofast -ffast-math -mavx -mtune=intel
 # define the macro DEBUG if compiling in that configuration
 add_compile_definitions("$<$<CONFIG:DEBUG>:DEBUG>")
 
