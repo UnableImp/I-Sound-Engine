@@ -282,7 +282,7 @@ constexpr double PI = 3.1415926535897932,
         DELTA = 0.00003051757; // 2^-15
 typedef std::complex<double>* complexList;
 
-std::array<std::array<std::complex<double>,1024>,11> lookupTable = []
+std::array<std::array<std::complex<double>,1024>,11> fourierTable = []
 {
     std::array<std::array<std::complex<double>,1024>,11> arr = {};
     for(int s = 1; s <= 11; ++s)
@@ -301,6 +301,28 @@ std::array<std::array<std::complex<double>,1024>,11> lookupTable = []
     return arr;
 }();
 
+std::array<int, 2048> bitTable = []
+{
+    std::array<int, 2048> table;
+    int size = std::log2(2048 - 1) + 1;
+    int sum = 0;
+
+
+    for(unsigned i = 1; i < 2048; ++i)
+    {
+        int shift = size - 1;
+        while(sum & 1 << shift)
+        {
+            sum ^= 1 << shift;
+            --shift;
+        }
+        sum |= 1 << shift;
+
+        table[sum] = i;
+    }
+
+    return table;
+}();
 static void bitReverseOrder(double* list, complexList& newList, unsigned n)
 {
     int size = std::log2(n - 1) + 1;
@@ -325,7 +347,7 @@ static void bitReverseOrder(double* list, complexList& newList, unsigned n)
 template<typename Type>
 static void fft2(double* list, int n, complexList& rList)
 {
-    bitReverseOrder(list, rList, n);
+    //bitReverseOrder(list, rList, n);
 
     for(int s = 1; s <= std::log2(n); ++s)
     {
@@ -338,12 +360,12 @@ static void fft2(double* list, int n, complexList& rList)
             for(int j = 0; j < (m/2.0f); ++j)
             {
 
-                std::complex<Type> u = rList[k + j];
+                std::complex<Type> u = list[bitTable[k + j]];
                 __m256d uv = {u.real(), u.imag(), u.real(), u.imag()};
 
                 __m256d wv = {w.real(), w.imag(), w.imag(), w.real()};
 
-                std::complex<Type> t = lookupTable[s-1][j] * rList[k + j + m/2];;
+                std::complex<Type> t = fourierTable[s-1][j] * list[bitTable[k + j + m/2]];
                 __m256d tv = {t.real(), t.imag(), -t.real(), -t.imag()};
 
                 __m256d r = _mm256_add_pd(tv, uv);
@@ -354,7 +376,7 @@ static void fft2(double* list, int n, complexList& rList)
 //                rList[k + j] = u + t;
 //                rList[k + j + m/2] = u - t;
 
-                w = lookupTable[s-1][j];
+                w = fourierTable[s-1][j];
             }
         }
     }
