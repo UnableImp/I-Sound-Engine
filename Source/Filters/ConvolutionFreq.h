@@ -14,13 +14,16 @@ public:
     ConvolutionFreq(int size) : fft(size)
     {
 
-        currentComplex= new std::complex<float>[size]();
+        currentComplex = new std::complex<float>[size]();
+        leftIR = new float[size]();
+        rightIR = new float[size]();
     }
 
     virtual ~ConvolutionFreq()
     {
-
         delete [] currentComplex;
+        delete [] leftIR;
+        delete [] rightIR;
     }
 
     virtual int GetNextSamples(int numSamples, float* left, float* right)
@@ -43,6 +46,8 @@ public:
 
 private:
 
+    float* leftIR;
+    float* rightIR;
     std::complex<float>* currentComplex;
     pffft::Fft<float> fft;
 
