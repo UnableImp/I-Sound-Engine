@@ -9,6 +9,7 @@
 #include "benchmark/benchmark.h"
 #include "Events/Event.h"
 #include "Events/EventManager.h"
+#include <array>
 
 #include "AudioFormats/WavFile.h"
 #include "AudioPackage/PackageEncoder.h"
@@ -16,6 +17,8 @@
 #include "Filters/WavContainer.h"
 #include "Filters/OpusContainer.h"
 #include "Filters/ConvolutionFreq.h"
+
+#include <immintrin.h>
 
 static void addFile(std::vector<WavFile>&)
 {
@@ -277,27 +280,7 @@ BENCHMARK(PFFFT512);
 
 constexpr double PI = 3.1415926535897932,
         DELTA = 0.00003051757; // 2^-15
-typedef std::vector<std::complex<double>> complexList;
-
-static void bitReverseOrder(complexList const& list, complexList& newList, unsigned n)
-{
-    int size = std::log2(n - 1) + 1;
-    int sum = 0;
-    newList[0] = list[0];
-
-    for(unsigned i = 1; i < n; ++i)
-    {
-        int shift = size - 1;
-        while(sum & 1 << shift)
-        {
-            sum ^= 1 << shift;
-            --shift;
-        }
-        sum |= 1 << shift;
-
-        newList[sum] = list[i];
-    }
-}
+typedef std::complex<double>* complexList;
 
 std::array<std::array<std::complex<double>,1024>,11> lookupTable = []
 {
@@ -318,15 +301,35 @@ std::array<std::array<std::complex<double>,1024>,11> lookupTable = []
     return arr;
 }();
 
+static void bitReverseOrder(double* list, complexList& newList, unsigned n)
+{
+    int size = std::log2(n - 1) + 1;
+    int sum = 0;
+    newList[0] = list[0];
+
+    for(unsigned i = 1; i < n; ++i)
+    {
+        int shift = size - 1;
+        while(sum & 1 << shift)
+        {
+            sum ^= 1 << shift;
+            --shift;
+        }
+        sum |= 1 << shift;
+
+        newList[sum] = list[i];
+    }
+}
+
+
 template<typename Type>
-static void fft2(complexList const& list, int n, complexList& rList)
+static void fft2(double* list, int n, complexList& rList)
 {
     bitReverseOrder(list, rList, n);
 
     for(int s = 1; s <= std::log2(n); ++s)
     {
         int m = 1 << s;
-        std::complex<Type> wm(std::cos((2.0f * PI) / m ), -std::sin((2.0f * PI) / m));
 
         for(int k = 0; k < n; k += m)
         {
@@ -335,12 +338,21 @@ static void fft2(complexList const& list, int n, complexList& rList)
             for(int j = 0; j < (m/2.0f); ++j)
             {
 
-                std::complex<Type> t = w * rList[k + j + m/2];
-
                 std::complex<Type> u = rList[k + j];
+                __m256d uv = {u.real(), u.imag(), u.real(), u.imag()};
 
-                rList[k + j] = u + t;
-                rList[k + j + m/2] = u - t;
+                __m256d wv = {w.real(), w.imag(), w.imag(), w.real()};
+
+                std::complex<Type> t = lookupTable[s-1][j] * rList[k + j + m/2];;
+                __m256d tv = {t.real(), t.imag(), -t.real(), -t.imag()};
+
+                __m256d r = _mm256_add_pd(tv, uv);
+
+                rList[k + j] = *reinterpret_cast<std::complex<double>*>(&r);
+                rList[k + j + m/2] = *reinterpret_cast<std::complex<double>*>(&r);
+
+//                rList[k + j] = u + t;
+//                rList[k + j + m/2] = u - t;
 
                 w = lookupTable[s-1][j];
             }
@@ -351,10 +363,14 @@ static void fft2(complexList const& list, int n, complexList& rList)
 static void MyFFT2048(benchmark::State& state)
 {
     const int size = 2048;
-    complexList data(size);
-    complexList complex(size);
+    complexList complex = new std::complex<double>[size];
+    double data[2048] = {};
     Frame<float> songData[2048];
     Get2048Samples(songData);
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
     for(int i = 0; i < 2048; ++i)
     {
         data[i] = songData[i].leftChannel;
@@ -370,10 +386,14 @@ BENCHMARK(MyFFT2048);
 static void MyFFT1024(benchmark::State& state)
 {
     const int size = 1024;
-    complexList data(2048);
-    complexList complex(size);
+    complexList complex = new std::complex<double>[size];
+    double data[2048] = {};
     Frame<float> songData[2048];
     Get2048Samples(songData);
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
     for(int i = 0; i < 2048; ++i)
     {
         data[i] = songData[i].leftChannel;
@@ -389,14 +409,19 @@ BENCHMARK(MyFFT1024);
 static void MyFFT512(benchmark::State& state)
 {
     const int size = 512;
-    complexList data(2048);
-    complexList complex(size);
+    complexList complex = new std::complex<double>[size];
+    double data[2048] = {};
     Frame<float> songData[2048];
     Get2048Samples(songData);
     for(int i = 0; i < 2048; ++i)
     {
         data[i] = songData[i].leftChannel;
     }
+    for(int i = 0; i < 2048; ++i)
+    {
+        data[i] = songData[i].leftChannel;
+    }
+
     for(auto _ : state)
     {
         fft2<double>(data, size, complex);
@@ -406,5 +431,9 @@ static void MyFFT512(benchmark::State& state)
     }
 }
 BENCHMARK(MyFFT512);
+
+
+
+
 
 #endif //I_SOUND_ENGINE_FILTERMODULE_H
