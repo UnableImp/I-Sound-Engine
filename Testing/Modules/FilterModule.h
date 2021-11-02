@@ -176,8 +176,8 @@ static void CreatIR()
     tesConver2.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
 
-    std::fstream readFrom("../HRIR/KEMAR/elev70/L70e105a.dat", std::ios_base::binary | std::ios_base::in);
-    std::fstream readFrom2("../HRIR/KEMAR/elev70/R70e105a.dat", std::ios_base::binary | std::ios_base::in);
+    std::fstream readFrom("../HRIR/KEMAR/elev10/L10e110a.dat", std::ios_base::binary | std::ios_base::in);
+    std::fstream readFrom2("../HRIR/KEMAR/elev10/R10e110a.dat", std::ios_base::binary | std::ios_base::in);
     ASSERT_TRUE(readFrom);
     ASSERT_TRUE(readFrom2);
 
@@ -203,7 +203,7 @@ TEST(Filters, ConvolutionFreqFFTOnly)
 {
     CreatIR();
 
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav", "TestFiles/TESTLIR1.wav", "TestFiles/TESTLIR2.wav");
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav", "TestFiles/TESTLIR1.wav", "TestFiles/TESTLIR2.wav");
     IO::MemoryMappedFile package("TestFiles/TESTConvBank.pck");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);

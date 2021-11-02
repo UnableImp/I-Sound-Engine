@@ -84,8 +84,8 @@ public:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlap[i]) / (numSamples * numSamples);// / (numSamples * 2);
-            right[i] = (rightS[i]  + rightOverlap[i]) / (numSamples * numSamples);
+            left[i] = (leftS[i] + leftOverlap[i]) / (numSamples * 2);// / (numSamples * 2);
+            right[i] = (rightS[i]  + rightOverlap[i]) / (numSamples * 2);
         }
 
         memcpy(leftOverlap, leftS + numSamples, numSamples * sizeof(float));

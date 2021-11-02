@@ -18,6 +18,10 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right) override
     {
+
+        memset(left, 0, numSamples * sizeof(float));
+        memset(right, 0, numSamples * sizeof(float));
+
         leftIR->GetNextSamples(numSamples, left, left);
         leftIR->Reset();
         rightIR->GetNextSamples(numSamples, right, right);
