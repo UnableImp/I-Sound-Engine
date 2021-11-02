@@ -157,26 +157,42 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
 static void CreatIR()
 {
     WavFile wav("TestFiles/level.wav");
-    std::fstream tesConvert("TestFiles/TESTLIR.wav", std::ios_base::binary | std::ios_base::out);
+    std::fstream tesConvert("TestFiles/TESTLIR1.wav", std::ios_base::binary | std::ios_base::out);
     RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
                           0,
                           {'W', 'A', 'V', 'E'}};
     tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
-    tesConvert.write(reinterpret_cast<const char *>(&wav.GetFormat()), sizeof(FormatHeader));
+    FormatHeader fmt = wav.GetFormat();
+    fmt.channel_count = 1;
+    tesConvert.write(reinterpret_cast<const char *>(&fmt), sizeof(FormatHeader));
     GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
     dataChunk.chunkSize = 1024;
     tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
+    std::fstream tesConver2("TestFiles/TESTLIR2.wav", std::ios_base::binary | std::ios_base::out);
+
+    tesConver2.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConver2.write(reinterpret_cast<const char *>(&fmt), sizeof(FormatHeader));
+    tesConver2.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+
     std::fstream readFrom("../HRIR/KEMAR/elev0/L0e000a.dat", std::ios_base::binary | std::ios_base::in);
+    std::fstream readFrom2("../HRIR/KEMAR/elev0/R0e000a.dat", std::ios_base::binary | std::ios_base::in);
     ASSERT_TRUE(readFrom);
 
     short buffer[512];
     readFrom.read(reinterpret_cast<char*>(buffer), 1024);
 
+    short buffer2[512];
+    readFrom2.read(reinterpret_cast<char*>(buffer), 1024);
+
     for(int i = 0; i < 512; i++)
     {
         short v = (buffer[i] >> 8) | (buffer[i] << 8);
         tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
+
+         v = (buffer2[i] >> 8) | (buffer2[i] << 8);
+        tesConver2.write(reinterpret_cast<char*>(&v), sizeof(short));
     }
 
 
@@ -186,7 +202,7 @@ TEST(Filters, ConvolutionFreqFFTOnly)
 {
     CreatIR();
 
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav", "TestFiles/TESTLIR.wav");
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav", "TestFiles/TESTLIR1.wav", "TestFiles/TESTLIR2.wav");
     IO::MemoryMappedFile package("TestFiles/TESTConvBank.pck");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
@@ -194,14 +210,14 @@ TEST(Filters, ConvolutionFreqFFTOnly)
     EventManager eventManager(data);
 
     WavContainer<float> left(data[1]);
-    WavContainer<float> right(data[1]);
+    WavContainer<float> right(data[2]);
     HRIRCalculator<float> hrir(&left, &right);
-    ConvolutionFreq* convolver = new ConvolutionFreq(1024, hrir);
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
 
     WavContainer<float>* sample = new WavContainer<float>(data[0]);
 
     eventManager.AddEvent(sample, convolver);
-    simulateEventManager(eventManager, "TestFiles/TESTConvoler.wav", 1024);
+    simulateEventManager(eventManager, "TestFiles/TESTConvoler.wav", 512);
     //SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 1024);
 }
 

@@ -34,7 +34,7 @@ elseif(OS_Linux)
   set(ISE_SOURCES ${ISE_SOURCES}
     "IO/Linux/IOUtilityLinux.cpp"
     "IO/Linux/MemoryMappedFileLinux.cpp"
-  )
+          )
 endif()
 
 add_library(ISoundEngine STATIC ${ISE_SOURCES})
