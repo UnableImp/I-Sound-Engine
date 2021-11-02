@@ -45,7 +45,9 @@ public:
      * @param buffer Buffer to fill
      * @return Number of samples filled
      */
-    virtual int GetNextSamples(int numSamples, float* left, float* right) override { return 0;}
+    virtual int GetNextSamples(int numSamples, float* left, float* right) = 0;
+
+    virtual void Reset() = 0;
 
     /*!
      * Gets a sample from current position to offset based on play back speed

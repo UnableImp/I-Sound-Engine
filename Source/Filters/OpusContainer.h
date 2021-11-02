@@ -28,6 +28,13 @@ public:
 
     }
 
+    virtual void Reset() override
+    {
+        offsetIntoOpusFrame = std::numeric_limits<int>::max();
+        offsetIntoRawOpus = 0;
+        totalOffset = 0;
+    }
+
     virtual int GetNextSamples(int numSamples, float* left, float* right) override
     {
         int frames = 0;

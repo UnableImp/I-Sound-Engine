@@ -148,16 +148,61 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
             filter = new OpusContainer<float>(iter->second);
 
         }
-        eventManager.AddEvent(filter, new ConvolutionFreq(frameSize));
+        //eventManager.AddEvent(filter, new ConvolutionFreq(frameSize));
     }
 
     simulateEventManager(eventManager, outFileName, frameSize);
 }
 
+static void CreatIR()
+{
+    WavFile wav("TestFiles/level.wav");
+    std::fstream tesConvert("TestFiles/TESTLIR.wav", std::ios_base::binary | std::ios_base::out);
+    RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
+                          0,
+                          {'W', 'A', 'V', 'E'}};
+    tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConvert.write(reinterpret_cast<const char *>(&wav.GetFormat()), sizeof(FormatHeader));
+    GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
+    dataChunk.chunkSize = 1024;
+    tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    std::fstream readFrom("../HRIR/KEMAR/elev0/L0e000a.dat", std::ios_base::binary | std::ios_base::in);
+    ASSERT_TRUE(readFrom);
+
+    short buffer[512];
+    readFrom.read(reinterpret_cast<char*>(buffer), 1024);
+
+    for(int i = 0; i < 512; i++)
+    {
+        short v = (buffer[i] >> 8) | (buffer[i] << 8);
+        tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
+    }
+
+
+}
+
 TEST(Filters, ConvolutionFreqFFTOnly)
 {
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
-    SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 1024);
+    CreatIR();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav", "TestFiles/TESTLIR.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTConvBank.pck");
+    std::unordered_map<uint64_t, SoundData> data;
+    PackageDecoder::DecodePackage(data, package);
+
+    EventManager eventManager(data);
+
+    WavContainer<float> left(data[1]);
+    WavContainer<float> right(data[1]);
+    HRIRCalculator<float> hrir(&left, &right);
+    ConvolutionFreq* convolver = new ConvolutionFreq(1024, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(data[0]);
+
+    eventManager.AddEvent(sample, convolver);
+    simulateEventManager(eventManager, "TestFiles/TESTConvoler.wav", 1024);
+    //SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 1024);
 }
 
 TEST(Filters, FFTTest)

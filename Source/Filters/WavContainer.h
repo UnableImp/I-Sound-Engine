@@ -23,6 +23,11 @@ public:
         totalOffset = 0;
     }
 
+    virtual void Reset() override
+    {
+        totalOffset = 0;
+    }
+
     // Fully contaioned sound object
     //WavContainer()
 

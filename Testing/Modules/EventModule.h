@@ -352,27 +352,6 @@ TEST(EventParser, EventFromMixBoth)
     simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
 }
 
-//TEST(Events, BuildWAVPackage)
-//{
-//    BuildPackageAllPCM(30, "TestFiles/TESTWavBank.pck",
-//                       "select.wav",
-//                       "hover.wav",
-//                       "Single_Shuriken_Throw.wav"
-//                       );
-//}
-//
-//TEST(Events, BuildOpusPackage)
-//{
-//    BuildPackageAllPCM(50, "TestFiles/TESTOpusBank.pck",
-//                       "Blue.wav",
-//                       "Green.wav",
-//                       "MusicMain.wav",
-//                       "Red.wav",
-//                       "Yellow.wav"
-//    );
-//}
-
-
 static void readEventFromBuffer(benchmark::State& state, int bufSize)
 {
     BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/Slash2.wav");
