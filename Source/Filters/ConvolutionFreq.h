@@ -20,8 +20,10 @@ public:
         rightIR = new float[size* 4]();
         rightS = new float[size* 4]();
         leftS = new float[size* 4]();
-        leftComplex = new float[size * 4]();
-        rightComplex = new float[size * 4]();
+        leftOverlap = new float[size * 4]();
+        rightOverlap = new float[size * 4]();
+        leftComplex = new  std::complex<float>[size * 4]();
+        rightComplex = new  std::complex<float>[size * 4]();
     }
 
     virtual ~ConvolutionFreq()
@@ -31,43 +33,48 @@ public:
         delete [] rightIR;
         delete [] rightS;
         delete [] leftS;
+        delete [] leftOverlap;
+        delete [] rightOverlap;
         delete [] leftComplex;
         delete [] rightComplex;
     }
 
     virtual int GetNextSamples(int numSamples, float* left, float* right)
     {
-        HRIR.GetNextSamples(numSamples, leftIR, rightIR);
+        HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR);
 
         //-----------------------------------------
         // Left ear
         //-----------------------------------------
-        memset(leftS, 0, 2 *numSamples * sizeof(float));
+        memset(leftS, 0, 2 * numSamples * sizeof(float));
         memcpy(leftS, left, numSamples * sizeof(float));
 
-        //pffft::AlignedVector<float> vector = fft.internalLayoutVector();
 
-        fft.forwardToInternalLayout(leftS, leftComplex);
-        fft.forwardToInternalLayout(leftIR, rightComplex);
+        fft.forward(leftS, leftComplex);
+        fft.forward(leftIR, rightComplex);
 
-        fft.convolve(leftComplex, rightComplex, leftS, 1);
-
-        fft.reorderSpectrum(leftS, currentComplex);
+        for(int i = 0; i < numSamples * 2; ++i)
+        {
+            currentComplex[i] = leftComplex[i] * rightComplex[i];
+        }
 
         fft.inverse(currentComplex, leftS);
 
         //-----------------------------------------
         // Right ear
         //-----------------------------------------
-        memset(rightS, 0, 2 *numSamples * sizeof(float));
+
+        memset(rightS, 0, 2 * numSamples * sizeof(float));
         memcpy(rightS, right, numSamples * sizeof(float));
 
-        fft.forwardToInternalLayout(rightS, rightComplex);
-        fft.forwardToInternalLayout(rightIR, leftComplex);
 
-        fft.convolve(leftComplex, rightComplex, rightS, 1);
+        fft.forward(rightS, leftComplex);
+        fft.forward(rightIR, rightComplex);
 
-        fft.reorderSpectrum(rightS, currentComplex);
+        for(int i = 0; i < numSamples * 2; ++i)
+        {
+            currentComplex[i] = leftComplex[i] * rightComplex[i];
+        }
 
         fft.inverse(currentComplex, rightS);
 
@@ -77,9 +84,12 @@ public:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = leftS[i] / (numSamples * numSamples);
-            right[i] = rightS[i] / (numSamples * numSamples * 16);
+            left[i] = (leftS[i] + leftOverlap[i]) / (numSamples * numSamples);// / (numSamples * 2);
+            right[i] = (rightS[i]  + rightOverlap[i]) / (numSamples * numSamples);
         }
+
+        memcpy(leftOverlap, leftS + numSamples, numSamples * sizeof(float));
+        memcpy(rightOverlap, rightS + numSamples, numSamples * sizeof(float));
 
         return 0;
     }
@@ -90,8 +100,10 @@ private:
     float* rightIR;
     float* leftS;
     float* rightS;
-    float* leftComplex;
-    float* rightComplex;
+    float* leftOverlap;
+    float* rightOverlap;
+    std::complex<float>* leftComplex;
+    std::complex<float>* rightComplex;
     std::complex<float>* currentComplex;
 
     pffft::Fft<float> fft;

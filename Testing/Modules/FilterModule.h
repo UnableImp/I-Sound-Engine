@@ -176,23 +176,23 @@ static void CreatIR()
     tesConver2.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
 
-    std::fstream readFrom("../HRIR/KEMAR/elev0/L0e000a.dat", std::ios_base::binary | std::ios_base::in);
-    std::fstream readFrom2("../HRIR/KEMAR/elev0/R0e000a.dat", std::ios_base::binary | std::ios_base::in);
+    std::fstream readFrom("../HRIR/KEMAR/elev70/L70e105a.dat", std::ios_base::binary | std::ios_base::in);
+    std::fstream readFrom2("../HRIR/KEMAR/elev70/R70e105a.dat", std::ios_base::binary | std::ios_base::in);
     ASSERT_TRUE(readFrom);
 
     short buffer[512];
     readFrom.read(reinterpret_cast<char*>(buffer), 1024);
 
     short buffer2[512];
-    readFrom2.read(reinterpret_cast<char*>(buffer), 1024);
+    readFrom2.read(reinterpret_cast<char*>(buffer2), 1024);
 
     for(int i = 0; i < 512; i++)
     {
         short v = (buffer[i] >> 8) | (buffer[i] << 8);
         tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
 
-         v = (buffer2[i] >> 8) | (buffer2[i] << 8);
-        tesConver2.write(reinterpret_cast<char*>(&v), sizeof(short));
+         short v2 = (buffer2[i] >> 8) | (buffer2[i] << 8);
+        tesConver2.write(reinterpret_cast<char*>(&v2), sizeof(short));
     }
 
 
