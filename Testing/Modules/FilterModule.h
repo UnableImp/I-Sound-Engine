@@ -29,7 +29,7 @@ template<typename... T>
 static void addFile(std::vector<WavFile> &vec, std::string fileName, T... files)
 {
     vec.emplace_back(WavFile{fileName});
-    ASSERT_TRUE(vec.back());
+    ASSERT_TRUE(vec.back()) << " " << fileName << vec.back().GetError();
     addFile(vec, files...);
 }
 
@@ -179,6 +179,7 @@ static void CreatIR()
     std::fstream readFrom("../HRIR/KEMAR/elev70/L70e105a.dat", std::ios_base::binary | std::ios_base::in);
     std::fstream readFrom2("../HRIR/KEMAR/elev70/R70e105a.dat", std::ios_base::binary | std::ios_base::in);
     ASSERT_TRUE(readFrom);
+    ASSERT_TRUE(readFrom2);
 
     short buffer[512];
     readFrom.read(reinterpret_cast<char*>(buffer), 1024);
@@ -202,7 +203,7 @@ TEST(Filters, ConvolutionFreqFFTOnly)
 {
     CreatIR();
 
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav", "TestFiles/TESTLIR1.wav", "TestFiles/TESTLIR2.wav");
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav", "TestFiles/TESTLIR1.wav", "TestFiles/TESTLIR2.wav");
     IO::MemoryMappedFile package("TestFiles/TESTConvBank.pck");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
