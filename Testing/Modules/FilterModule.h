@@ -18,6 +18,8 @@
 #include "Filters/OpusContainer.h"
 #include "Filters/ConvolutionFreq.h"
 
+#include <filesystem>
+
 #include <immintrin.h>
 
 static void addFile(std::vector<WavFile>&)
@@ -154,8 +156,99 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
     simulateEventManager(eventManager, outFileName, frameSize);
 }
 
+static std::string WriteToWav(const std::filesystem::path& path)
+{
+    WavFile wav("TestFiles/level.wav");
+
+    std::string outFile = path.string();
+    outFile = outFile.substr(0, outFile.size() - 3);
+    outFile += "wav";
+
+    //std::cout << outFile << " " << path << std::endl;
+
+    std::fstream tesConvert(outFile.c_str(), std::ios_base::binary | std::ios_base::out);
+    RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
+                          0,
+                          {'W', 'A', 'V', 'E'}};
+    tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    FormatHeader fmt = wav.GetFormat();
+    fmt.channel_count = 1;
+    tesConvert.write(reinterpret_cast<const char *>(&fmt), sizeof(FormatHeader));
+    GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
+    dataChunk.chunkSize = 1024;
+    tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    std::fstream tesConver2(outFile.c_str(), std::ios_base::binary | std::ios_base::out);
+
+    tesConver2.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConver2.write(reinterpret_cast<const char *>(&fmt), sizeof(FormatHeader));
+    tesConver2.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    std::fstream readFrom(path.c_str(), std::ios_base::binary | std::ios_base::in);
+
+    short buffer[512];
+    readFrom.read(reinterpret_cast<char*>(buffer), 1024);
+
+    for(int i = 0; i < 512; i++)
+    {
+        short v = (buffer[i] >> 8) | (buffer[i] << 8);
+        tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
+    }
+    return outFile;
+}
+
+static void CreateKEMARAudioPack()
+{
+    std::vector<WavFile> files;
+    files.reserve(3000);
+    PackageEncoder encoder;
+    std::filesystem::directory_iterator top("../HRIR/KEMAR/");
+
+    for(auto& elev : top)
+    {
+        if(elev.is_directory())
+        {
+            std::string elevPath(elev.path().string());
+            if(elevPath.rfind("elev") == std::string::npos)
+                continue;
+
+            int elevLevel = stoi(elevPath.substr(elevPath.rfind("elev") + 4));
+            if(elevLevel < 0)
+                elevLevel += 360;
+            //std::cout << elevLevel << std::endl;
+            std::filesystem::directory_iterator hrirs(elev.path());
+            for(auto& hrir : hrirs)
+            {
+                if(hrir.path().extension() == ".dat")
+                {
+                    //std::cout <<  hrir.path().filename().string() << std::endl;
+
+                    std::string hrirName(hrir.path().filename().string());
+
+                    int angleStart = hrirName.find("e") + 1;
+                    uint64_t angle = std::stoi(hrirName.substr(angleStart,angleStart+3));
+                    uint64_t isRight = hrirName.find("L") != std::string::npos ? 0 : 1;
+
+                    uint64_t id = (isRight << (63));
+                    id |= (static_cast<uint64_t>(elevLevel) << (31));
+                    id |= angle;
+
+                    //std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << std::endl;
+
+                    files.emplace_back(WavFile{WriteToWav(hrir.path())});
+                    encoder.AddFile(files.back(), id, Encoding::PCM);
+                }
+            }
+        }
+    }
+
+    encoder.WritePackage("TestFiles/TESTKEMARHRIR.pck");
+}
+
 static void CreatIR()
 {
+    CreateKEMARAudioPack();
+
     WavFile wav("TestFiles/level.wav");
     std::fstream tesConvert("TestFiles/TESTLIR1.wav", std::ios_base::binary | std::ios_base::out);
     RiffHeader riffHeader{{'R', 'I', 'F', 'F'},

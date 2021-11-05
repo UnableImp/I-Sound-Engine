@@ -11,6 +11,7 @@
 
 #include "IO/IOUtility.h"
 #include "IO/MemoryMappedFile.h"
+#include "assert.h"
 
 constexpr int samplesPerPacket = 960;
 
@@ -74,6 +75,7 @@ namespace PackageDecoder
         {
             // Read the id
             uint32_t id = *reinterpret_cast<const uint32_t*>(data + offset);
+            assert(table.find(id) == table.end() && "Id already exists in data table");
             offset += sizeof(uint32_t);
 
             if(*(data + offset + 0) == 'R' &&
