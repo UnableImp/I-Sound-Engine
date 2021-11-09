@@ -14,11 +14,13 @@
 #include "SoundData.h"
 #include "SoundContainer.h"
 
+#include <iostream>
+
 template<typename sampleType>
 class WavContainer : public SoundContainer<sampleType>
 {
 public:
-    WavContainer(SoundData& data) : data(data)
+    WavContainer(SoundData& data) : SoundContainer<sampleType>(), data(data)
     {
         totalOffset = 0;
     }
@@ -26,6 +28,7 @@ public:
     virtual void Reset() override
     {
         totalOffset = 0;
+        this->RandomPitch();
     }
 
     // Fully contaioned sound object
@@ -37,23 +40,53 @@ public:
         int frames = 0;
         for(int i = 0; i < numSamples; ++i)
         {
-            if(totalOffset >= data.sampleCount)
+            if(totalOffset >= data.sampleCount - 2)
             {
-                this->FillZeros(numSamples - i, left + i, right + i);
-                return frames;
+                if(this->totalLoops == -1)
+                {
+                    Reset();
+                }
+                else if(this->currentLoopCount < this->totalLoops)
+                {
+                    Reset();
+                    ++this->currentLoopCount;
+                }
+                else
+                {
+                    this->FillZeros(numSamples - i, left + i, right + i);
+                    return frames;
+                }
             }
 
             if (data.channels == ChannelType::Mono)
             {
-                left[i] += reinterpret_cast<float *>(data.data)[totalOffset];
-                right[i] += reinterpret_cast<float *>(data.data)[totalOffset];
-                ++totalOffset;
-            } else
+                float* sampleArray = reinterpret_cast<float*>(data.data);
+
+                sampleType value = this->lerp(sampleArray[static_cast<int>(totalOffset)],
+                                              sampleArray[static_cast<int>(totalOffset) + 2],
+                                              totalOffset - static_cast<int>(totalOffset));
+
+                left[i] += value;
+                right[i] += value;
+                totalOffset += this->playbackModifier;
+            }
+            else
             {
-                left[i] += reinterpret_cast<float *>(data.data)[totalOffset];
-                ++totalOffset;
-                right[i] += reinterpret_cast<float *>(data.data)[totalOffset];
-                ++totalOffset;
+                float* sampleArray = reinterpret_cast<float*>(data.data);
+
+                sampleType value = this->lerp(sampleArray[static_cast<int>(totalOffset)],
+                                              sampleArray[static_cast<int>(totalOffset) + 2],
+                                              totalOffset - static_cast<int>(totalOffset));
+
+                left[i] += value;
+                totalOffset += 1;
+
+                value = this->lerp(sampleArray[static_cast<int>(totalOffset)],
+                                   sampleArray[static_cast<int>(totalOffset) + 2],
+                                   totalOffset - static_cast<int>(totalOffset));
+
+                right[i] += value;
+                totalOffset += this->playbackModifier;
             }
             ++frames;
         }
@@ -66,7 +99,7 @@ public:
     }
 
 private:
-    int totalOffset = 0;
+    double totalOffset = 0;
     SoundData& data;
 };
 

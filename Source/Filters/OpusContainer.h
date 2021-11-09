@@ -19,7 +19,8 @@ class OpusContainer : public SoundContainer<sampleType>
 {
 public:
 
-    OpusContainer(SoundData& data) : data(data),
+    OpusContainer(SoundData& data) : SoundContainer<sampleType>(),
+                                    data(data),
                                     decoder(48000, data.channels == ChannelType::Mono ? 1 : 2),
                                     offsetIntoOpusFrame(std::numeric_limits<int>::max()),
                                     offsetIntoRawOpus(0),
@@ -42,11 +43,23 @@ public:
         {
             if(totalOffset >= data.sampleCount)
             {
-                this->FillZeros(numSamples - i, left + i, right + i);
-                return frames;
+                if(this->totalLoops == -1)
+                {
+                    Reset();
+                }
+                else if(this->currentLoopCount < this->totalLoops)
+                {
+                    ++this->currentLoopCount;
+                    Reset();
+                }
+                else
+                {
+                    this->FillZeros(numSamples - i, left + i, right + i);
+                    return frames;
+                }
             }
             // Does a new frame need to be decoded
-            if (offsetIntoOpusFrame >= OpusFrameSize * (data.channels == ChannelType::Stereo ? 2 : 1))
+            if (offsetIntoOpusFrame >= (OpusFrameSize * (data.channels == ChannelType::Stereo ? 2 : 1)))
             {
                 decodeFrame();
             }
@@ -54,14 +67,25 @@ public:
             // Read samples into output
             if (data.channels == ChannelType::Mono)
             {
-                left[i] += decodedOpusFrame[offsetIntoOpusFrame];
-                right[i] += decodedOpusFrame[offsetIntoOpusFrame];
+                sampleType value = this->lerp(decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame)],
+                                              decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame) + 2],
+                                              totalOffset - static_cast<int>(totalOffset));
+
+                left[i] += value;
+                right[i] += value;
                 ++offsetIntoOpusFrame;
             } else
             {
-                left[i] += decodedOpusFrame[offsetIntoOpusFrame];
+                sampleType value = this->lerp(decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame)],
+                                              decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame) + 2],
+                                              totalOffset - static_cast<int>(totalOffset));
+                left[i] += value;
                 ++offsetIntoOpusFrame;
-                right[i] += decodedOpusFrame[offsetIntoOpusFrame];
+
+                value = this->lerp(decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame)],
+                                   decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame) + 2],
+                                   totalOffset - static_cast<int>(totalOffset));
+                right[i] += value;
                 ++offsetIntoOpusFrame;
             }
             ++totalOffset;
@@ -79,27 +103,28 @@ private:
 
         // find size of next opus packet
         int opusPacketSize;
-        int tableIndex = OpusFile::GetSegementSize(data.data + offsetIntoRawOpus, opusPacketSize);
+        int tableIndex = OpusFile::GetSegementSize(data.data + static_cast<int>(offsetIntoRawOpus), opusPacketSize);
 
         // Read packet
         offsetIntoRawOpus += tableIndex;
-        int returnValue = decoder.DecodeFloat(data.data + offsetIntoRawOpus, opusPacketSize, decodedOpusFrame, OpusFrameSize);
+        int returnValue = decoder.DecodeFloat(data.data + static_cast<int>(offsetIntoRawOpus), opusPacketSize, decodedOpusFrame, OpusFrameSize);
 
         assert(returnValue >= 0 && "Opus decoder failed");
 
+        // Setup return values
         offsetIntoRawOpus += opusPacketSize;
-        offsetIntoOpusFrame = 0;
+        offsetIntoOpusFrame = totalOffset - static_cast<int>(totalOffset);
     }
 
     SoundData data;
     OpusDecoderWrapper decoder;
 
-    uint64_t offsetIntoRawOpus;
+    int offsetIntoRawOpus;
 
-    float decodedOpusFrame[OpusFrameSize * 2];
-    int offsetIntoOpusFrame;
+    float decodedOpusFrame[OpusFrameSize * 2 + 1];
+    double offsetIntoOpusFrame;
 
-    uint64_t totalOffset;
+    double totalOffset;
 };
 
 #endif //I_SOUND_ENGINE_OPUSCONTAINER_H
