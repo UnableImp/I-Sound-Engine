@@ -13,6 +13,10 @@ EventManager::EventManager(std::unordered_map<uint64_t, SoundData>& soundData) :
 
 EventManager::~EventManager()
 {
+    for(auto& event : events)
+    {
+        delete event.second;
+    }
     delete [] leftLocalBuffer;
     delete [] rightLocalBuffer;
 }
