@@ -139,7 +139,7 @@ protected:
         }
     }
 
-    sampleType lerp(sampleType a, sampleType b, sampleType t)
+    inline static sampleType lerp(sampleType a, sampleType b, sampleType t)
     {
         return a+(t*(b-a));
     }
