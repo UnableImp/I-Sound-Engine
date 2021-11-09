@@ -5,13 +5,13 @@
 #include "AudioFormats/OpusEncoderWrapper.h"
 #include "AudioFormats/OpusHeader.h"
 
-ErrorNum PackageEncoder::AddFile(WavFile& wav, uint32_t id, Encoding format)
+ErrorNum PackageEncoder::AddFile(WavFile& wav, uint64_t id, Encoding format)
 {
     if(wav.GetError() == NoErrors)
     {
         filesToEncode.emplace_back(FileInfo{wav, id, format});
         int sampleCount = wav.GetDataSize() / (wav.GetFormat().bits_per_sample / 8);
-        bufferSize += (sampleCount * sizeof (float)) + sizeof(uint32_t) + sizeof(WavHeader); // data size + id + header
+        bufferSize += (sampleCount * sizeof (float)) + sizeof(uint64_t) + sizeof(WavHeader); // data size + id + header
     }
     return wav.GetError();
 }
@@ -29,7 +29,7 @@ ErrorNum PackageEncoder::WritePackage(std::string path)
 
     char* buffer = new char[bufferSize];
 
-    uint32_t offset = 0;
+    uint64_t offset = 0;
 
     // Store all data in bank
     for(auto& file : filesToEncode)
@@ -53,8 +53,8 @@ ErrorNum PackageEncoder::WritePackage(std::string path)
 
 int PackageEncoder::WritePCM(char* buffer, FileInfo& file)
 {
-    *reinterpret_cast<uint32_t*>(buffer) = file.id;
-    int offset = sizeof (uint32_t);
+    *reinterpret_cast<uint64_t *>(buffer) = file.id;
+    int offset = sizeof (uint64_t);
 
     // Write riff header
     RiffHeader riffHeader{{'R','I','F','F'},
@@ -85,8 +85,8 @@ int PackageEncoder::WritePCM(char* buffer, FileInfo& file)
 
 int PackageEncoder::WriteOpus(char* buffer, FileInfo& file)
 {
-    *reinterpret_cast<uint32_t*>(buffer) = file.id;
-    int offset = sizeof (uint32_t);
+    *reinterpret_cast<uint64_t *>(buffer) = file.id;
+    int offset = sizeof (uint64_t);
 
     FormatHeader fmtHeader = file.wavFile.GetFormat();
     OpusHeaderChunk headerChunk {{'O', 'p', 'u', 's', 'H', 'e', 'a', 'd'}};

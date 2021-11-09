@@ -22,6 +22,8 @@
 
 #include <immintrin.h>
 
+#include <bitset>
+
 static void addFile(std::vector<WavFile>&)
 {
 
@@ -121,6 +123,48 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
             tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
             tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
         }
+    } while (samples > 0);
+    delete [] frame;
+}
+
+static void simulateEventManagerWithCalulator(EventManager& eventManager, const char* outFileName, int frameSize, int jump, HRIRCalculator<float>& hrir)
+{
+    WavFile wav("TestFiles/level.wav");
+    std::fstream tesConvert(outFileName, std::ios_base::binary | std::ios_base::out);
+    RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
+                          0,
+                          {'W', 'A', 'V', 'E'}};
+    tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConvert.write(reinterpret_cast<const char *>(&wav.GetFormat()), sizeof(FormatHeader));
+    GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
+    dataChunk.chunkSize = wav.GetDataSize();
+    tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    Frame<float>* frame = new Frame<float>[frameSize];
+    int angle = 0;
+    int samples = 0;
+    int totalSamples = 0;
+    do
+    {
+        samples = eventManager.GetSamplesFromAllEvents(frameSize, frame);
+        for(int i = 0; i < frameSize; ++i)
+        {
+            short right = static_cast<short>(frame[i].rightChannel * (1 << 15));
+            short left = static_cast<short>(frame[i].leftChannel * (1 << 15));
+
+            tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
+            tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
+        }
+
+        totalSamples += samples;
+        if(totalSamples % 2048 == 0)
+        {
+            angle += jump;
+            if (angle >= 360)
+                angle -= 360;
+            hrir.SetAngle(angle);
+        }
+
     } while (samples > 0);
     delete [] frame;
 }
@@ -229,11 +273,29 @@ static void CreateKEMARAudioPack()
                     uint64_t angle = std::stoi(hrirName.substr(angleStart,angleStart+3));
                     uint64_t isRight = hrirName.find("L") != std::string::npos ? 0 : 1;
 
-                    uint64_t id = (isRight << (63));
-                    id |= (static_cast<uint64_t>(elevLevel) << (31));
-                    id |= angle;
+//                    uint64_t id = (isRight << (63));
+//                    id |= (static_cast<uint64_t>(elevLevel) << (31));
+//                    id |= angle;
 
-                    //std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << std::endl;
+                    // All meta data ids are above 32 bits
+                    // All user ids are below 32 bits
+
+                    uint64_t id = angle << 32;
+                    id |= static_cast<uint64_t>(elevLevel) << 41;
+
+                    id |= static_cast<uint64_t>(1) << 52; // KEMAR audio data;
+
+                   // std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << " "  << std::bitset<32>(id >> 32) << std::endl;
+
+                    id |= static_cast<uint64_t>(isRight) << 51;
+//
+//                    std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << " "  << std::bitset<32>(id >> 32) << std::endl;
+//                    std::cout << std::endl;
+//                    if(isRight)
+//                        continue;
+
+                    //std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << " "  << std::bitset<64>(id) << std::endl;
+
 
                     files.emplace_back(WavFile{WriteToWav(hrir.path())});
                     encoder.AddFile(files.back(), id, Encoding::PCM);
@@ -247,8 +309,6 @@ static void CreateKEMARAudioPack()
 
 static void CreatIR()
 {
-    CreateKEMARAudioPack();
-
     WavFile wav("TestFiles/level.wav");
     std::fstream tesConvert("TestFiles/TESTLIR1.wav", std::ios_base::binary | std::ios_base::out);
     RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
@@ -288,31 +348,57 @@ static void CreatIR()
          short v2 = (buffer2[i] >> 8) | (buffer2[i] << 8);
         tesConver2.write(reinterpret_cast<char*>(&v2), sizeof(short));
     }
-
-
 }
 
-TEST(Filters, ConvolutionFreqFFTOnly)
+TEST(HRTF, HRTFAtOnePoint)
 {
-    CreatIR();
+    CreateKEMARAudioPack();
 
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav", "TestFiles/TESTLIR1.wav", "TestFiles/TESTLIR2.wav");
-    IO::MemoryMappedFile package("TestFiles/TESTConvBank.pck");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
 
-    EventManager eventManager(data);
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
-    WavContainer<float> left(data[1]);
-    WavContainer<float> right(data[2]);
-    HRIRCalculator<float> hrir(&left, &right);
+    EventManager eventManager(packageManager.GetSounds());
+
+    HRIRCalculator<float> hrir(packageManager);
+    hrir.SetAngle(110);
+    hrir.SetElev(10);
+
+
     ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
 
-    WavContainer<float>* sample = new WavContainer<float>(data[0]);
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
     eventManager.AddEvent(sample, convolver);
     simulateEventManager(eventManager, "TestFiles/TESTConvoler.wav", 512);
     //SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 1024);
+}
+
+TEST(HRTF, HRTFRotation)
+{
+    CreateKEMARAudioPack();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+
+    EventManager eventManager(packageManager.GetSounds());
+
+    HRIRCalculator<float> hrir(packageManager);
+    hrir.SetAngle(110);
+    hrir.SetElev(10);
+
+
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    eventManager.AddEvent(sample, convolver);
+    simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTConvolerRotating.wav", 512, 5,  hrir);
 }
 
 TEST(Filters, FFTTest)

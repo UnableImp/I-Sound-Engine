@@ -25,7 +25,7 @@ public:
      * @param format Wether file should be encoded to be in opus or pcm
      * @return Error
      */
-     ErrorNum AddFile(WavFile& wav, uint32_t id, Encoding format);
+     ErrorNum AddFile(WavFile& wav, uint64_t id, Encoding format);
 
      /*!
       * Generates the entire bank then writes it
@@ -41,7 +41,7 @@ private:
     struct FileInfo
     {
         WavFile& wavFile;
-        uint32_t id;
+        uint64_t id;
         Encoding encoding;
     };
 

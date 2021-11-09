@@ -12,7 +12,7 @@
 class ConvolutionFreq : public Filter<float>
 {
 public:
-    ConvolutionFreq(int size, HRIRCalculator<float> HRIR) : fft(size * 2), HRIR(HRIR)
+    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(size * 2), HRIR(HRIR)
     {
         currentComplex = new std::complex<float>[size* 2]();
 
@@ -107,7 +107,7 @@ private:
     std::complex<float>* currentComplex;
 
     pffft::Fft<float> fft;
-    HRIRCalculator<float> HRIR;
+    HRIRCalculator<float>& HRIR;
 };
 
 #endif //I_SOUND_ENGINE_CONVOLUTIONFREQ_H

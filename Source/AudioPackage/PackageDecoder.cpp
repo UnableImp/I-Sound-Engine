@@ -17,7 +17,7 @@ constexpr int samplesPerPacket = 960;
 
 namespace PackageDecoder
 {
-    int ParseWav(int id, std::unordered_map<uint64_t, SoundData>& table, char* data)
+    int ParseWav(uint64_t id, std::unordered_map<uint64_t, SoundData>& table, char* data)
     {
         SoundData soundData;
         soundData.data = data + sizeof(WavHeader);
@@ -74,9 +74,9 @@ namespace PackageDecoder
         while(offset < size)
         {
             // Read the id
-            uint32_t id = *reinterpret_cast<const uint32_t*>(data + offset);
+            uint64_t id = *reinterpret_cast<const uint64_t *>(data + offset);
             assert(table.find(id) == table.end() && "Id already exists in data table");
-            offset += sizeof(uint32_t);
+            offset += sizeof(uint64_t);
 
             if(*(data + offset + 0) == 'R' &&
                *(data + offset + 1) == 'I' &&
