@@ -207,10 +207,11 @@ void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Fram
         }
     }
 
-    for(int i = 0; i < largestSize; i += bufSize)
+    int readAmound = 0;
+    do
     {
-        eventManager.GetSamplesFromAllEvents(bufSize, buf);
-    }
+        readAmound = eventManager.GetSamplesFromAllEvents(bufSize, buf);
+    }while(readAmound != 0);
 }
 
 

@@ -519,4 +519,40 @@ static void PFFFT512(benchmark::State& state)
 BENCHMARK(PFFFT512);
 
 
+static void HRTF512Samples(benchmark::State& state)
+{
+    CreateKEMARAudioPack();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+
+    EventManager eventManager(packageManager.GetSounds());
+
+    HRIRCalculator<float> hrir(packageManager);
+    hrir.SetAngle(110);
+    hrir.SetElev(10);
+
+
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    Event event;
+    event.AddFilter(sample);
+    event.AddFilter(convolver);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    for(auto _ : state)
+    {
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel);
+    }
+}
+
+BENCHMARK(HRTF512Samples);
+
 #endif //I_SOUND_ENGINE_FILTERMODULE_H

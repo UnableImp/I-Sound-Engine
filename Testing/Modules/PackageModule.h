@@ -301,6 +301,7 @@ static void EncodeLevel44100ToOpus(benchmark::State& state)
     {
         file.GetDataAsOpus(buffer);
     }
+    delete [] buffer;
 }
 BENCHMARK(EncodeLevel44100ToOpus);
 
@@ -312,6 +313,7 @@ static void EncodeCredits48000ToOpus(benchmark::State& state)
     {
         file.GetDataAsOpus(buffer);
     }
+    delete [] buffer;
 }
 BENCHMARK(EncodeCredits48000ToOpus);
 
