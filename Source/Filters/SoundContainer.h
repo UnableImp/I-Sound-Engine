@@ -93,6 +93,9 @@ public:
     {
         int range = abs(pitchShiftCeil) + abs(pitchShiftFloor);
 
+        if(range == 0)
+            return;
+
         int newPitch = rand() % range;
 
         newPitch -= pitchShiftFloor;
@@ -123,6 +126,15 @@ public:
     }
 
     /*!
+     * Sets the volume of a single source
+     * @param newVolume volume in range [0-1]
+     */
+    void SetVolume(float newVolume)
+    {
+        volume = newVolume;
+    }
+
+    /*!
      * Set the position to seek to
      * @param position position to seek to
      */
@@ -148,6 +160,7 @@ protected:
      * The playback modifier to control speed of sound playback
      */
     sampleType playbackModifier;
+    float volume;
     int totalLoops;
     int currentLoopCount;
     int pitchShiftCeil;

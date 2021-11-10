@@ -16,6 +16,10 @@ public:
 private:
     uint64_t playID;
     float volume;
+    int loopCount;
+    int shiftStart;
+    int shiftUp;
+    int shiftDown;
 };
 
 

@@ -34,6 +34,7 @@ public:
         offsetIntoOpusFrame = std::numeric_limits<int>::max();
         offsetIntoRawOpus = 0;
         totalOffset = 0;
+        this->RandomPitch();
     }
 
     virtual int GetNextSamples(int numSamples, float* left, float* right) override
@@ -71,24 +72,39 @@ public:
                                               decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame) + 2],
                                               totalOffset - static_cast<int>(totalOffset));
 
+                // TODO change to lerp with next value
+                if(offsetIntoOpusFrame + 2 > OpusFrameSize)
+                    value = decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame)];
+
                 left[i] += value;
                 right[i] += value;
-                ++offsetIntoOpusFrame;
+                offsetIntoOpusFrame += this->playbackModifier;
             } else
             {
                 sampleType value = this->lerp(decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame)],
                                               decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame) + 2],
                                               totalOffset - static_cast<int>(totalOffset));
+                // TODO change to lerp with next value
+                if(offsetIntoOpusFrame + 2 > OpusFrameSize)
+                    value = decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame)];
+
                 left[i] += value;
-                ++offsetIntoOpusFrame;
+                offsetIntoOpusFrame += this->playbackModifier;
+
+
 
                 value = this->lerp(decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame)],
                                    decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame) + 2],
                                    totalOffset - static_cast<int>(totalOffset));
+
+                // TODO change to lerp with next value
+                if(offsetIntoOpusFrame + 2 > OpusFrameSize)
+                    value = decodedOpusFrame[static_cast<int>(offsetIntoOpusFrame)];
+
                 right[i] += value;
-                ++offsetIntoOpusFrame;
+                offsetIntoOpusFrame += this->playbackModifier;
             }
-            ++totalOffset;
+            totalOffset += this->playbackModifier;
             ++frames;
         }
         return frames;

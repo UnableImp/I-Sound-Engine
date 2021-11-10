@@ -65,7 +65,6 @@ public:
                 sampleType value = this->lerp(sampleArray[static_cast<int>(totalOffset)],
                                               sampleArray[static_cast<int>(totalOffset) + 2],
                                               totalOffset - static_cast<int>(totalOffset));
-
                 left[i] += value;
                 right[i] += value;
                 totalOffset += this->playbackModifier;

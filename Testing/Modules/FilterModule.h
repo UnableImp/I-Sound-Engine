@@ -401,6 +401,76 @@ TEST(HRTF, HRTFRotation)
     simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTConvolerRotating.wav", 512, 5,  hrir);
 }
 
+TEST(Filters, WavLoop)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/Slash2.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+
+    EventManager eventManager(packageManager.GetSounds());
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    sample->SetLoopCount(10);
+
+    eventManager.AddEvent(sample);
+    simulateEventManager(eventManager, "TestFiles/TESTWavLooping.wav", 512);
+}
+
+TEST(Filters, WavLoopAndShift)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/Slash2.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+
+    EventManager eventManager(packageManager.GetSounds());
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    sample->SetLoopCount(10);
+    sample->SetRandomPitchRange(-1200, 1200);
+
+    eventManager.AddEvent(sample);
+    simulateEventManager(eventManager, "TestFiles/TESTWavLoopShift.wav", 512);
+}
+
+TEST(Filters, OpusLoop)
+{
+    BuildPackageAllOpus(0, "TestFiles/TESTWavBank.pck","TestFiles/Slash2.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+
+    EventManager eventManager(packageManager.GetSounds());
+
+    OpusContainer<float>* sample = new OpusContainer<float>(packageManager.GetSounds()[0]);
+
+    sample->SetLoopCount(10);
+
+    eventManager.AddEvent(sample);
+    simulateEventManager(eventManager, "TestFiles/TESTOpusLooping.wav", 512);
+}
+
+TEST(Filters, OpusLoopAndShift)
+{
+    BuildPackageAllOpus(0, "TestFiles/TESTWavBank.pck","TestFiles/Slash2.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+
+    EventManager eventManager(packageManager.GetSounds());
+
+    OpusContainer<float>* sample = new OpusContainer<float>(packageManager.GetSounds()[0]);
+
+    sample->SetLoopCount(10);
+    sample->SetRandomPitchRange(-1200, 1200);
+
+    eventManager.AddEvent(sample);
+    simulateEventManager(eventManager, "TestFiles/TESTOpusLoopShift.wav", 512);
+}
+
 TEST(Filters, FFTTest)
 {
     pffft::Fft<float> fft(32);

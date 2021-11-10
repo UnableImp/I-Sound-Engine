@@ -208,10 +208,10 @@ void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Fram
     }
 
     int readAmound = 0;
-    do
+    for(int i = 0; i < 2048; i += bufSize)
     {
         readAmound = eventManager.GetSamplesFromAllEvents(bufSize, buf);
-    }while(readAmound != 0);
+    }
 }
 
 
@@ -370,6 +370,7 @@ static void readEventFromBuffer(benchmark::State& state, int bufSize)
     }
     delete [] buf;
 }
+
 
 static void Read100WavEventsSong1Buf(benchmark::State& state)
 {
