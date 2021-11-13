@@ -84,7 +84,7 @@ public:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlap[i]) / (numSamples * 2);// / (numSamples * 2);
+            left[i] = (leftS[i] + leftOverlap[i]) / (numSamples * 2);
             right[i] = (rightS[i]  + rightOverlap[i]) / (numSamples * 2);
         }
 

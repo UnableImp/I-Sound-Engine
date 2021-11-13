@@ -588,7 +588,6 @@ static void PFFFT512(benchmark::State& state)
 }
 BENCHMARK(PFFFT512);
 
-
 static void HRTF512Samples(benchmark::State& state)
 {
     CreateKEMARAudioPack();
@@ -622,7 +621,6 @@ static void HRTF512Samples(benchmark::State& state)
         event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel);
     }
 }
-
 BENCHMARK(HRTF512Samples);
 
 #endif //I_SOUND_ENGINE_FILTERMODULE_H

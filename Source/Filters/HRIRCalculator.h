@@ -14,27 +14,53 @@ class HRIRCalculator : public Filter<sampleType>
 {
 public:
     HRIRCalculator(/*listener ref, object ref,*/PackageManager& packageManager ) : packageManager(packageManager),
-                                                                                   angle(0),
-                                                                                   evel(0)
+                                                                                   currentEvel(0),
+                                                                                   currentAngle(0),
+                                                                                   goalAngle(0),
+                                                                                   goalEvel(0)
     {}
 
     virtual ~HRIRCalculator() {}
 
-    virtual int GetNextSamples(int numSamples, float* left, float* right) override
+    virtual int GetNextSamples(int numSamples, float* left, float* right)
+    {
+        if(currentAngle == goalAngle && currentEvel == goalEvel)
+        {
+            return GetNextSamplesSame(numSamples, left, right);
+        }
+        else
+        {
+            return GetNextSamplesSame(numSamples, left, right);
+        }
+    }
+
+    void SetAngle(uint64_t newAngle)
+    {
+        goalAngle = newAngle;
+    }
+
+    void SetElev(uint64_t newElev)
+    {
+        goalEvel = newElev;
+    }
+
+private:
+
+    int GetNextSamplesSame(int numSamples, float* left, float* right)
     {
 
         memset(left, 0, numSamples * sizeof(float));
         memset(right, 0, numSamples * sizeof(float));
 
-        uint64_t id = angle << 32; // Angle
-        id |= static_cast<uint64_t>(evel) << 41; // Evelation
+        uint64_t id = currentAngle << 32; // Angle
+        id |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
         id |= static_cast<uint64_t>(1) << 52; // Kemar
 
         assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
 
         WavContainer<float> leftIR(packageManager.GetSounds()[id]);
 
-         id |= static_cast<uint64_t>(1) << 51; // Right ear
+        id |= static_cast<uint64_t>(1) << 51; // Right ear
 
 
         assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
@@ -47,20 +73,49 @@ public:
         return 0;
     }
 
-    void SetAngle(uint64_t newAngle)
+    int GetNextSampleMoveToGoal(int numSamples, float* left, float* right)
     {
-        angle = newAngle;
+        memset(leftCurrent, 0, numSamples * sizeof(float));
+        memset(rightCurrent, 0, numSamples * sizeof(float));
+        memset(leftGoal, 0, numSamples * sizeof(float));
+        memset(rightGoal, 0, numSamples * sizeof(float));
+
+        uint64_t idCurr = currentAngle << 32; // Angle
+        idCurr |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
+        idCurr |= static_cast<uint64_t>(1) << 52; // Kemar
+        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        WavContainer<float> leftCurIR(packageManager.GetSounds()[idCurr]);
+        idCurr |= static_cast<uint64_t>(1) << 51; // Right ear
+        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        WavContainer<float> rightCurIR(packageManager.GetSounds()[idCurr]);
+        leftCurIR.GetNextSamples(numSamples, leftCurrent, leftCurrent);
+        rightCurIR.GetNextSamples(numSamples, rightCurrent, rightCurrent);
+
+        uint64_t idGoal = goalAngle << 32; // Angle
+        idGoal |= static_cast<uint64_t>(goalEvel) << 41; // Evelation
+        idGoal |= static_cast<uint64_t>(1) << 52; // Kemar
+        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        WavContainer<float> leftGoalIR(packageManager.GetSounds()[idGoal]);
+        idGoal |= static_cast<uint64_t>(1) << 51; // Right ear
+        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        WavContainer<float> rightGoalIR(packageManager.GetSounds()[idGoal]);
+        leftCurIR.GetNextSamples(numSamples, leftGoal, leftGoal);
+        rightCurIR.GetNextSamples(numSamples, rightGoal, rightGoal);
+
+
     }
 
-    void SetElev(uint64_t newElev)
-    {
-        evel = newElev;
-    }
 
-private:
+    float leftCurrent[512];
+    float rightCurrent[512];
+    float leftGoal[512];
+    float rightGoal[512];
+
     PackageManager& packageManager;
-    uint64_t evel;
-    uint64_t angle;
+    uint64_t goalEvel;
+    uint64_t goalAngle;
+    uint64_t currentAngle;
+    uint64_t  currentEvel;
 };
 
 #endif //I_SOUND_ENGINE_HRIRCALCULATOR_H
