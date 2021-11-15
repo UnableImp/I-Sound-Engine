@@ -24,6 +24,9 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right)
     {
+        currentAngle = goalAngle;
+        currentEvel = goalEvel;
+
         if(currentAngle == goalAngle && currentEvel == goalEvel)
         {
             return GetNextSamplesSame(numSamples, left, right);
@@ -62,7 +65,6 @@ private:
 
         id |= static_cast<uint64_t>(1) << 51; // Right ear
 
-
         assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
 
         WavContainer<float> rightIR(packageManager.GetSounds()[id]);
@@ -83,10 +85,10 @@ private:
         uint64_t idCurr = currentAngle << 32; // Angle
         idCurr |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
         idCurr |= static_cast<uint64_t>(1) << 52; // Kemar
-        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        assert(packageManager.GetSounds().find(idCurr) != packageManager.GetSounds().end());
         WavContainer<float> leftCurIR(packageManager.GetSounds()[idCurr]);
         idCurr |= static_cast<uint64_t>(1) << 51; // Right ear
-        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        assert(packageManager.GetSounds().find(idCurr) != packageManager.GetSounds().end());
         WavContainer<float> rightCurIR(packageManager.GetSounds()[idCurr]);
         leftCurIR.GetNextSamples(numSamples, leftCurrent, leftCurrent);
         rightCurIR.GetNextSamples(numSamples, rightCurrent, rightCurrent);
@@ -94,10 +96,10 @@ private:
         uint64_t idGoal = goalAngle << 32; // Angle
         idGoal |= static_cast<uint64_t>(goalEvel) << 41; // Evelation
         idGoal |= static_cast<uint64_t>(1) << 52; // Kemar
-        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        assert(packageManager.GetSounds().find(idGoal) != packageManager.GetSounds().end());
         WavContainer<float> leftGoalIR(packageManager.GetSounds()[idGoal]);
         idGoal |= static_cast<uint64_t>(1) << 51; // Right ear
-        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        assert(packageManager.GetSounds().find(idGoal) != packageManager.GetSounds().end());
         WavContainer<float> rightGoalIR(packageManager.GetSounds()[idGoal]);
         leftCurIR.GetNextSamples(numSamples, leftGoal, leftGoal);
         rightCurIR.GetNextSamples(numSamples, rightGoal, rightGoal);

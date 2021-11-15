@@ -243,8 +243,6 @@ static std::string WriteToWav(const std::filesystem::path& path)
 
 static void CreateKEMARAudioPack()
 {
-    std::vector<WavFile> files;
-    files.reserve(3000);
     PackageEncoder encoder;
     std::filesystem::directory_iterator top("../HRIR/KEMAR/");
 
@@ -296,9 +294,7 @@ static void CreateKEMARAudioPack()
 
                     //std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << " "  << std::bitset<64>(id) << std::endl;
 
-
-                    files.emplace_back(WavFile{WriteToWav(hrir.path())});
-                    encoder.AddFile(files.back(), id, Encoding::PCM);
+                    encoder.AddFile(WriteToWav(hrir.path()), id, Encoding::PCM);
                 }
             }
         }

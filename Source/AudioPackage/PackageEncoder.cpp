@@ -9,7 +9,19 @@ ErrorNum PackageEncoder::AddFile(WavFile& wav, uint64_t id, Encoding format)
 {
     if(wav.GetError() == NoErrors)
     {
-        filesToEncode.emplace_back(FileInfo{wav, id, format});
+        filesToEncode.emplace_back(FileInfo{wav.GetPath(), id, format});
+        int sampleCount = wav.GetDataSize() / (wav.GetFormat().bits_per_sample / 8);
+        bufferSize += (sampleCount * sizeof (float)) + sizeof(uint64_t) + sizeof(WavHeader); // data size + id + header
+    }
+    return wav.GetError();
+}
+
+ErrorNum PackageEncoder::AddFile(const std::string &path, uint64_t id, Encoding format)
+{
+    WavFile wav(path);
+    if(wav.GetError() == NoErrors)
+    {
+        filesToEncode.emplace_back(FileInfo{wav.GetPath(), id, format});
         int sampleCount = wav.GetDataSize() / (wav.GetFormat().bits_per_sample / 8);
         bufferSize += (sampleCount * sizeof (float)) + sizeof(uint64_t) + sizeof(WavHeader); // data size + id + header
     }
@@ -56,16 +68,18 @@ int PackageEncoder::WritePCM(char* buffer, FileInfo& file)
     *reinterpret_cast<uint64_t *>(buffer) = file.id;
     int offset = sizeof (uint64_t);
 
+    WavFile wavFile(file.wavPath);
+
     // Write riff header
     RiffHeader riffHeader{{'R','I','F','F'},
                           0,
                           {'W','A','V','E'}};
-    riffHeader.riff_size = sizeof(WavHeader) + file.wavFile.GetDataSize();
+    riffHeader.riff_size = sizeof(WavHeader) + wavFile.GetDataSize();
     *reinterpret_cast<RiffHeader*>(buffer + offset) = riffHeader;
     offset += sizeof(RiffHeader);
 
     // Write fmt header
-    *reinterpret_cast<FormatHeader*>(buffer + offset) = file.wavFile.GetFormat();
+    *reinterpret_cast<FormatHeader*>(buffer + offset) = wavFile.GetFormat();
     (*reinterpret_cast<FormatHeader*>(buffer + offset)).bits_per_sample = sizeof(float) * 8;
     offset += sizeof(FormatHeader);
 
@@ -73,12 +87,12 @@ int PackageEncoder::WritePCM(char* buffer, FileInfo& file)
 
     // Write data header
     GenericHeaderChunk dataChunk{{'d', 'a','t','a'}, 0};
-    dataChunk.chunkSize = (file.wavFile.GetDataSize() / (file.wavFile.GetFormat().bits_per_sample / 8)) * sizeof(float);
+    dataChunk.chunkSize = (wavFile.GetDataSize() / (wavFile.GetFormat().bits_per_sample / 8)) * sizeof(float);
     *reinterpret_cast<GenericHeaderChunk*>(buffer + offset) = dataChunk;
     offset += sizeof (GenericHeaderChunk);
 
     // Write data
-    file.wavFile.GetDataAsFloat(reinterpret_cast<float*>(buffer + offset));
+    wavFile.GetDataAsFloat(reinterpret_cast<float*>(buffer + offset));
     offset += dataChunk.chunkSize;
     return offset;
 }
@@ -88,7 +102,9 @@ int PackageEncoder::WriteOpus(char* buffer, FileInfo& file)
     *reinterpret_cast<uint64_t *>(buffer) = file.id;
     int offset = sizeof (uint64_t);
 
-    FormatHeader fmtHeader = file.wavFile.GetFormat();
+    WavFile wavFile(file.wavPath);
+
+    FormatHeader fmtHeader = wavFile.GetFormat();
     OpusHeaderChunk headerChunk {{'O', 'p', 'u', 's', 'H', 'e', 'a', 'd'}};
     headerChunk.channels = fmtHeader.channel_count;
     headerChunk.sampleRate = fmtHeader.sampling_rate;
@@ -101,7 +117,7 @@ int PackageEncoder::WriteOpus(char* buffer, FileInfo& file)
     offset += 19;
     // TODO test if in memory buffer works so no need for secound buffer
 
-    offset += file.wavFile.GetDataAsOpus(buffer + offset);
+    offset += wavFile.GetDataAsOpus(buffer + offset);
 
     return offset;
 }

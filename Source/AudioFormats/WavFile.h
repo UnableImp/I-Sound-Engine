@@ -65,6 +65,8 @@ public:
      */
     int GetDataAsOpus(char* buffer);
 
+    const std::string& GetPath() const;
+
 private:
 
     void ParseFormat();
@@ -74,6 +76,7 @@ private:
     unsigned dataSize;
     std::fstream wavFile;
     FormatHeader fmtHeader;
+    std::string path;
 };
 
 #endif //I_SOUND_ENGINE_WAVFILE_H

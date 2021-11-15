@@ -15,7 +15,8 @@ constexpr int EncodeSize = 960;
 
 WavFile::WavFile(const std::string& path) : errorState(ErrorNum::NoErrors),
                                      wavFile(path, std::ios_base::binary | std::ios_base::in),
-                                     fmtHeader()
+                                     fmtHeader(),
+                                     path(path)
 {
     // Open file
     if(!wavFile)
@@ -256,4 +257,9 @@ int WavFile::GetDataAsOpus(char* buffer)
     }
     delete [] fRawData;
     return offset;
+}
+
+const std::string& WavFile::GetPath() const
+{
+    return path;
 }
