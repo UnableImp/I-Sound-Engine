@@ -18,14 +18,19 @@ public:
     uint64_t AddObject(uint64_t id);
     uint64_t RemoveObject(uint64_t  id);
 
-    uint64_t EventIDToGameObjectId(uint64_t id) const;
     int GetGameObject(uint64_t id, GameObject& obj) const;
 
     void SetGameObjectTransform(uint64_t id, const Transform& transform);
     void SetGameObjectPosition(uint64_t id, const IVector3& position);
 
+    static void SetListenerTransform(const Transform& transform);
+    static void SetListenerPosition(const IVector3& position);
+
+    static const Transform& GetListenerPosition();
+
 private:
     std::unordered_map<uint64_t, GameObject> gameObjects;
+    static GameObject listener;
 };
 
 

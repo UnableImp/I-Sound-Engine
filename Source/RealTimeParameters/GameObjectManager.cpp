@@ -4,6 +4,8 @@
 
 #include "GameObjectManager.h"
 
+GameObject GameObjectManager::listener;
+
 GameObjectManager::GameObjectManager()
 {
 
@@ -55,4 +57,19 @@ void GameObjectManager::SetGameObjectPosition(uint64_t id, const IVector3& posit
     if(obj == gameObjects.end())
         return;
     obj->second.SetPosition(position);
+}
+
+void GameObjectManager::SetListenerTransform(const Transform& transform)
+{
+    listener.SetTransform(transform);
+}
+
+void GameObjectManager::SetListenerPosition(const IVector3& position)
+{
+    listener.SetPosition(position);
+}
+
+const Transform& GameObjectManager::GetListenerPosition()
+{
+    return listener.GetTransform();
 }

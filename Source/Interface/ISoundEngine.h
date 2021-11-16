@@ -101,6 +101,10 @@ public:
      */
     void SetPosition(uint64_t id, const IVector3& position);
 
+    void SetListenerTransform(const Transform& transform);
+
+    void SetListernerPosition(const IVector3& position);
+
 private:
     PackageManager packageManager;
     GameObjectManager gameObjectManager;

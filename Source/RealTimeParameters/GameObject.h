@@ -22,7 +22,7 @@ public:
 
 private:
 
-
+    Transform transform;
 
 };
 

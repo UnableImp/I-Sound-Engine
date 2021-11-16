@@ -78,3 +78,13 @@ void ISoundEngine::SetPosition(uint64_t id, const IVector3& position)
 {
     gameObjectManager.SetGameObjectPosition(id, position);
 }
+
+void ISoundEngine::SetListenerTransform(const Transform& transform)
+{
+    GameObjectManager::SetListenerTransform(transform);
+}
+
+void ISoundEngine::SetListernerPosition(const IVector3& position)
+{
+    GameObjectManager::SetListenerPosition(position);
+}
