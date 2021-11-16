@@ -8,6 +8,7 @@
 #include "AudioPackage/PackageManager.h"
 #include "Events/EventManager.h"
 #include "RealTimeAudio/RealTimeAudio.h"
+#include "RealTimeParameters/GameObjectManager.h"
 
 class ISoundEngine
 {
@@ -72,9 +73,37 @@ public:
     */
     uint64_t PostEvent(uint64_t id);
 
+    /*!
+     * Adds a game object to internals, required for 3d sounds
+     * @param id ID to reference the obj by
+     * @return 0 if failed to insert, else id
+     */
+    uint64_t AddObject(uint64_t id);
+
+    /*!
+     * Removes a game object when no longer in use
+     * @param id ID of object to remove
+     * @return 0 if removed failed, else id
+     */
+    uint64_t RemoveObject(uint64_t id);
+
+    /*!
+     * Sets transform of a game object
+     * @param id ID of object's transform to update
+     * @param transform Transform to set it too
+     */
+    void SetTransform(uint64_t id, const Transform& transform);
+
+    /*!
+     * Sets just the postion part of a game object
+     * @param id ID of object to update
+     * @param position Postion to update too
+     */
+    void SetPosition(uint64_t id, const IVector3& position);
 
 private:
     PackageManager packageManager;
+    GameObjectManager gameObjectManager;
     EventManager eventManager;
     RealTimeAudio realTimeAudio;
 };

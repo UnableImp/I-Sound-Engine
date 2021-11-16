@@ -257,23 +257,17 @@ static void CreateKEMARAudioPack()
             int elevLevel = stoi(elevPath.substr(elevPath.rfind("elev") + 4));
             if(elevLevel < 0)
                 elevLevel += 360;
-            //std::cout << elevLevel << std::endl;
+
             std::filesystem::directory_iterator hrirs(elev.path());
             for(auto& hrir : hrirs)
             {
                 if(hrir.path().extension() == ".dat")
                 {
-                    //std::cout <<  hrir.path().filename().string() << std::endl;
-
                     std::string hrirName(hrir.path().filename().string());
 
                     int angleStart = hrirName.find("e") + 1;
                     uint64_t angle = std::stoi(hrirName.substr(angleStart,angleStart+3));
                     uint64_t isRight = hrirName.find("L") != std::string::npos ? 0 : 1;
-
-//                    uint64_t id = (isRight << (63));
-//                    id |= (static_cast<uint64_t>(elevLevel) << (31));
-//                    id |= angle;
 
                     // All meta data ids are above 32 bits
                     // All user ids are below 32 bits
@@ -283,16 +277,7 @@ static void CreateKEMARAudioPack()
 
                     id |= static_cast<uint64_t>(1) << 52; // KEMAR audio data;
 
-                   // std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << " "  << std::bitset<32>(id >> 32) << std::endl;
-
                     id |= static_cast<uint64_t>(isRight) << 51;
-//
-//                    std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << " "  << std::bitset<32>(id >> 32) << std::endl;
-//                    std::cout << std::endl;
-//                    if(isRight)
-//                        continue;
-
-                    //std::cout << "    " << angle << "    " << isRight << "    " << hrirName << "    " << id  << " "  << std::bitset<64>(id) << std::endl;
 
                     encoder.AddFile(WriteToWav(hrir.path()), id, Encoding::PCM);
                 }
