@@ -6,21 +6,21 @@
 
 void GameObject::SetPosition(const IVector3 &pos)
 {
-
+    transform.postion = pos;
 }
 
 void GameObject::SetTransform(const Transform &trans)
 {
-
+    transform = trans;
 }
 
-void SetUp(IVector3 const& up)
+void GameObject::SetUp(IVector3 const& up)
 {
-
+    transform.up = up;
 }
-void SetForward(IVector3 const& forward)
+void GameObject::SetForward(IVector3 const& forward)
 {
-
+    transform.forward = forward;
 }
 
 const Transform& GameObject::GetTransform() const

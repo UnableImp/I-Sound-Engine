@@ -23,6 +23,7 @@ public:
     int GetSamples(int numSamples, float* left, float* right, const GameObject& obj);
 
     uint64_t GetParent();
+    void SetParent(uint64_t parent);
 
 private:
     std::vector<Filter<float> *> filters;

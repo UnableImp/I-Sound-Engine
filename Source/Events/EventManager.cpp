@@ -83,13 +83,35 @@ void EventManager::ParseEvents(const std::string& path)
 int EventManager::AddEvent(uint64_t id)
 {
     Event* event;
-    eventParser.GetEvent(id, &event, soundData);
+    ErrorNum isValid = eventParser.GetEvent(id, &event, soundData);
     return AddEvent(event);
 }
 
 int EventManager::AddEvent(const std::string& name)
 {
     Event* event;
-    eventParser.GetEvent(name, &event, soundData);
+    ErrorNum isValid = eventParser.GetEvent(name, &event, soundData);
+    if(isValid != ErrorNum::NoErrors)
+        return isValid;
+    return AddEvent(event);
+}
+
+int EventManager::AddEvent(uint64_t id, uint64_t gameObjectId)
+{
+    Event* event;
+    ErrorNum isValid = eventParser.GetEvent(id, &event, soundData);
+    if(isValid != ErrorNum::NoErrors)
+        return isValid;
+    event->SetParent(gameObjectId);
+    return AddEvent(event);
+}
+
+int EventManager::AddEvent(const std::string& name, uint64_t gameObjectId)
+{
+    Event* event;
+    ErrorNum isValid = eventParser.GetEvent(name, &event, soundData);
+    if(isValid != ErrorNum::NoErrors)
+        return isValid;
+    event->SetParent(gameObjectId);
     return AddEvent(event);
 }

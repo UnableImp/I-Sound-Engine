@@ -10,6 +10,8 @@
 #include "AudioPackage/PackageManager.h"
 #include "RealTimeParameters/GameObjectManager.h"
 
+constexpr float pi = 3.14159265359f;
+
 template<typename sampleType>
 class HRIRCalculator : public Filter<sampleType>
 {
@@ -31,12 +33,21 @@ public:
         const auto& listener = GameObjectManager::GetListenerPosition();
         const auto& source = obj.GetTransform();
 
+        IVector3 sourceDir = listener.postion - source.postion;
+
         float listenerAngle = std::atan2(listener.forward.y,listener.forward.x);
-        float sourceAngle = std::atan2(source.forward.y,source.forward.x);
+        float sourceAngle = std::atan2(sourceDir.y, sourceDir.x);
 
-        float angle = listenerAngle - sourceAngle;
+        float angle = (listenerAngle - sourceAngle) * (180.0f / pi);
 
-        uint64_t id = currentAngle << 32; // Angle
+        currentAngle = (int)angle + (5 - ((int)angle % 5));
+
+        if(currentAngle < 0)
+            currentAngle += 360;
+        if(currentAngle >= 360)
+            currentAngle -= 360;
+
+        uint64_t id = static_cast<uint64_t>(currentAngle) << 32; // Angle
         id |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
         id |= static_cast<uint64_t>(1) << 52; // Kemar
 
@@ -54,16 +65,6 @@ public:
         rightIR.GetNextSamples(numSamples, right, right, obj);
 
         return 0;
-    }
-
-    void SetAngle(uint64_t newAngle)
-    {
-        goalAngle = newAngle;
-    }
-
-    void SetElev(uint64_t newElev)
-    {
-        goalEvel = newElev;
     }
 
 private:
@@ -133,10 +134,10 @@ private:
     float rightGoal[512];
 
     PackageManager& packageManager;
-    uint64_t goalEvel;
-    uint64_t goalAngle;
-    uint64_t currentAngle;
-    uint64_t  currentEvel;
+    int goalEvel;
+    int goalAngle;
+    int currentAngle;
+    int  currentEvel;
 };
 
 #endif //I_SOUND_ENGINE_HRIRCALCULATOR_H

@@ -34,3 +34,8 @@ uint64_t Event::GetParent()
 {
     return gameObjectID;
 }
+
+void Event::SetParent(uint64_t parent)
+{
+   gameObjectID = parent;
+}
