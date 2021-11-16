@@ -55,7 +55,7 @@ ErrorNum EventParser::GetEvent(uint64_t id, Event **event, std::unordered_map<ui
     if(IdToEvent.find(id) == IdToEvent.end())
         return ErrorNum::EventNotFound;
 
-    *event = new Event;
+    *event = new Event(0);
     auto& filtersInEvent = IdToEvent[id];
 
     for(auto sFilter : filtersInEvent)

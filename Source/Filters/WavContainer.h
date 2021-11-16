@@ -35,7 +35,7 @@ public:
     //WavContainer()
 
 
-    virtual int GetNextSamples(int numSamples, float* left, float* right) override
+    virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) override
     {
         int frames = 0;
         for(int i = 0; i < numSamples; ++i)

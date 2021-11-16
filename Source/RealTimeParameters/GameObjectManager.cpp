@@ -29,14 +29,6 @@ uint64_t GameObjectManager::RemoveObject(uint64_t  id)
     return 0;
 }
 
-uint64_t GameObjectManager::EventIDToGameObjectId(uint64_t id) const
-{
-    auto obj = eventsToGameObjets.find(id);
-    if(obj != eventsToGameObjets.end())
-        return obj->second;
-    return 0;
-}
-
 int GameObjectManager::GetGameObject(uint64_t id, GameObject& obj) const
 {
     auto objToGet = gameObjects.find(id);
@@ -63,16 +55,4 @@ void GameObjectManager::SetGameObjectPosition(uint64_t id, const IVector3& posit
     if(obj == gameObjects.end())
         return;
     obj->second.SetPosition(position);
-}
-
-void GameObjectManager::AddEventIDMaping(uint64_t gameObjId, uint64_t eventId)
-{
-    eventsToGameObjets.try_emplace(eventId, gameObjId);
-}
-
-void GameObjectManager::RemoveEventIDMaping(uint64_t eventId)
-{
-    auto obj = eventsToGameObjets.find(eventId);
-    if(obj != eventsToGameObjets.end())
-        eventsToGameObjets.erase(obj);
 }

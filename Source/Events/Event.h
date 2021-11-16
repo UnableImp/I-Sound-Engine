@@ -8,18 +8,25 @@
 #include "Filters/Filter.h"
 #include "AudioFrame.h"
 #include <vector>
+#include <cstdint>
 
 class Event
 {
 public:
 
+    Event(uint64_t gameObjectId);
+
     ~Event();
 
     void AddFilter(Filter<float>* filter);
 
-    int GetSamples(int numSamples, float* left, float* right);
+    int GetSamples(int numSamples, float* left, float* right, const GameObject& obj);
+
+    uint64_t GetParent();
+
 private:
     std::vector<Filter<float> *> filters;
+    uint64_t gameObjectID;
 };
 
 #endif //I_SOUND_ENGINE_EVENT_H

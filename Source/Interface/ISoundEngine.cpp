@@ -4,7 +4,7 @@
 
 #include "ISoundEngine.h"
 
-ISoundEngine::ISoundEngine() : packageManager(), eventManager(packageManager.GetSounds()), realTimeAudio(eventManager)
+ISoundEngine::ISoundEngine() : packageManager(), eventManager(packageManager.GetSounds(), gameObjectManager), realTimeAudio(eventManager)
 {
 
 }

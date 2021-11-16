@@ -22,18 +22,18 @@ public:
 
     virtual ~HRIRCalculator() {}
 
-    virtual int GetNextSamples(int numSamples, float* left, float* right)
+    virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
         currentAngle = goalAngle;
         currentEvel = goalEvel;
 
         if(currentAngle == goalAngle && currentEvel == goalEvel)
         {
-            return GetNextSamplesSame(numSamples, left, right);
+            return GetNextSamplesSame(numSamples, left, right, obj);
         }
         else
         {
-            return GetNextSamplesSame(numSamples, left, right);
+            return GetNextSamplesSame(numSamples, left, right, obj);
         }
     }
 
@@ -49,7 +49,7 @@ public:
 
 private:
 
-    int GetNextSamplesSame(int numSamples, float* left, float* right)
+    int GetNextSamplesSame(int numSamples, float* left, float* right, const GameObject& obj)
     {
 
         memset(left, 0, numSamples * sizeof(float));
@@ -69,13 +69,13 @@ private:
 
         WavContainer<float> rightIR(packageManager.GetSounds()[id]);
 
-        leftIR.GetNextSamples(numSamples, left, left);
-        rightIR.GetNextSamples(numSamples, right, right);
+        leftIR.GetNextSamples(numSamples, left, left, obj);
+        rightIR.GetNextSamples(numSamples, right, right, obj);
 
         return 0;
     }
 
-    int GetNextSampleMoveToGoal(int numSamples, float* left, float* right)
+    int GetNextSampleMoveToGoal(int numSamples, float* left, float* right, const GameObject& obj)
     {
         memset(leftCurrent, 0, numSamples * sizeof(float));
         memset(rightCurrent, 0, numSamples * sizeof(float));
@@ -90,8 +90,8 @@ private:
         idCurr |= static_cast<uint64_t>(1) << 51; // Right ear
         assert(packageManager.GetSounds().find(idCurr) != packageManager.GetSounds().end());
         WavContainer<float> rightCurIR(packageManager.GetSounds()[idCurr]);
-        leftCurIR.GetNextSamples(numSamples, leftCurrent, leftCurrent);
-        rightCurIR.GetNextSamples(numSamples, rightCurrent, rightCurrent);
+        leftCurIR.GetNextSamples(numSamples, leftCurrent, leftCurrent, obj);
+        rightCurIR.GetNextSamples(numSamples, rightCurrent, rightCurrent, obj);
 
         uint64_t idGoal = goalAngle << 32; // Angle
         idGoal |= static_cast<uint64_t>(goalEvel) << 41; // Evelation
@@ -101,8 +101,8 @@ private:
         idGoal |= static_cast<uint64_t>(1) << 51; // Right ear
         assert(packageManager.GetSounds().find(idGoal) != packageManager.GetSounds().end());
         WavContainer<float> rightGoalIR(packageManager.GetSounds()[idGoal]);
-        leftCurIR.GetNextSamples(numSamples, leftGoal, leftGoal);
-        rightCurIR.GetNextSamples(numSamples, rightGoal, rightGoal);
+        leftCurIR.GetNextSamples(numSamples, leftGoal, leftGoal, obj);
+        rightCurIR.GetNextSamples(numSamples, rightGoal, rightGoal, obj);
 
 
     }

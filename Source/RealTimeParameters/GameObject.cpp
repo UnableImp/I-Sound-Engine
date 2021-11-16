@@ -3,3 +3,13 @@
 //
 
 #include "GameObject.h"
+
+void GameObject::SetPosition(const IVector3 &pos)
+{
+
+}
+
+void GameObject::SetTransform(const Transform &trans)
+{
+
+}

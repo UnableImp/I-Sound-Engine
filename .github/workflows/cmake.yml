@@ -20,8 +20,8 @@ jobs:
         submodules: recursive
         lfs: 'true'
 
-    - name: Install Audio
-      run: sudo apt install -y libasound-dev
+#    - name: Install Audio
+#      run: sudo apt install -y libasound-dev
 
     - name: Configure CMake Debug
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.

@@ -17,6 +17,7 @@
 #include "Filters/WavContainer.h"
 #include "Filters/OpusContainer.h"
 #include "Filters/ConvolutionFreq.h"
+#include "RealTimeParameters/GameObjectManager.h"
 
 #include <filesystem>
 
@@ -176,7 +177,8 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data,objectManager);
 
     unsigned largestSize = 0;
 
@@ -341,7 +343,8 @@ TEST(HRTF, HRTFAtOnePoint)
     packageManager.LoadPack("TestFiles/TESTConvBank.pck");
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
-    EventManager eventManager(packageManager.GetSounds());
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(), objectManager);
 
     HRIRCalculator<float> hrir(packageManager);
     hrir.SetAngle(110);
@@ -367,7 +370,8 @@ TEST(HRTF, HRTFRotation)
     packageManager.LoadPack("TestFiles/TESTConvBank.pck");
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
-    EventManager eventManager(packageManager.GetSounds());
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(),objectManager);
 
     HRIRCalculator<float> hrir(packageManager);
     hrir.SetAngle(110);
@@ -389,7 +393,8 @@ TEST(Filters, WavLoop)
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTWavBank.pck");
 
-    EventManager eventManager(packageManager.GetSounds());
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(), objectManager);
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
@@ -405,8 +410,8 @@ TEST(Filters, WavLoopAndShift)
 
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTWavBank.pck");
-
-    EventManager eventManager(packageManager.GetSounds());
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(), objectManager);
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
@@ -423,8 +428,8 @@ TEST(Filters, OpusLoop)
 
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTWavBank.pck");
-
-    EventManager eventManager(packageManager.GetSounds());
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(), objectManager);
 
     OpusContainer<float>* sample = new OpusContainer<float>(packageManager.GetSounds()[0]);
 
@@ -440,8 +445,8 @@ TEST(Filters, OpusLoopAndShift)
 
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTWavBank.pck");
-
-    EventManager eventManager(packageManager.GetSounds());
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(), objectManager);
 
     OpusContainer<float>* sample = new OpusContainer<float>(packageManager.GetSounds()[0]);
 
@@ -472,8 +477,8 @@ static void Get2048Samples(Frame<float>* samples)
     IO::MemoryMappedFile package("TestFiles/TESTConvBank.pck");
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
-
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data,objectManager);
 
     unsigned largestSize = 0;
 
@@ -578,8 +583,8 @@ static void HRTF512Samples(benchmark::State& state)
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTConvBank.pck");
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
-
-    EventManager eventManager(packageManager.GetSounds());
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(),objectManager);
 
     HRIRCalculator<float> hrir(packageManager);
     hrir.SetAngle(110);
@@ -590,16 +595,17 @@ static void HRTF512Samples(benchmark::State& state)
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
-    Event event;
+    Event event(0);
     event.AddFilter(sample);
     event.AddFilter(convolver);
 
     //eventManager.AddEvent(sample, convolver);
     Frame<float> buff[512];
 
+    GameObject obj;
     for(auto _ : state)
     {
-        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel);
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
     }
 }
 BENCHMARK(HRTF512Samples);
