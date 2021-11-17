@@ -39,9 +39,9 @@ public:
         delete [] rightComplex;
     }
 
-    virtual int GetNextSamples(int numSamples, float* left, float* right)
+    virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
-        HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR);
+        HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR, obj);
 
         //-----------------------------------------
         // Left ear

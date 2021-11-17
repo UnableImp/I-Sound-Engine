@@ -9,13 +9,14 @@
 #include "Filters/Filter.h"
 #include <unordered_map>
 #include "EventParser.h"
+#include "RealTimeParameters/GameObjectManager.h"
 
 constexpr int buffSize =  2048;
 
 class EventManager
 {
 public:
-    EventManager(std::unordered_map<uint64_t, SoundData>& soundData);
+    EventManager(std::unordered_map<uint64_t, SoundData>& soundData, GameObjectManager& objectManager);
     ~EventManager();
     /*!
      * TEMPERARY untill a json or such system is set up to read events from
@@ -26,12 +27,22 @@ public:
     template<typename... T>
     int AddEvent(Filter<float>* filter, T... filters)
     {
-        Event* newEvent = new Event();
+        Event* newEvent = new Event(0);
+        return AddEvent(newEvent, filter, filters...);
+    }
+
+    template<typename... T>
+    int AddEvent(uint64_t gameObjectId, Filter<float>* filter, T... filters)
+    {
+        Event* newEvent = new Event(gameObjectId);
         return AddEvent(newEvent, filter, filters...);
     }
 
     int AddEvent(uint64_t id);
     int AddEvent(const std::string& name);
+
+    int AddEvent(uint64_t id, uint64_t gameObjectId);
+    int AddEvent(const std::string& name, uint64_t gameObjectId);
 
     void ParseEvents(const std::string& path);
 
@@ -66,6 +77,8 @@ private:
     float* leftLocalBuffer;
     float* rightLocalBuffer;
 
+    GameObjectManager& objectManager;
+    GameObject globalGameObject;
     //Frame<float> localBuffer[buffSize];
     EventParser eventParser;
 };

@@ -6,6 +6,7 @@
 #define I_SOUND_ENGINE_FILTER_H
 
 #include "AudioFrame.h"
+#include "RealTimeParameters/GameObject.h"
 
 template<typename sampleType>
 class Filter
@@ -18,7 +19,7 @@ public:
      * @param buffer Buffer to fill
      * @return Number of samples filled
      */
-    virtual int GetNextSamples(int numSamples, float* left, float* right) = 0;
+    virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) = 0;
 };
 
 #endif //I_SOUND_ENGINE_FILTER_H

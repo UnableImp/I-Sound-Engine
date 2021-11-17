@@ -16,6 +16,7 @@
 #include "Filters/WavContainer.h"
 #include "Filters/OpusContainer.h"
 #include "Filters/ConvolutionFreq.h"
+#include "RealTimeParameters/GameObjectManager.h"
 
 static void addFile(std::vector<WavFile>&)
 {
@@ -128,7 +129,9 @@ static void SumAllInPackage(const char* packageName, const char* outFileName)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+
+    EventManager eventManager(data, objectManager);
 
     unsigned largestSize = 0;
 
@@ -159,7 +162,8 @@ static void SumAllInTwoPackage(const char* packageName, const char* package2Name
     PackageDecoder::DecodePackage(data, package);
     PackageDecoder::DecodePackage(data, package2);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data, objectManager);
 
     unsigned largestSize = 0;
 
@@ -184,7 +188,8 @@ static void SumAllInTwoPackage(const char* packageName, const char* package2Name
 
 void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Frame<float>* buf, int bufSize)
 {
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data, objectManager);
 
     unsigned largestSize = 0;
 
@@ -259,7 +264,8 @@ TEST(EventParser, EventFromIDWav)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data, objectManager);
 
     eventManager.ParseEvents("TestFiles/EventLevel.json");
     eventManager.AddEvent((uint64_t)10);
@@ -273,7 +279,8 @@ TEST(EventParser, EventFromNameWav)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data,objectManager);
 
     eventManager.ParseEvents("TestFiles/EventLevel.json");
     eventManager.AddEvent("Play_Level");
@@ -287,7 +294,8 @@ TEST(EventParser, EventFromIdOpus)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data, objectManager);
 
     eventManager.ParseEvents("TestFiles/EventLevelOpus.json");
     eventManager.AddEvent((uint64_t)10);
@@ -301,7 +309,8 @@ TEST(EventParser, EventFromStringOpus)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data,objectManager);
 
     eventManager.ParseEvents("TestFiles/EventLevelOpus.json");
     eventManager.AddEvent("Play_Level");
@@ -315,7 +324,8 @@ TEST(EventParser, EventFromIDBoth)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data,objectManager);
 
     eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
     eventManager.AddEvent((uint64_t)10);
@@ -330,7 +340,8 @@ TEST(EventParser, EventFromStringBoth)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data,objectManager);
 
     eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
     eventManager.AddEvent("Play_Level");
@@ -345,7 +356,8 @@ TEST(EventParser, EventFromMixBoth)
     std::unordered_map<uint64_t, SoundData> data;
     PackageDecoder::DecodePackage(data, package);
 
-    EventManager eventManager(data);
+    GameObjectManager objectManager;
+    EventManager eventManager(data,objectManager);
 
     eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
     eventManager.AddEvent((uint64_t)10);

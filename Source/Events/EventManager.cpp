@@ -5,7 +5,8 @@
 #include "EventManager.h"
 #include "cstring"
 
-EventManager::EventManager(std::unordered_map<uint64_t, SoundData>& soundData) : eventID(100000), soundData(soundData)
+EventManager::EventManager(std::unordered_map<uint64_t, SoundData>& soundData, GameObjectManager& objectManager) :
+                            eventID(100000), soundData(soundData), objectManager(objectManager)
 {
     leftLocalBuffer = new float[buffSize];
     rightLocalBuffer = new float[buffSize];
@@ -35,11 +36,14 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
         auto iter = events.begin();
         while(iter != events.end())
         {
+            GameObject& eventObject = globalGameObject;
+            objectManager.GetGameObject(iter->second->GetParent(), eventObject);
+
             // Clear local buffer for filters to use as needed
             memset(leftLocalBuffer, 0, samplesToGet * sizeof(float));
             memset(rightLocalBuffer, 0, samplesToGet * sizeof(float));
 
-            int indexesFilled = iter->second->GetSamples(samplesToGet, leftLocalBuffer, rightLocalBuffer);
+            int indexesFilled = iter->second->GetSamples(samplesToGet, leftLocalBuffer, rightLocalBuffer, eventObject);
             totalSamplesGenerated += indexesFilled;
 
             for (int i = 0; i < samplesToGet; ++i)
@@ -79,13 +83,35 @@ void EventManager::ParseEvents(const std::string& path)
 int EventManager::AddEvent(uint64_t id)
 {
     Event* event;
-    eventParser.GetEvent(id, &event, soundData);
+    ErrorNum isValid = eventParser.GetEvent(id, &event, soundData);
     return AddEvent(event);
 }
 
 int EventManager::AddEvent(const std::string& name)
 {
     Event* event;
-    eventParser.GetEvent(name, &event, soundData);
+    ErrorNum isValid = eventParser.GetEvent(name, &event, soundData);
+    if(isValid != ErrorNum::NoErrors)
+        return isValid;
+    return AddEvent(event);
+}
+
+int EventManager::AddEvent(uint64_t id, uint64_t gameObjectId)
+{
+    Event* event;
+    ErrorNum isValid = eventParser.GetEvent(id, &event, soundData);
+    if(isValid != ErrorNum::NoErrors)
+        return isValid;
+    event->SetParent(gameObjectId);
+    return AddEvent(event);
+}
+
+int EventManager::AddEvent(const std::string& name, uint64_t gameObjectId)
+{
+    Event* event;
+    ErrorNum isValid = eventParser.GetEvent(name, &event, soundData);
+    if(isValid != ErrorNum::NoErrors)
+        return isValid;
+    event->SetParent(gameObjectId);
     return AddEvent(event);
 }

@@ -35,7 +35,7 @@ public:
     //WavContainer()
 
 
-    virtual int GetNextSamples(int numSamples, float* left, float* right) override
+    virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) override
     {
         int frames = 0;
         for(int i = 0; i < numSamples; ++i)
@@ -65,8 +65,8 @@ public:
                 sampleType value = this->lerp(sampleArray[static_cast<int>(totalOffset)],
                                               sampleArray[static_cast<int>(totalOffset) + 2],
                                               totalOffset - static_cast<int>(totalOffset));
-                left[i] += value;
-                right[i] += value;
+                left[i] += value * 0.8f; // TODO revert 0.8f
+                right[i] += value * 0.8f;
                 totalOffset += this->playbackModifier;
             }
             else

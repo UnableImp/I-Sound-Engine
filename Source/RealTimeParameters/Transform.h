@@ -9,9 +9,9 @@
 
 struct Transform
 {
-    IVector3 postion;
-    IVector3 up;
-    IVector3 forward;
+    IVector3 postion = {0,0,0};
+    IVector3 up = {0,1,0};
+    IVector3 forward = {1,0,0};
 };
 
 #endif //I_SOUND_ENGINE_TRANSFORM_H

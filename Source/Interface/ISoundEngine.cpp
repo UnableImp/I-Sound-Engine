@@ -4,7 +4,7 @@
 
 #include "ISoundEngine.h"
 
-ISoundEngine::ISoundEngine() : packageManager(), eventManager(packageManager.GetSounds()), realTimeAudio(eventManager)
+ISoundEngine::ISoundEngine() : packageManager(), eventManager(packageManager.GetSounds(), gameObjectManager), realTimeAudio(eventManager)
 {
 
 }
@@ -57,4 +57,34 @@ uint64_t ISoundEngine::PostEvent(std::string eventName)
 uint64_t ISoundEngine::PostEvent(uint64_t id)
 {
     return eventManager.AddEvent(id);
+}
+
+uint64_t ISoundEngine::AddObject(uint64_t id)
+{
+    return gameObjectManager.AddObject(id);
+}
+
+uint64_t ISoundEngine::RemoveObject(uint64_t id)
+{
+    return gameObjectManager.RemoveObject(id);
+}
+
+void ISoundEngine::SetTransform(uint64_t id, const Transform& transform)
+{
+    gameObjectManager.SetGameObjectTransform(id, transform);
+}
+
+void ISoundEngine::SetPosition(uint64_t id, const IVector3& position)
+{
+    gameObjectManager.SetGameObjectPosition(id, position);
+}
+
+void ISoundEngine::SetListenerTransform(const Transform& transform)
+{
+    GameObjectManager::SetListenerTransform(transform);
+}
+
+void ISoundEngine::SetListernerPosition(const IVector3& position)
+{
+    GameObjectManager::SetListenerPosition(position);
 }
