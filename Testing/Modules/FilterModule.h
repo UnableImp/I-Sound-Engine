@@ -141,7 +141,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
     dataChunk.chunkSize = wav.GetDataSize();
     tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
-    Frame<float>* frame = new Frame<float>[frameSize];
+    Frame<float>* frame = new Frame<float>[frameSize]();
     int angle = 0;
     int samples = 0;
     int totalSamples = 0;
