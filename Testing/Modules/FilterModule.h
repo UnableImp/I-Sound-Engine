@@ -111,7 +111,7 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
     dataChunk.chunkSize = wav.GetDataSize();
     tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
-    Frame<float>* frame = new Frame<float>[frameSize];
+    Frame<float>* frame = new Frame<float>[frameSize]();
     int samples = 0;
     do
     {
@@ -158,13 +158,12 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
         }
 
         totalSamples += samples;
-        if(totalSamples % 2048 == 0)
         {
-            angle += jump;
+            angle += 1;
             if (angle >= 360)
                 angle -= 360;
 
-            IVector3 newPos{std::cos(angle * 3.145f / 180.0f), std::sin(angle * 3.145f / 180.0f),0};
+            IVector3 newPos{std::cos(angle * 3.145f / 180.0f), 0,std::sin(angle * 3.145f / 180.0f)};
             objManager.SetGameObjectPosition(id, newPos);
         }
 
@@ -379,7 +378,7 @@ TEST(GameObject, LeftOfListener)
     objectManager.AddObject(10);
     objectManager.SetGameObjectPosition(10, {-1,0,0});
     Transform trans;
-    trans.forward = {0,1,0};
+    trans.forward = {0,0,1};
     objectManager.SetListenerTransform(trans);
 
     ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
@@ -405,7 +404,7 @@ TEST(GameObject, RightOfListener)
     objectManager.AddObject(10);
     objectManager.SetGameObjectPosition(10, {1,0,0});
     Transform trans;
-    trans.forward = {0,1,0};
+    trans.forward = {0,0,1};
     objectManager.SetListenerTransform(trans);
 
     HRIRCalculator<float> hrir(packageManager);
@@ -416,6 +415,62 @@ TEST(GameObject, RightOfListener)
 
     eventManager.AddEvent(10, sample, convolver);
     simulateEventManager(eventManager, "TestFiles/TESTGameobjectRight.wav", 512);
+}
+
+TEST(GameObject, FrontOfListener)
+{
+    CreateKEMARAudioPack();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {0,0,1});
+    Transform trans;
+    trans.forward = {0,0,1};
+    objectManager.SetListenerTransform(trans);
+
+    HRIRCalculator<float> hrir(packageManager);
+
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    eventManager.AddEvent(10, sample, convolver);
+    simulateEventManager(eventManager, "TestFiles/TESTGameobjectFront.wav", 512);
+}
+
+TEST(GameObject, BehinedOfListener)
+{
+    CreateKEMARAudioPack();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {0,0,-1});
+    Transform trans;
+    trans.forward = {0,0,1};
+    objectManager.SetListenerTransform(trans);
+
+    HRIRCalculator<float> hrir(packageManager);
+
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    eventManager.AddEvent(10, sample, convolver);
+    simulateEventManager(eventManager, "TestFiles/TESTGameobjectBack.wav", 512);
 }
 
 TEST(HRTF, HRTFRotation)
@@ -442,7 +497,7 @@ TEST(HRTF, HRTFRotation)
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
     eventManager.AddEvent(10, sample, convolver);
-    simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTConvolerRotating.wav", 512, 10, 5, objectManager);
+    simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTConvolerRotating.wav", 512, 10, 10, objectManager);
 }
 
 TEST(Filters, WavLoop)

@@ -35,10 +35,12 @@ public:
 
         IVector3 sourceDir = listener.postion - source.postion;
 
-        float listenerAngle = std::atan2(listener.forward.y,listener.forward.x);
-        float sourceAngle = std::atan2(sourceDir.y, sourceDir.x);
+        // Get the angle betwen the forward vector and the source
+        float listenerAngle = std::atan2(listener.forward.z,listener.forward.x);
+        float sourceAngle = std::atan2(sourceDir.z, sourceDir.x);
 
-        float angle = (listenerAngle - sourceAngle) * (180.0f / pi);
+        // -1 to flip the phase angle as kemar is counter clock wise but atan2 is clockwise
+        float angle = -1 * ((listenerAngle - sourceAngle) * (180.0f / pi));
 
         currentAngle = (int)angle + (5 - ((int)angle % 5));
 
@@ -46,6 +48,11 @@ public:
             currentAngle += 360;
         if(currentAngle >= 360)
             currentAngle -= 360;
+
+        // Calculate elevation
+        IVector3 elevDir = listener.up - source.postion;
+
+        //float ListenerEvel = std::atan2(lis)
 
         uint64_t id = static_cast<uint64_t>(currentAngle) << 32; // Angle
         id |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
