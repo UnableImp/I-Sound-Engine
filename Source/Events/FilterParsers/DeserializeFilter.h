@@ -11,6 +11,7 @@
 #include "SoundData.h"
 #include <unordered_map>
 #include "ErrorList.h"
+#include "AudioPackage/PackageManager.h"
 
 class DeserializedFilter
 {
@@ -22,7 +23,7 @@ public:
      * @param table The table of sounds info
      * @return Wether filter was made or not
      */
-    virtual ErrorNum BuildFilter(Filter<float>** filter, std::unordered_map<uint64_t, SoundData>& table) = 0;
+    virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager) = 0;
     virtual ~DeserializedFilter() {};
 };
 

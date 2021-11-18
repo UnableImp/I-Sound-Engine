@@ -13,7 +13,7 @@ ISE_API ErrorNum ISoundEngine::StartUp()
 {
     packageManager = new PackageManager();
     gameObjectManager = new GameObjectManager();
-    eventManager = new EventManager(packageManager->GetSounds(), *gameObjectManager);
+    eventManager = new EventManager(*packageManager, *gameObjectManager);
     realTimeAudio = new RealTimeAudio(*eventManager);
     return ErrorNum::NoErrors;
 }
@@ -36,29 +36,29 @@ ISE_API ErrorNum ISoundEngine::Shutdown()
     return NoErrors;
 }
 
-ISE_API ErrorNum ISoundEngine::LoadPackage(std::string path)
+ISE_API ErrorNum ISoundEngine::LoadPackage(char* path)
 {
     return packageManager->LoadPack(path);
 }
 
-ISE_API ErrorNum ISoundEngine::UnloadPackage(std::string path)
+ISE_API ErrorNum ISoundEngine::UnloadPackage(char* path)
 {
     return packageManager->UnloadPack(path);
 }
 
-ISE_API ErrorNum ISoundEngine::LoadEvents(std::string path)
+ISE_API ErrorNum ISoundEngine::LoadEvents(char* path)
 {
     eventManager->ParseEvents(path);
     return NoErrors;
 }
 
-ISE_API ErrorNum ISoundEngine::UnloadEvents(std::string path)
+ISE_API ErrorNum ISoundEngine::UnloadEvents(char* path)
 {
     // TODO add way to unload events
     return NoErrors;
 }
 
-ISE_API uint64_t ISoundEngine::PostEventString(std::string eventName)
+ISE_API uint64_t ISoundEngine::PostEventString(char* eventName)
 {
     return eventManager->AddEvent(eventName);
 }
@@ -96,4 +96,24 @@ ISE_API void ISoundEngine::SetListenerTransform(const Transform& transform)
 ISE_API void ISoundEngine::SetListernerPosition(const IVector3& position)
 {
     GameObjectManager::SetListenerPosition(position);
+}
+
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+// Windows Header Files
+#include <windows.h>
+
+BOOL APIENTRY DllMain( HMODULE hModule,
+DWORD  ul_reason_for_call,
+        LPVOID lpReserved
+)
+{
+switch (ul_reason_for_call)
+{
+case DLL_PROCESS_ATTACH:
+case DLL_THREAD_ATTACH:
+case DLL_THREAD_DETACH:
+case DLL_PROCESS_DETACH:
+break;
+}
+return TRUE;
 }

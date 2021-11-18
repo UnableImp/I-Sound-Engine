@@ -16,7 +16,7 @@ constexpr int buffSize =  2048;
 class EventManager
 {
 public:
-    EventManager(std::unordered_map<uint64_t, SoundData>& soundData, GameObjectManager& objectManager);
+    EventManager(PackageManager& soundData, GameObjectManager& objectManager);
     ~EventManager();
     /*!
      * TEMPERARY untill a json or such system is set up to read events from
@@ -72,7 +72,8 @@ private:
 
     int eventID;
     std::unordered_map<int, Event*> events; //!< TODO  MAKE THREAD SAFE
-    std::unordered_map<uint64_t, SoundData>& soundData;
+    //std::unordered_map<uint64_t, SoundData>& soundData;
+    PackageManager& soundData;
 
     float* leftLocalBuffer;
     float* rightLocalBuffer;

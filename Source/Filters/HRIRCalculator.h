@@ -9,6 +9,7 @@
 #include "SoundContainer.h"
 #include "AudioPackage/PackageManager.h"
 #include "RealTimeParameters/GameObjectManager.h"
+#include "WavContainer.h"
 
 constexpr float pi = 3.14159265359f;
 

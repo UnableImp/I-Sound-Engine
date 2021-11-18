@@ -175,8 +175,10 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
 static void SumAllInPackageWithFFT(const char* packageName, const char* outFileName, int frameSize)
 {
     IO::MemoryMappedFile package(packageName);
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack(packageName);
 
     GameObjectManager objectManager;
     EventManager eventManager(data,objectManager);
@@ -185,7 +187,7 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
 
     Filter<float> *filter = nullptr;
 
-    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    for (auto iter = data.GetSounds().begin(); iter != data.GetSounds().end(); ++iter)
     {
         largestSize = std::max(iter->second.sampleCount, largestSize);
         if (iter->second.audioType == Encoding::PCM)
@@ -345,7 +347,7 @@ TEST(HRTF, HRTFAtOnePoint)
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
 
     HRIRCalculator<float> hrir(packageManager);
     //hrir.SetAngle(110);
@@ -372,7 +374,7 @@ TEST(GameObject, LeftOfListener)
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
 
     HRIRCalculator<float> hrir(packageManager);
     objectManager.AddObject(10);
@@ -400,7 +402,7 @@ TEST(GameObject, RightOfListener)
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
     objectManager.AddObject(10);
     objectManager.SetGameObjectPosition(10, {1,0,0});
     Transform trans;
@@ -428,7 +430,7 @@ TEST(GameObject, FrontOfListener)
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
     objectManager.AddObject(10);
     objectManager.SetGameObjectPosition(10, {0,0,1});
     Transform trans;
@@ -456,7 +458,7 @@ TEST(GameObject, BehinedOfListener)
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
     objectManager.AddObject(10);
     objectManager.SetGameObjectPosition(10, {0,0,-1});
     Transform trans;
@@ -484,7 +486,7 @@ TEST(HRTF, HRTFRotation)
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
 
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(),objectManager);
+    EventManager eventManager(packageManager,objectManager);
     objectManager.AddObject(10);
 
     HRIRCalculator<float> hrir(packageManager);
@@ -508,7 +510,7 @@ TEST(Filters, WavLoop)
     packageManager.LoadPack("TestFiles/TESTWavBank.pck");
 
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
@@ -525,7 +527,7 @@ TEST(Filters, WavLoopAndShift)
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTWavBank.pck");
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
@@ -543,7 +545,7 @@ TEST(Filters, OpusLoop)
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTWavBank.pck");
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
 
     OpusContainer<float>* sample = new OpusContainer<float>(packageManager.GetSounds()[0]);
 
@@ -560,7 +562,7 @@ TEST(Filters, OpusLoopAndShift)
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTWavBank.pck");
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(), objectManager);
+    EventManager eventManager(packageManager, objectManager);
 
     OpusContainer<float>* sample = new OpusContainer<float>(packageManager.GetSounds()[0]);
 
@@ -589,8 +591,10 @@ static void Get2048Samples(Frame<float>* samples)
 {
     BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTConvBank.pck");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTConvBank.pck");
     GameObjectManager objectManager;
     EventManager eventManager(data,objectManager);
 
@@ -598,7 +602,7 @@ static void Get2048Samples(Frame<float>* samples)
 
     Filter<float> *filter = nullptr;
 
-    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    for (auto iter = data.GetSounds().begin(); iter != data.GetSounds().end(); ++iter)
     {
         largestSize = std::max(iter->second.sampleCount, largestSize);
         if (iter->second.audioType == Encoding::PCM)
@@ -698,7 +702,7 @@ static void HRTF512Samples(benchmark::State& state)
     packageManager.LoadPack("TestFiles/TESTConvBank.pck");
     packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
     GameObjectManager objectManager;
-    EventManager eventManager(packageManager.GetSounds(),objectManager);
+    EventManager eventManager(packageManager,objectManager);
 
     HRIRCalculator<float> hrir(packageManager);
 

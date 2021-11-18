@@ -11,7 +11,7 @@ class DeserializedSound : public DeserializedFilter
 {
 public:
     DeserializedSound(rapidjson::Value& object);
-    virtual ErrorNum BuildFilter(Filter<float>** filter, std::unordered_map<uint64_t, SoundData>& table) override;
+    virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager) override;
 
 private:
     uint64_t playID;
