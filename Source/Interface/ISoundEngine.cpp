@@ -98,6 +98,7 @@ ISE_API void ISoundEngine::SetListernerPosition(const IVector3& position)
     GameObjectManager::SetListenerPosition(position);
 }
 
+#ifdef OS_Windows
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files
 #include <windows.h>
@@ -117,3 +118,4 @@ break;
 }
 return TRUE;
 }
+#endif

@@ -5,10 +5,14 @@
 #ifndef I_SOUND_ENGINE_ISOUNDENGINE_H
 #define I_SOUND_ENGINE_ISOUNDENGINE_H
 
+#ifdef OS_Windows
 #ifdef ISE_EXPORTS
 #define ISE_API __declspec(dllexport)
 #else
 #define ISE_API __declspec(dllimport)
+#endif
+#else
+#define ISE_API
 #endif
 
 #include "AudioPackage/PackageManager.h"
