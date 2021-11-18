@@ -10,3 +10,4 @@ Inteded to be used in Handshakes Firm's Switch port of [DeltaBlade 2077](https:/
  * Basic runtime filters
  * Switch and Windows audio playback
  * GUI to create audio banks
+ * 3D Sounds using HRTF
