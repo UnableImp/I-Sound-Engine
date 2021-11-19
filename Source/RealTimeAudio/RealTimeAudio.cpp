@@ -30,6 +30,8 @@ RealTimeAudio::RealTimeAudio(EventManager& eventManager) : eventManager(eventMan
 {
     Pa_Initialize();
 
+    index = 1000;
+
     m_IsInit = true;
 
     // output stream parameters
@@ -38,7 +40,7 @@ RealTimeAudio::RealTimeAudio(EventManager& eventManager) : eventManager(eventMan
         return;
     m_output_params.channelCount = 2;
     m_output_params.sampleFormat = paFloat32;
-    m_output_params.suggestedLatency = 2*Pa_GetDeviceInfo(m_output_params.device)->defaultLowOutputLatency;
+    m_output_params.suggestedLatency = Pa_GetDeviceInfo(m_output_params.device)->defaultLowOutputLatency;
     m_output_params.hostApiSpecificStreamInfo = 0;
 }
 
@@ -67,5 +69,17 @@ void RealTimeAudio::Stop()
 
 void RealTimeAudio::GenerateAudioData(int numSamples, float* buffer)
 {
-    eventManager.GetSamplesFromAllEvents(numSamples, reinterpret_cast<Frame<float>*>(buffer));
+    for(int i = 0; i < numSamples; ++i)
+    {
+        if(index >= 512)
+        {
+            eventManager.GetSamplesFromAllEvents(512, reinterpret_cast<Frame<float> *>(dataBuffer));
+            index = 0;
+        }
+
+        reinterpret_cast<Frame<float>*>(buffer)[i].leftChannel = dataBuffer[index].leftChannel;
+        reinterpret_cast<Frame<float>*>(buffer)[i].rightChannel = dataBuffer[index].rightChannel;
+        ++index;
+
+    }
 }

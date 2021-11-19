@@ -28,6 +28,7 @@ ErrorNum PackageEncoder::AddFile(const std::string &path, uint64_t id, Encoding 
     return wav.GetError();
 }
 
+#include <iostream>
 ErrorNum PackageEncoder::WritePackage(std::string path)
 {
     //TODO get correct buffer size
@@ -35,8 +36,10 @@ ErrorNum PackageEncoder::WritePackage(std::string path)
     // Ensure bank can be made before doing work
     std::fstream bank(path.c_str(), std::ios_base::binary | std::ios_base::out);
     if(!bank.is_open())
+    {
+        //std::cerr << std::strerror(errno) << std::endl;
         return ErrorNum::FailedToWriteFile;
-
+    }
     //bank.write(reinterpret_cast<char*>(&bufferSize), sizeof(uint32_t));
 
     char* buffer = new char[bufferSize];
