@@ -114,7 +114,7 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
     do
     {
         Frame<float> frame = {0, 0};
-        samples = eventManager.GetSamplesFromAllEvents(512, &frame);
+        samples = eventManager.GetSamplesFromAllEvents(1, &frame);
         short right = static_cast<short>(frame.rightChannel * (1 << 15));
         short left = static_cast<short>(frame.leftChannel * (1 << 15));
 
