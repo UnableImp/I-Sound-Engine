@@ -41,14 +41,23 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
-        HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR, obj);
+        int didHRIRChange = HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR, obj);
 
+        if(!didHRIRChange)
+            return HRIRIsTheSame(numSamples, left, right, obj);
+        else
+            return HRIRChanged(numSamples, left, right, obj);
+    }
+
+private:
+
+    int HRIRIsTheSame(int numSamples, float* left, float* right, const GameObject& obj)
+    {
         //-----------------------------------------
         // Left ear
         //-----------------------------------------
         memset(leftS, 0, 2 * numSamples * sizeof(float));
         memcpy(leftS, left, numSamples * sizeof(float));
-
 
         fft.forward(leftS, leftComplex);
         fft.forward(leftIR, rightComplex);
@@ -66,7 +75,6 @@ public:
 
         memset(rightS, 0, 2 * numSamples * sizeof(float));
         memcpy(rightS, right, numSamples * sizeof(float));
-
 
         fft.forward(rightS, leftComplex);
         fft.forward(rightIR, rightComplex);
@@ -94,7 +102,47 @@ public:
         return 0;
     }
 
-private:
+    int HRIRChanged(int numSamples, float* left, float* right, const GameObject& obj)
+    {
+        memset(leftS, 0, 2 * numSamples * sizeof(float));
+        memcpy(leftS, left, numSamples * sizeof(float));
+
+        fft.forward(leftS, leftComplex);
+        fft.forward(leftIR, rightComplex);
+
+        for(int i = 0; i < numSamples * 2; ++i)
+        {
+            currentComplex[i] = leftComplex[i] * rightComplex[i];
+        }
+
+        // Original Impulse
+        fft.inverse(currentComplex, leftS);
+
+        // Get new impulse
+        HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR, obj);
+
+        fft.forward(leftIR, rightComplex);
+
+        for(int i = 0; i < numSamples * 2; ++i)
+        {
+            currentComplex[i] = leftComplex[i] * rightComplex[i];
+        }
+
+        // New impulse
+        fft.inverse(currentComplex, rightS);
+
+        // Lerp between two impulses
+        for(int i = 0; i < numSamples; ++i)
+        {
+            left[i] = (this->lerp(leftS[i], rightS[i], i/numSamples) + leftOverlap[i]) / (numSamples * 2);
+            //right[i] = (rightS[i]  + rightOverlap[i]) / (numSamples * 2);
+        }
+
+        memcpy(leftOverlap, rightS + numSamples, numSamples * sizeof(float));
+        //memcpy(rightOverlap, rightS + numSamples, numSamples * sizeof(float));
+
+        return 0;
+    }
 
     float* leftIR;
     float* rightIR;

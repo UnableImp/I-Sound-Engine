@@ -151,10 +151,6 @@ protected:
         }
     }
 
-    inline static sampleType lerp(sampleType a, sampleType b, sampleType t)
-    {
-        return a+(t*(b-a));
-    }
 
     /*!
      * The playback modifier to control speed of sound playback

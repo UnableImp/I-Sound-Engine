@@ -20,6 +20,13 @@ public:
      * @return Number of samples filled
      */
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) = 0;
+
+protected:
+    inline static sampleType lerp(sampleType a, sampleType b, sampleType t)
+    {
+        return a+(t*(b-a));
+    }
+
 };
 
 #endif //I_SOUND_ENGINE_FILTER_H

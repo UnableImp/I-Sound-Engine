@@ -31,6 +31,9 @@ public:
         memset(left, 0, numSamples * sizeof(float));
         memset(right, 0, numSamples * sizeof(float));
 
+        //--------------------------------------------
+        // Calculate current angle to get HRIR from
+        //--------------------------------------------
         const auto& listener = GameObjectManager::GetListenerPosition();
         const auto& source = obj.GetTransform();
 
@@ -42,19 +45,14 @@ public:
 
         // -1 to flip the phase angle as kemar is counter clock wise but atan2 is clockwise
         float angle = -1 * ((listenerAngle - sourceAngle) * (180.0f / pi));
-
-        currentAngle = (int)angle + (5 - ((int)angle % 5));
-
-        if(currentAngle < 0)
-            currentAngle += 360;
-        if(currentAngle >= 360)
-            currentAngle -= 360;
+        int kemarAngle = (int)angle + (5 - ((int)angle % 5));
 
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
 
-        //float ListenerEvel = std::atan2(lis)
-
+        //--------------------------------------------------
+        // Read HRIR int buffers
+        //--------------------------------------------------
         uint64_t id = static_cast<uint64_t>(currentAngle) << 32; // Angle
         id |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
         id |= static_cast<uint64_t>(1) << 52; // Kemar
@@ -72,7 +70,20 @@ public:
         leftIR.GetNextSamples(numSamples, left, left, obj);
         rightIR.GetNextSamples(numSamples, right, right, obj);
 
-        return 0;
+        //----------------------------------------------
+        // Check if angle have changed
+        //----------------------------------------------
+        if(currentAngle != kemarAngle)
+        {
+            currentAngle = kemarAngle;
+
+            if (currentAngle < 0)
+                currentAngle += 360;
+            if (currentAngle >= 360)
+                currentAngle -= 360;
+            return 1; // impulse is going to change
+        }
+        return 0; // impulse didnt change
     }
 
 private:
