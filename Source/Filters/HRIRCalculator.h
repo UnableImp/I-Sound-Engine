@@ -34,14 +34,18 @@ public:
         const auto& listener = GameObjectManager::GetListenerPosition();
         const auto& source = obj.GetTransform();
 
-        IVector3 sourceDir = listener.postion - source.postion;
+        IVector3 sourceDir = source.postion - listener.postion;
 
         // Get the angle betwen the forward vector and the source
         float listenerAngle = std::atan2(listener.forward.z,listener.forward.x);
         float sourceAngle = std::atan2(sourceDir.z, sourceDir.x);
 
-        // -1 to flip the phase angle as kemar is counter clock wise but atan2 is clockwise
-        float angle = -1 * ((listenerAngle - sourceAngle) * (180.0f / pi));
+        if(listenerAngle < 0)
+            listenerAngle += 2 * pi;
+        if(sourceAngle < 0)
+            sourceAngle += 2 * pi;
+
+        float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
 
         currentAngle = (int)angle + (5 - ((int)angle % 5));
 
