@@ -114,7 +114,7 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
     do
     {
         Frame<float> frame = {0, 0};
-        samples = eventManager.GetSamplesFromAllEvents(1, &frame);
+        samples = eventManager.GetSamplesFromAllEvents(512, &frame);
         short right = static_cast<short>(frame.rightChannel * (1 << 15));
         short left = static_cast<short>(frame.leftChannel * (1 << 15));
 
@@ -380,6 +380,24 @@ TEST(EventParser, EventFromMixBoth)
     eventManager.AddEvent("Play_Credit");
     simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
 }
+
+//TEST(EventParser, Event3D)
+//{
+//    BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav", "TestFiles/DrySignal.wav");
+//    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+////    std::unordered_map<uint64_t, SoundData> data;
+////    PackageDecoder::DecodePackage(data, package);
+//    PackageManager data;
+//    data.LoadPack("TestFiles/TESTEventPack.pak");
+//    data.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+//    GameObjectManager objectManager;
+//    EventManager eventManager(data,objectManager);
+//
+//    eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
+//    eventManager.AddEvent((uint64_t)12);
+//    //eventManager.AddEvent("Play_Credit");
+//    simulateEventManager(eventManager, "TestFiles/TESTPaserEvent3D.wav");
+//}
 
 static void readEventFromBuffer(benchmark::State& state, int bufSize)
 {

@@ -28,6 +28,9 @@ private:
 
     EventManager& eventManager;
 
+    Frame<float> dataBuffer[512];
+    int index;
+
 };
 
 

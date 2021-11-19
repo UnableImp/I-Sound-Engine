@@ -7,10 +7,11 @@
 
 #include "DeserializeFilter.h"
 
-class Deserialize3DSound
+class Deserialize3DSound : public DeserializedFilter
 {
+public:
     Deserialize3DSound(rapidjson::Value& object);
-    virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager) ;
+    virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager) override;
 
     virtual ~Deserialize3DSound() {};
 };
