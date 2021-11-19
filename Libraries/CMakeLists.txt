@@ -14,7 +14,7 @@ add_subdirectory(benchmark)
 set( SIMD_FLOAT_HDRS pffft/simd/pf_float.h pffft/simd/pf_sse1_float.h pffft/simd/pf_altivec_float.h pffft/simd/pf_neon_float.h pffft/simd/pf_scalar_float.h )
 set( FLOAT_SOURCES pffft/pffft.c pffft/pffft.h ${SIMD_FLOAT_HDRS} )
 
-add_library(PFFFT STATIC ${FLOAT_SOURCES} pffft/pffft_common.c pffft/pffft_priv_impl.h pffft/pffft.hpp)
+add_library(PFFFT ${FLOAT_SOURCES} pffft/pffft_common.c pffft/pffft_priv_impl.h pffft/pffft.hpp)
 
 set_target_properties(PFFFT PROPERTIES OUTPUT_NAME "pffft")
 target_compile_definitions(PFFFT PRIVATE _USE_MATH_DEFINES)

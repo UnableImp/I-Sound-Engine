@@ -126,18 +126,20 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
 static void SumAllInPackage(const char* packageName, const char* outFileName)
 {
     IO::MemoryMappedFile package(packageName);
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+    //std::unordered_map<uint64_t, SoundData> data;
+    //PackageDecoder::DecodePackage(data, package);
 
+    PackageManager mgr;
+    mgr.LoadPack(packageName);
     GameObjectManager objectManager;
 
-    EventManager eventManager(data, objectManager);
+    EventManager eventManager(mgr, objectManager);
 
     unsigned largestSize = 0;
 
     Filter<float> *filter = nullptr;
 
-    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    for (auto iter = mgr.GetSounds().begin(); iter != mgr.GetSounds().end(); ++iter)
     {
         largestSize = std::max(iter->second.sampleCount, largestSize);
         if (iter->second.audioType == Encoding::PCM)
@@ -158,18 +160,21 @@ static void SumAllInTwoPackage(const char* packageName, const char* package2Name
 {
     IO::MemoryMappedFile package(packageName);
     IO::MemoryMappedFile package2(package2Name);
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
-    PackageDecoder::DecodePackage(data, package2);
+    //std::unordered_map<uint64_t, SoundData> data;
+    //PackageDecoder::DecodePackage(data, package);
+    //PackageDecoder::DecodePackage(data, package2);
 
+    PackageManager pck;
+    pck.LoadPack(packageName);
+    pck.LoadPack(package2Name);
     GameObjectManager objectManager;
-    EventManager eventManager(data, objectManager);
+    EventManager eventManager(pck, objectManager);
 
     unsigned largestSize = 0;
 
     Filter<float> *filter = nullptr;
 
-    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    for (auto iter = pck.GetSounds().begin(); iter != pck.GetSounds().end(); ++iter)
     {
         largestSize = std::max(iter->second.sampleCount, largestSize);
         if (iter->second.audioType == Encoding::PCM)
@@ -186,7 +191,7 @@ static void SumAllInTwoPackage(const char* packageName, const char* package2Name
     simulateEventManager(eventManager, outFileName);
 }
 
-void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Frame<float>* buf, int bufSize)
+void SumAllInPackageNoFileIo(PackageManager& data, Frame<float>* buf, int bufSize)
 {
     GameObjectManager objectManager;
     EventManager eventManager(data, objectManager);
@@ -195,7 +200,7 @@ void SumAllInPackageNoFileIo(std::unordered_map<uint64_t, SoundData>& data, Fram
 
     Filter<float> *filter = nullptr;
 
-    for (auto iter = data.begin(); iter != data.end(); ++iter)
+    for (auto iter = data.GetSounds().begin(); iter != data.GetSounds().end(); ++iter)
     {
         for(int i = 0; i < 100; ++i)
         {
@@ -261,8 +266,10 @@ TEST(EventParser, EventFromIDWav)
 {
     BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
 
     GameObjectManager objectManager;
     EventManager eventManager(data, objectManager);
@@ -276,8 +283,10 @@ TEST(EventParser, EventFromNameWav)
 {
     BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
 
     GameObjectManager objectManager;
     EventManager eventManager(data,objectManager);
@@ -291,8 +300,10 @@ TEST(EventParser, EventFromIdOpus)
 {
     BuildPackageAllOpus(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
 
     GameObjectManager objectManager;
     EventManager eventManager(data, objectManager);
@@ -306,9 +317,10 @@ TEST(EventParser, EventFromStringOpus)
 {
     BuildPackageAllOpus(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
-
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
     GameObjectManager objectManager;
     EventManager eventManager(data,objectManager);
 
@@ -321,8 +333,10 @@ TEST(EventParser, EventFromIDBoth)
 {
     BuildPackageAlternating("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
 
     GameObjectManager objectManager;
     EventManager eventManager(data,objectManager);
@@ -337,9 +351,10 @@ TEST(EventParser, EventFromStringBoth)
 {
     BuildPackageAlternating("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
-
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
     GameObjectManager objectManager;
     EventManager eventManager(data,objectManager);
 
@@ -353,9 +368,10 @@ TEST(EventParser, EventFromMixBoth)
 {
     BuildPackageAlternating("TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
-
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
     GameObjectManager objectManager;
     EventManager eventManager(data,objectManager);
 
@@ -369,8 +385,10 @@ static void readEventFromBuffer(benchmark::State& state, int bufSize)
 {
     BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/Slash2.wav");
     IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
-    std::unordered_map<uint64_t, SoundData> data;
-    PackageDecoder::DecodePackage(data, package);
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
 
     Frame<float>* buf = new Frame<float>[bufSize];
 

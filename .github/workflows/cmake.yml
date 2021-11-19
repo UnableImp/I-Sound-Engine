@@ -46,7 +46,10 @@ jobs:
     
     - name: Build Benchmark Release
       run: cmake --build ${{github.workspace}}/buildRelease --config Release --target ISEBenchmark
-      
+
+    - name: Build SharedLib Release
+      run: cmake --build ${{github.workspace}}/buildRelease --config Release --target ISoundEngine_dynamic
+
     - name: Copy Test Debug
       run: cp ${{github.workspace}}/buildDebug/Testing/ISETests ${{github.workspace}}/Testing
     - name: Copy Benchmark Debug
@@ -119,7 +122,10 @@ jobs:
     
     - name: Build Benchmark Release
       run: cmake --build ${{github.workspace}}/buildRelease --config Release --target ISEBenchmark
-      
+
+    - name: Build SharedLib Release
+      run: cmake --build ${{github.workspace}}/buildRelease --config Release --target ISoundEngine_dynamic
+
     - name: Copy Test Debug
       run: cp ${{github.workspace}}\buildDebug\Testing\Debug\ISETests.exe ${{github.workspace}}\Testing
     - name: Copy Benchmark Debug

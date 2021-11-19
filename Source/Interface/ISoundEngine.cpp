@@ -4,87 +4,118 @@
 
 #include "ISoundEngine.h"
 
-ISoundEngine::ISoundEngine() : packageManager(), eventManager(packageManager.GetSounds(), gameObjectManager), realTimeAudio(eventManager)
-{
+PackageManager* packageManager;
+GameObjectManager* gameObjectManager;
+EventManager* eventManager;
+RealTimeAudio* realTimeAudio;
 
-}
-
-ErrorNum ISoundEngine::Init()
+ISE_API ErrorNum ISoundEngine::StartUp()
 {
-    realTimeAudio.Start();
+    packageManager = new PackageManager();
+    gameObjectManager = new GameObjectManager();
+    eventManager = new EventManager(*packageManager, *gameObjectManager);
+    realTimeAudio = new RealTimeAudio(*eventManager);
     return ErrorNum::NoErrors;
 }
 
-ErrorNum ISoundEngine::Update()
+ISE_API ErrorNum ISoundEngine::Init()
+{
+    realTimeAudio->Start();
+    return ErrorNum::NoErrors;
+}
+
+ISE_API ErrorNum ISoundEngine::Update()
 {
     // TODO switch events to be buffer baised
     return  NoErrors;
 }
 
-ErrorNum ISoundEngine::Shutdown()
+ISE_API ErrorNum ISoundEngine::Shutdown()
 {
-    realTimeAudio.Stop();
+    realTimeAudio->Stop();
     return NoErrors;
 }
 
-ErrorNum ISoundEngine::LoadPackage(std::string path)
+ISE_API ErrorNum ISoundEngine::LoadPackage(char* path)
 {
-    return packageManager.LoadPack(path);
+    return packageManager->LoadPack(path);
 }
 
-ErrorNum ISoundEngine::UnloadPackage(std::string path)
+ISE_API ErrorNum ISoundEngine::UnloadPackage(char* path)
 {
-    return packageManager.UnloadPack(path);
+    return packageManager->UnloadPack(path);
 }
 
-ErrorNum ISoundEngine::LoadEvents(std::string path)
+ISE_API ErrorNum ISoundEngine::LoadEvents(char* path)
 {
-    eventManager.ParseEvents(path);
+    eventManager->ParseEvents(path);
     return NoErrors;
 }
 
-ErrorNum ISoundEngine::UnloadEvents(std::string path)
+ISE_API ErrorNum ISoundEngine::UnloadEvents(char* path)
 {
     // TODO add way to unload events
     return NoErrors;
 }
 
-uint64_t ISoundEngine::PostEvent(std::string eventName)
+ISE_API uint64_t ISoundEngine::PostEventString(char* eventName)
 {
-    return eventManager.AddEvent(eventName);
+    return eventManager->AddEvent(eventName);
 }
 
-uint64_t ISoundEngine::PostEvent(uint64_t id)
+ISE_API uint64_t ISoundEngine::PostEvent(uint64_t id)
 {
-    return eventManager.AddEvent(id);
+    return eventManager->AddEvent(id);
 }
 
-uint64_t ISoundEngine::AddObject(uint64_t id)
+ISE_API uint64_t ISoundEngine::AddObject(uint64_t id)
 {
-    return gameObjectManager.AddObject(id);
+    return gameObjectManager->AddObject(id);
 }
 
-uint64_t ISoundEngine::RemoveObject(uint64_t id)
+ISE_API uint64_t ISoundEngine::RemoveObject(uint64_t id)
 {
-    return gameObjectManager.RemoveObject(id);
+    return gameObjectManager->RemoveObject(id);
 }
 
-void ISoundEngine::SetTransform(uint64_t id, const Transform& transform)
+ISE_API void ISoundEngine::SetTransform(uint64_t id, const Transform& transform)
 {
-    gameObjectManager.SetGameObjectTransform(id, transform);
+    gameObjectManager->SetGameObjectTransform(id, transform);
 }
 
-void ISoundEngine::SetPosition(uint64_t id, const IVector3& position)
+ISE_API void ISoundEngine::SetPosition(uint64_t id, const IVector3& position)
 {
-    gameObjectManager.SetGameObjectPosition(id, position);
+    gameObjectManager->SetGameObjectPosition(id, position);
 }
 
-void ISoundEngine::SetListenerTransform(const Transform& transform)
+ISE_API void ISoundEngine::SetListenerTransform(const Transform& transform)
 {
     GameObjectManager::SetListenerTransform(transform);
 }
 
-void ISoundEngine::SetListernerPosition(const IVector3& position)
+ISE_API void ISoundEngine::SetListernerPosition(const IVector3& position)
 {
     GameObjectManager::SetListenerPosition(position);
 }
+
+#ifdef OS_Windows
+#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+// Windows Header Files
+#include <windows.h>
+
+BOOL APIENTRY DllMain( HMODULE hModule,
+DWORD  ul_reason_for_call,
+        LPVOID lpReserved
+)
+{
+switch (ul_reason_for_call)
+{
+case DLL_PROCESS_ATTACH:
+case DLL_THREAD_ATTACH:
+case DLL_THREAD_DETACH:
+case DLL_PROCESS_DETACH:
+break;
+}
+return TRUE;
+}
+#endif

@@ -5,7 +5,7 @@
 #include "EventManager.h"
 #include "cstring"
 
-EventManager::EventManager(std::unordered_map<uint64_t, SoundData>& soundData, GameObjectManager& objectManager) :
+EventManager::EventManager(PackageManager& soundData, GameObjectManager& objectManager) :
                             eventID(100000), soundData(soundData), objectManager(objectManager)
 {
     leftLocalBuffer = new float[buffSize];
@@ -84,7 +84,9 @@ int EventManager::AddEvent(uint64_t id)
 {
     Event* event;
     ErrorNum isValid = eventParser.GetEvent(id, &event, soundData);
-    return AddEvent(event);
+    if(isValid == ErrorNum::NoErrors)
+        return AddEvent(event);
+    return isValid;
 }
 
 int EventManager::AddEvent(const std::string& name)

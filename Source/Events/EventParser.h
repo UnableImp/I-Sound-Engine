@@ -11,14 +11,15 @@
 #include <unordered_map>
 #include <vector>
 #include "FilterParsers/DeserializeFilter.h"
+#include "AudioPackage/PackageManager.h"
 
 class EventParser
 {
 public:
     void ParseEvents(const std::string& path);
 
-    ErrorNum GetEvent(const std::string& name, Event** event, std::unordered_map<uint64_t, SoundData>& soundData);
-    ErrorNum GetEvent(uint64_t id, Event** Event, std::unordered_map<uint64_t, SoundData>& soundData);
+    ErrorNum GetEvent(const std::string& name, Event** event,  PackageManager& manager);
+    ErrorNum GetEvent(uint64_t id, Event** Event, PackageManager& manager);
 
     ~EventParser();
 

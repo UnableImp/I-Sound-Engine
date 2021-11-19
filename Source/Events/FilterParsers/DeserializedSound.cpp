@@ -25,10 +25,10 @@ DeserializedSound::DeserializedSound(rapidjson::Value &object) : playID(-1), vol
 
 }
 
-ErrorNum DeserializedSound::BuildFilter(Filter<float> **filter, std::unordered_map<uint64_t, SoundData> &table)
+ErrorNum DeserializedSound::BuildFilter(Filter<float> **filter,  PackageManager& manager)
 {
-    auto sound = table.find(playID);
-    if(sound == table.end())
+    auto sound = manager.GetSounds().find(playID);
+    if(sound == manager.GetSounds().end())
         return ErrorNum::SoundNotLoaded;
 
     if(sound->second.audioType == Encoding::Opus)

@@ -16,7 +16,7 @@ void EventParser::ParseEvents(const std::string& path)
 {
     FILE* fp = fopen(path.c_str(), "rb");
 
-    assert(fp && "JSON File not found");
+    assert(fp && (std::string("JSON File not found:") + path).c_str());
 
     char readBuffer[4096];
     rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
@@ -45,12 +45,12 @@ void EventParser::ParseEvents(const std::string& path)
     }
 }
 
-ErrorNum EventParser::GetEvent(const std::string& name, Event **event, std::unordered_map<uint64_t, SoundData>& soundData)
+ErrorNum EventParser::GetEvent(const std::string& name, Event **event,  PackageManager& manager)
 {
-    return GetEvent(stringToId[name], event, soundData);
+    return GetEvent(stringToId[name], event, manager);
 }
 
-ErrorNum EventParser::GetEvent(uint64_t id, Event **event, std::unordered_map<uint64_t, SoundData>& soundData)
+ErrorNum EventParser::GetEvent(uint64_t id, Event **event,  PackageManager& manager)
 {
     if(IdToEvent.find(id) == IdToEvent.end())
         return ErrorNum::EventNotFound;
@@ -61,7 +61,7 @@ ErrorNum EventParser::GetEvent(uint64_t id, Event **event, std::unordered_map<ui
     for(auto sFilter : filtersInEvent)
     {
         Filter<float>* filter;
-        sFilter->BuildFilter(&filter, soundData);
+        sFilter->BuildFilter(&filter, manager);
 
         (*event)->AddFilter(filter);
     }
