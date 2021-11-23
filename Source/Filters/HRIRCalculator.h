@@ -10,6 +10,8 @@
 #include "AudioPackage/PackageManager.h"
 #include "RealTimeParameters/GameObjectManager.h"
 #include "WavContainer.h"
+#include <math.h>
+#include "pffft.hpp"
 
 constexpr float pi = 3.14159265359f;
 
@@ -19,12 +21,23 @@ class HRIRCalculator : public Filter<sampleType>
 public:
     HRIRCalculator(/*listener ref, object ref,*/PackageManager& packageManager ) : packageManager(packageManager),
                                                                                    currentEvel(0),
-                                                                                   currentAngle(0),
-                                                                                   goalAngle(0),
-                                                                                   goalEvel(0)
-    {}
+                                                                                   currentAngle(0)
+    {
+        angle1L = new float[1024]();
+        angle2L = new float[1024]();
+        angle1R = new float [1024]();
+        angle2R = new float [1024]();
+        trash = new float[1024]();
+    }
 
-    virtual ~HRIRCalculator() {}
+    virtual ~HRIRCalculator()
+    {
+        delete [] angle2L;
+        delete [] angle1L;
+        delete [] angle2R;
+        delete [] angle1R;
+        delete trash;
+    }
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
@@ -45,52 +58,48 @@ public:
         if(sourceAngle < 0)
             sourceAngle += 2 * pi;
 
-        float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
+        float angle = (listenerAngle - sourceAngle) * (180.0f / pi);
 
-        currentAngle = (int)angle + (5 - ((int)angle % 5));
+        if(angle < 0)
+            angle += 360;
 
-        if(currentAngle < 0)
-            currentAngle += 360;
-        if(currentAngle >= 360)
-            currentAngle -= 360;
+        //int KEMARAngle = (int)angle + (5 - ((int)angle % 5));
 
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
 
-        //float ListenerEvel = std::atan2(lis)
+        int KEMARup = (int)angle + (5 - ((int)angle % 5));
+        int KEMARdown = KEMARup - 5;
 
-        uint64_t id = static_cast<uint64_t>(currentAngle) << 32; // Angle
-        id |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
-        id |= static_cast<uint64_t>(1) << 52; // Kemar
+        memset(angle1R, 0, numSamples * sizeof(float));
+        memset(angle1L, 0, numSamples * sizeof(float));
+        memset(angle2R, 0, numSamples * sizeof(float));
+        memset(angle2L, 0, numSamples * sizeof(float));
 
-        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
+        GetAngle(angle1L, angle1R, KEMARdown, numSamples, obj);
+        GetAngle(angle2L, angle2R, KEMARup, numSamples, obj);
 
-        WavContainer<float> leftIR(packageManager.GetSounds()[id]);
-
-        id |= static_cast<uint64_t>(1) << 51; // Right ear
-
-        assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
-
-        WavContainer<float> rightIR(packageManager.GetSounds()[id]);
-
-        leftIR.GetNextSamples(numSamples, left, left, obj);
-        rightIR.GetNextSamples(numSamples, right, right, obj);
+        memcpy(left, angle1L, sizeof(float) * numSamples);
+        memcpy(right, angle1R, sizeof(float) * numSamples);
 
         return 0;
     }
 
 private:
 
-    int GetNextSamplesSame(int numSamples, float* left, float* right, const GameObject& obj)
+    float GetAngle(float* bufferl, float* bufferr, int angle, int numSamples, const GameObject& obj)
     {
+        // Ensure that angle is in KEMAR data pack
+        assert (angle % 5 == 0);
 
-        memset(left, 0, numSamples * sizeof(float));
-        memset(right, 0, numSamples * sizeof(float));
+        if(angle == 360)
+            angle = 0;
 
-        uint64_t id = currentAngle << 32; // Angle
+        uint64_t id = static_cast<uint64_t>(angle) << 32; // Angle
         id |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
         id |= static_cast<uint64_t>(1) << 52; // Kemar
 
+        // Make sure sound is loaded
         assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
 
         WavContainer<float> leftIR(packageManager.GetSounds()[id]);
@@ -101,53 +110,23 @@ private:
 
         WavContainer<float> rightIR(packageManager.GetSounds()[id]);
 
-        leftIR.GetNextSamples(numSamples, left, left, obj);
-        rightIR.GetNextSamples(numSamples, right, right, obj);
+        leftIR.GetNextSamples(numSamples, bufferl, trash, obj);
+        rightIR.GetNextSamples(numSamples, bufferr, trash, obj);
 
         return 0;
     }
 
-//    int GetNextSampleMoveToGoal(int numSamples, float* left, float* right, const GameObject& obj)
-//    {
-//        memset(leftCurrent, 0, numSamples * sizeof(float));
-//        memset(rightCurrent, 0, numSamples * sizeof(float));
-//        memset(leftGoal, 0, numSamples * sizeof(float));
-//        memset(rightGoal, 0, numSamples * sizeof(float));
-//
-//        uint64_t idCurr = currentAngle << 32; // Angle
-//        idCurr |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
-//        idCurr |= static_cast<uint64_t>(1) << 52; // Kemar
-//        assert(packageManager.GetSounds().find(idCurr) != packageManager.GetSounds().end());
-//        WavContainer<float> leftCurIR(packageManager.GetSounds()[idCurr]);
-//        idCurr |= static_cast<uint64_t>(1) << 51; // Right ear
-//        assert(packageManager.GetSounds().find(idCurr) != packageManager.GetSounds().end());
-//        WavContainer<float> rightCurIR(packageManager.GetSounds()[idCurr]);
-//        leftCurIR.GetNextSamples(numSamples, leftCurrent, leftCurrent, obj);
-//        rightCurIR.GetNextSamples(numSamples, rightCurrent, rightCurrent, obj);
-//
-//        uint64_t idGoal = goalAngle << 32; // Angle
-//        idGoal |= static_cast<uint64_t>(goalEvel) << 41; // Evelation
-//        idGoal |= static_cast<uint64_t>(1) << 52; // Kemar
-//        assert(packageManager.GetSounds().find(idGoal) != packageManager.GetSounds().end());
-//        WavContainer<float> leftGoalIR(packageManager.GetSounds()[idGoal]);
-//        idGoal |= static_cast<uint64_t>(1) << 51; // Right ear
-//        assert(packageManager.GetSounds().find(idGoal) != packageManager.GetSounds().end());
-//        WavContainer<float> rightGoalIR(packageManager.GetSounds()[idGoal]);
-//        leftCurIR.GetNextSamples(numSamples, leftGoal, leftGoal, obj);
-//        rightCurIR.GetNextSamples(numSamples, rightGoal, rightGoal, obj);
-//
-//
-//    }
+    float* angle1L;
+    float* angle1R;
+    float* angle2L;
+    float* angle2R;
 
+    float* trash;
 
-    float leftCurrent[512];
-    float rightCurrent[512];
-    float leftGoal[512];
-    float rightGoal[512];
+    std::complex<float> leftComplex;
+    std::complex<float> rightComplex;
 
     PackageManager& packageManager;
-    int goalEvel;
-    int goalAngle;
     int currentAngle;
     int  currentEvel;
 };
