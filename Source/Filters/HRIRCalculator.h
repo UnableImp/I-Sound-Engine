@@ -21,12 +21,15 @@ class HRIRCalculator : public Filter<sampleType>
 public:
     HRIRCalculator(/*listener ref, object ref,*/PackageManager& packageManager ) : packageManager(packageManager),
                                                                                    currentEvel(0),
-                                                                                   currentAngle(0)
+                                                                                   currentAngle(0),
+                                                                                   fft(1024)
     {
         angle1L = new float[1024]();
         angle2L = new float[1024]();
         angle1R = new float [1024]();
         angle2R = new float [1024]();
+        complex1 =  new std::complex<float>[1024]();
+        complex2 = new std::complex<float>[1024]();
         trash = new float[1024]();
     }
 
@@ -79,8 +82,36 @@ public:
         GetAngle(angle1L, angle1R, KEMARdown, numSamples, obj);
         GetAngle(angle2L, angle2R, KEMARup, numSamples, obj);
 
-        memcpy(left, angle1L, sizeof(float) * numSamples);
-        memcpy(right, angle1R, sizeof(float) * numSamples);
+        fft.forward(angle1L, complex1);
+        fft.forward(angle2L, complex2);
+
+        float t =  (5.0f-(KEMARup - angle))/5.0f;
+
+        for(int i = 0; i < numSamples; ++i)
+        {
+            complex1[i] = this->lerp(complex1[i], complex2[i], t);
+        }
+
+        fft.inverse(complex1, left);
+
+        fft.forward(angle1R, complex1);
+        fft.forward(angle2R, complex2);
+
+        for(int i = 0; i < numSamples; ++i)
+        {
+            complex1[i] = this->lerp(complex1[i], complex2[i], t);
+        }
+
+        fft.inverse(complex1, right);
+
+        for(int i = 0; i < numSamples; ++i)
+        {
+            left[i] /= numSamples;
+            right[i] /= numSamples;
+        }
+
+//        memcpy(left, angle1L, sizeof(float) * numSamples);
+//        memcpy(right, angle1R, sizeof(float) * numSamples);
 
         return 0;
     }
@@ -123,8 +154,10 @@ private:
 
     float* trash;
 
-    std::complex<float> leftComplex;
-    std::complex<float> rightComplex;
+    std::complex<float>* complex1;
+    std::complex<float>* complex2;
+
+    pffft::Fft<float> fft;
 
     PackageManager& packageManager;
     int currentAngle;

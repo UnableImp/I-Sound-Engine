@@ -142,7 +142,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
     tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
     Frame<float>* frame = new Frame<float>[frameSize]();
-    int angle = 0;
+    float angle = 0;
     int samples = 0;
     int totalSamples = 0;
     do
@@ -159,7 +159,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
 
         totalSamples += samples;
         {
-            angle += 1;
+            angle += 0.5f;
             if (angle >= 360)
                 angle -= 360;
 
