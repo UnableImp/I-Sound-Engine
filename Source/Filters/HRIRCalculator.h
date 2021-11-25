@@ -22,7 +22,7 @@ public:
     HRIRCalculator(/*listener ref, object ref,*/PackageManager& packageManager ) : packageManager(packageManager),
                                                                                    currentEvel(0),
                                                                                    currentAngle(0),
-                                                                                   fft(1024)
+                                                                                   fft(512)
     {
         angle1L = new float[1024]();
         angle2L = new float[1024]();
@@ -79,15 +79,18 @@ public:
         memset(angle2R, 0, numSamples * sizeof(float));
         memset(angle2L, 0, numSamples * sizeof(float));
 
-        GetAngle(angle1L, angle1R, KEMARdown, numSamples, obj);
-        GetAngle(angle2L, angle2R, KEMARup, numSamples, obj);
+        GetAngle(angle1L, angle1R, KEMARdown, numSamples/2, obj);
+        GetAngle(angle2L, angle2R, KEMARup, numSamples/2, obj);
 
         fft.forward(angle1L, complex1);
         fft.forward(angle2L, complex2);
 
         float t =  (5.0f-(KEMARup - angle))/5.0f;
 
-        for(int i = 0; i < numSamples; ++i)
+        if(std::abs(t) > 1)
+            std::cout << t << std::endl;
+
+        for(int i = 0; i < numSamples/2; ++i)
         {
             complex1[i] = this->lerp(complex1[i], complex2[i], t);
         }
@@ -97,7 +100,7 @@ public:
         fft.forward(angle1R, complex1);
         fft.forward(angle2R, complex2);
 
-        for(int i = 0; i < numSamples; ++i)
+        for(int i = 0; i < numSamples/2; ++i)
         {
             complex1[i] = this->lerp(complex1[i], complex2[i], t);
         }

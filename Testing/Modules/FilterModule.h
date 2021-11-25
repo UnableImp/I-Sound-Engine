@@ -159,7 +159,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
 
         totalSamples += samples;
         {
-            angle += 1.0f;
+            angle += 0.2f;
             if (angle >= 360)
                 angle -= 360;
 
@@ -353,12 +353,14 @@ TEST(HRTF, HRTFAtOnePoint)
     //hrir.SetAngle(110);
     //hrir.SetElev(10);
 
+    objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {0.8386,0, 0.5446});
 
     ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
-    eventManager.AddEvent(sample, convolver);
+    eventManager.AddEvent(10, sample, convolver);
     simulateEventManager(eventManager, "TestFiles/TESTConvoler.wav", 512);
     //SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 1024);
 }

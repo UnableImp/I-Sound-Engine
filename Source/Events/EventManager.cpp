@@ -8,8 +8,8 @@
 EventManager::EventManager(PackageManager& soundData, GameObjectManager& objectManager) :
                             eventID(100000), soundData(soundData), objectManager(objectManager)
 {
-    leftLocalBuffer = new float[buffSize];
-    rightLocalBuffer = new float[buffSize];
+    leftLocalBuffer = new float[buffSize]();
+    rightLocalBuffer = new float[buffSize]();
 }
 
 EventManager::~EventManager()
