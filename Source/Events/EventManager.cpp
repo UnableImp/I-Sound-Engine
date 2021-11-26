@@ -4,22 +4,39 @@
 
 #include "EventManager.h"
 #include "cstring"
+#include "Actions/Action.h"
+#include "Actions/PostEvent.h"
 
 EventManager::EventManager(PackageManager& soundData, GameObjectManager& objectManager) :
-                            eventID(100000), soundData(soundData), objectManager(objectManager)
+                            eventID(100000), soundData(soundData), objectManager(objectManager),
+                            nextActionID(1), lastActedID(0)
 {
-    leftLocalBuffer = new float[buffSize];
-    rightLocalBuffer = new float[buffSize];
+    leftLocalBuffer = new float[buffSize]();
+    rightLocalBuffer = new float[buffSize]();
 }
 
 EventManager::~EventManager()
 {
-    for(auto& event : events)
+    for (auto &event: events)
     {
         delete event.second;
     }
+    for (auto &action: actionList)
+    {
+        delete action;
+    }
+
     delete [] leftLocalBuffer;
     delete [] rightLocalBuffer;
+}
+
+void EventManager::Update()
+{
+    auto itemToRemove = actionList.begin();
+    while(lastActedID < nextActionID && itemToRemove != actionList.end())
+    {
+        itemToRemove = actionList.erase(itemToRemove);
+    }
 }
 
 int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
@@ -28,6 +45,25 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     memset(buffer, 0, numSamples * sizeof(Frame<float>));
 
     int totalSamplesGenerated = 0;
+
+    for(auto iter = actionList.begin(); iter != actionList.end(); ++iter)
+    {
+        if((*iter)->GetActionIndex() > lastActedID)
+        {
+            lastActedID = (*iter)->GetActionIndex();
+            switch((*iter)->GetActionType())
+            {
+                case ActionType::PostEvent:
+                {
+                    PostEventAction* action = dynamic_cast<PostEventAction*>(*iter);
+                    events[action->GetEventId()] = action->GetEvent();
+                    break;
+                }
+                default:
+                    assert("Unknown action type in buffer");
+            }
+        }
+    }
 
     int generated = 0;
     while (numSamples - generated > 0)
@@ -56,8 +92,6 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
             {
                 delete iter->second;
                 iter = events.erase(iter);
-                if (iter == events.end())
-                    break;
                 continue;
             }
             ++iter;
