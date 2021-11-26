@@ -34,7 +34,7 @@ template<typename... T>
 static void addFile(std::vector<WavFile> &vec, std::string fileName, T... files)
 {
     vec.emplace_back(WavFile{fileName});
-    ASSERT_TRUE(vec.back()) << " " << fileName << vec.back().GetError();
+    ASSERT_TRUE(vec.back()) << " " << fileName << " " <<  vec.back().GetError();
     addFile(vec, files...);
 }
 
@@ -238,11 +238,36 @@ static std::string WriteToWav(const std::filesystem::path& path)
     short buffer[512];
     readFrom.read(reinterpret_cast<char*>(buffer), 1024);
 
+    short outBuf[512];
+
     for(int i = 0; i < 512; i++)
     {
         short v = (buffer[i] >> 8) | (buffer[i] << 8);
-        tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
+        outBuf[i] = v;
+
+        //tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
     }
+
+    float level = 0.4 * (1<<15);
+
+    short max = -1000;
+    for(const short& x : outBuf)
+    {
+        if(abs(x) > max)
+            max = abs(x);
+    }
+
+    for(short& x : outBuf)
+    {
+        x *= level/max;
+    }
+
+    for(int i = 0; i < 512; i++)
+    {
+        tesConvert.write(reinterpret_cast<char*>(&outBuf[i]), sizeof(short));
+    }
+
+
     return outFile;
 }
 
@@ -335,6 +360,39 @@ static void CreatIR()
         tesConver2.write(reinterpret_cast<char*>(&v2), sizeof(short));
     }
 }
+
+//TEST(BuiltGameAudio, GameAudio)
+//{
+//    BuildPackageAllOpus(0, "SongPack.pck",
+//                        "SFX/Antigua.wav",
+//                        "SFX/Arp.wav",
+//                        "SFX/Bass.wav",
+//                        "SFX/Drums 1.wav",
+//                        "SFX/Drums 2.wav",
+//                        "SFX/Drums 3.wav",
+//                        "SFX/Handshake Firm Credits.wav");
+//
+//    BuildPackageAllPCM(100, "SFXPack.pck",
+//                       "SFX/Crouch.wav",
+//                       "SFX/DownAttackLand.wav",
+//                       "SFX/Jump_1.wav",
+//                       "SFX/LogoGlitch1.wav",
+//                       "SFX/Player_Death.wav",
+//                       "SFX/Player_Hurt.wav",
+//                       "SFX/Player_Land.wav",
+//                       "SFX/Shuriken_Impact_1.wav",
+//                       "SFX/Shuriken_Impact_Damage.wav",
+//                       "SFX/Single_Shuriken_Throw.wav",
+//                       "SFX/SpawnEffect1.wav",
+//                       "SFX/Step1.wav",
+//                       "SFX/Sword_Deflect1.wav",
+//                       "SFX/Sword_Slash1.wav",
+//                       "SFX/SwordStick_Wall.wav",
+//                       "SFX/Sword_Throw1.wav",
+//                       "SFX/User Interface, Digital, Glitch 04 SND44936.wav",
+//                       "SFX/User Interface, Digital, Glitch 04 SND44936 1.wav",
+//                       "SFX/Whoosh.wav");
+//}
 
 TEST(HRTF, HRTFAtOnePoint)
 {

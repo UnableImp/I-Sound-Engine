@@ -4,7 +4,9 @@
 
 #include "Event.h"
 
-Event::Event(uint64_t gameObjectId) : gameObjectID(gameObjectId) {}
+Event::Event(uint64_t gameObjectId) : gameObjectID(gameObjectId), eventID(0) {}
+
+Event::Event(uint64_t gameObjectId, uint64_t eventID) : gameObjectID(gameObjectId), eventID(eventID) {}
 
 Event::~Event()
 {
@@ -38,4 +40,9 @@ uint64_t Event::GetParent()
 void Event::SetParent(uint64_t parent)
 {
    gameObjectID = parent;
+}
+
+uint64_t Event::GetEventID()
+{
+    return eventID;
 }

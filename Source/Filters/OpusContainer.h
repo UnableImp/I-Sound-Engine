@@ -26,7 +26,12 @@ public:
                                     offsetIntoRawOpus(0),
                                     totalOffset(0)
     {
+        decodedOpusFrame = new float[OpusFrameSize * 2 + 1]();
+    }
 
+    ~OpusContainer()
+    {
+        delete decodedOpusFrame;
     }
 
     virtual void Reset() override
@@ -137,7 +142,7 @@ private:
 
     int offsetIntoRawOpus;
 
-    float decodedOpusFrame[OpusFrameSize * 2 + 1];
+    float* decodedOpusFrame;
     double offsetIntoOpusFrame;
 
     double totalOffset;

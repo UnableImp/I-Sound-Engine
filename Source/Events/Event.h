@@ -16,6 +16,8 @@ public:
 
     Event(uint64_t gameObjectId);
 
+    Event(uint64_t gameObjectId, uint64_t eventID);
+
     ~Event();
 
     void AddFilter(Filter<float>* filter);
@@ -25,9 +27,12 @@ public:
     uint64_t GetParent();
     void SetParent(uint64_t parent);
 
+    uint64_t GetEventID();
+
 private:
     std::vector<Filter<float> *> filters;
     uint64_t gameObjectID;
+    uint64_t eventID;
 };
 
 #endif //I_SOUND_ENGINE_EVENT_H

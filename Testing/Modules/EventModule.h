@@ -123,6 +123,35 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
     } while (samples > 0);
 }
 
+static void simulateEventManagerWithStop(EventManager& eventManager, uint64_t stopID, const char* outFileName)
+{
+    WavFile wav("TestFiles/level.wav");
+    std::fstream tesConvert(outFileName, std::ios_base::binary | std::ios_base::out);
+    RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
+                          0,
+                          {'W', 'A', 'V', 'E'}};
+    tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConvert.write(reinterpret_cast<const char *>(&wav.GetFormat()), sizeof(FormatHeader));
+    GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
+    dataChunk.chunkSize = wav.GetDataSize();
+    tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    int count = 0;
+    int samples = 0;
+    do
+    {
+        Frame<float> frame = {0, 0};
+        samples = eventManager.GetSamplesFromAllEvents(1, &frame);
+        short right = static_cast<short>(frame.rightChannel * (1 << 15));
+        short left = static_cast<short>(frame.leftChannel * (1 << 15));
+        ++count;
+        if(count == 44100)
+            eventManager.StopEvent(stopID);
+        tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
+        tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
+    } while (samples > 0);
+}
+
 static void SumAllInPackage(const char* packageName, const char* outFileName)
 {
     IO::MemoryMappedFile package(packageName);
@@ -260,6 +289,12 @@ TEST(Events, Sum24BitAudioWav)
 {
     BuildPackageAllPCM(0, "TestFiles/TESTEventPack.pak", "TestFiles/MusicMain44100.wav");
     SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTMusicMain44100.wav");
+}
+
+TEST(Events, SumTwoWavPlaybackWithStop)
+{
+    BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav", "TestFiles/credits.wav");
+    SumAllInPackage("TestFiles/TESTEventPack.pak", "TestFiles/TESTEventWavSum2WithStop.wav");
 }
 
 TEST(EventParser, EventFromIDWav)
