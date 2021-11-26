@@ -46,6 +46,8 @@ public:
     int AddEvent(uint64_t id, uint64_t gameObjectId);
     int AddEvent(const std::string& name, uint64_t gameObjectId);
 
+    void StopEvent(uint64_t eventID);
+
     void Update();
 
     void ParseEvents(const std::string& path);

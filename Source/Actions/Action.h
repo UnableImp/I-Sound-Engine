@@ -19,10 +19,12 @@ public:
 
     virtual ActionType GetActionType() = 0;
 
-    uint64_t GetActionIndex()
+    uint64_t GetActionIndex() const
     {
         return actionIndex;
     }
+
+    virtual ~Action() = default;
 
 private:
     uint64_t actionIndex;

@@ -6,6 +6,7 @@
 #include "cstring"
 #include "Actions/Action.h"
 #include "Actions/PostEvent.h"
+#include "Actions/StopEvent.h"
 
 EventManager::EventManager(PackageManager& soundData, GameObjectManager& objectManager) :
                             eventID(100000), soundData(soundData), objectManager(objectManager),
@@ -33,8 +34,9 @@ EventManager::~EventManager()
 void EventManager::Update()
 {
     auto itemToRemove = actionList.begin();
-    while(lastActedID < nextActionID && itemToRemove != actionList.end())
+    while (itemToRemove != actionList.end() && (*itemToRemove)->GetActionIndex() < lastActedID)
     {
+        delete *itemToRemove;
         itemToRemove = actionList.erase(itemToRemove);
     }
 }
@@ -58,6 +60,18 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
                     PostEventAction* action = dynamic_cast<PostEventAction*>(*iter);
                     events[action->GetEventId()] = action->GetEvent();
                     break;
+                }
+                case ActionType::StopEvent:
+                {
+                    StopEventAction* action = dynamic_cast<StopEventAction*>(*iter);
+                    for (auto event = events.begin(); event != events.end(); ++event)
+                    {
+                        if(event->second->GetEventID() == action->GetEventId())
+                        {
+                            events.erase(event);
+                            break;
+                        }
+                    }
                 }
                 default:
                     assert("Unknown action type in buffer");
@@ -102,8 +116,8 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     {
         for (int i = 0; i < numSamples; ++i)
         {
-            buffer[i].leftChannel = std::min(buffer[i].leftChannel, 1.0f);
-            buffer[i].rightChannel = std::min(buffer[i].rightChannel, 1.0f);
+            buffer[i].leftChannel = buffer[i].leftChannel;
+            buffer[i].rightChannel = buffer[i].rightChannel;
         }
     }
     return totalSamplesGenerated;
@@ -150,4 +164,12 @@ int EventManager::AddEvent(const std::string& name, uint64_t gameObjectId)
         return isValid;
     event->SetParent(gameObjectId);
     return AddEvent(event);
+}
+
+void EventManager::StopEvent(uint64_t eventID)
+{
+    Action* action = new StopEventAction(nextActionID, eventID);
+    actionList.push_back(action);
+
+    ++nextActionID;
 }

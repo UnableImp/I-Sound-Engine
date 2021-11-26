@@ -60,7 +60,7 @@ ErrorNum EventParser::GetEvent(uint64_t id, Event **event,  PackageManager& mana
     if(IdToEvent.find(id) == IdToEvent.end())
         return ErrorNum::EventNotFound;
 
-    *event = new Event(0);
+    *event = new Event(0, id);
     auto& filtersInEvent = IdToEvent[id];
 
     for(auto sFilter : filtersInEvent)

@@ -12,7 +12,7 @@ class PostEventAction : public Action
 {
 public:
 
-    PostEventAction(uint64_t actionId, Event* event, uint64_t eventID) : Action(actionId), event(event), evenID(eventID) {}
+    PostEventAction(uint64_t actionId, Event* event, uint64_t eventID) : Action(actionId), event(event), eventID(eventID) {}
 
     ActionType GetActionType() override
     {
@@ -26,12 +26,12 @@ public:
 
     uint64_t GetEventId()
     {
-        return evenID;
+        return eventID;
     }
 
 private:
     Event* event;
-    uint64_t evenID;
+    uint64_t eventID;
 };
 
 #endif //I_SOUND_ENGINE_POSTEVENT_H
