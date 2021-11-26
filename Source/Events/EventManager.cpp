@@ -112,14 +112,6 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
         }
         generated += samplesToGet;
     }
-    if (events.size())
-    {
-        for (int i = 0; i < numSamples; ++i)
-        {
-            buffer[i].leftChannel = buffer[i].leftChannel;
-            buffer[i].rightChannel = buffer[i].rightChannel;
-        }
-    }
     return totalSamplesGenerated;
 }
 

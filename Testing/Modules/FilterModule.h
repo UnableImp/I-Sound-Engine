@@ -238,11 +238,36 @@ static std::string WriteToWav(const std::filesystem::path& path)
     short buffer[512];
     readFrom.read(reinterpret_cast<char*>(buffer), 1024);
 
+    short outBuf[512];
+
     for(int i = 0; i < 512; i++)
     {
         short v = (buffer[i] >> 8) | (buffer[i] << 8);
-        tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
+        outBuf[i] = v;
+
+        //tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
     }
+
+    float level = 0.4 * (1<<15);
+
+    short max = -1000;
+    for(const short& x : outBuf)
+    {
+        if(abs(x) > max)
+            max = abs(x);
+    }
+
+    for(short& x : outBuf)
+    {
+        x *= level/max;
+    }
+
+    for(int i = 0; i < 512; i++)
+    {
+        tesConvert.write(reinterpret_cast<char*>(&outBuf[i]), sizeof(short));
+    }
+
+
     return outFile;
 }
 
