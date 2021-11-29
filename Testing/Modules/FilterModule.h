@@ -159,7 +159,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
 
         totalSamples += samples;
         {
-            angle += 0.2f;
+            angle += 1;
             if (angle >= 360)
                 angle -= 360;
 
@@ -245,28 +245,8 @@ static std::string WriteToWav(const std::filesystem::path& path)
         short v = (buffer[i] >> 8) | (buffer[i] << 8);
         outBuf[i] = v;
 
-        //tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
+        tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
     }
-
-    float level = 0.4 * (1<<15);
-
-    short max = -1000;
-    for(const short& x : outBuf)
-    {
-        if(abs(x) > max)
-            max = abs(x);
-    }
-
-    for(short& x : outBuf)
-    {
-        x *= level/max;
-    }
-
-    for(int i = 0; i < 512; i++)
-    {
-        tesConvert.write(reinterpret_cast<char*>(&outBuf[i]), sizeof(short));
-    }
-
 
     return outFile;
 }

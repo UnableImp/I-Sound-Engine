@@ -21,7 +21,7 @@ class HRIRCalculator : public Filter<sampleType>
 public:
     HRIRCalculator(/*listener ref, object ref,*/PackageManager& packageManager ) : packageManager(packageManager),
                                                                                    currentEvel(0),
-                                                                                   currentAngle(0),
+                                                                                   currentAngle(-400),
                                                                                    fft(512)
     {
         angle1L = new float[1024]();
@@ -39,7 +39,7 @@ public:
         delete [] angle1L;
         delete [] angle2R;
         delete [] angle1R;
-        delete trash;
+        delete [] trash;
     }
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
@@ -63,15 +63,27 @@ public:
 
         float angle = (listenerAngle - sourceAngle) * (180.0f / pi);
 
-        if(angle < 0)
-            angle += 360;
+        if(currentAngle == -400)
+            currentAngle = angle;
 
+        if(angle > currentAngle && (angle - 0.3) < currentAngle)
+            currentAngle += 0.3;
+        else if (angle < currentAngle && (angle + 0.3) < currentAngle)
+            currentAngle -= 0.3;
+        else
+        {
+            currentAngle = angle;
+        }
+
+        float usingAngle = currentAngle;
+        if(usingAngle < 0)
+            usingAngle += 360;
         //int KEMARAngle = (int)angle + (5 - ((int)angle % 5));
 
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
 
-        int KEMARup = (int)angle + (5 - ((int)angle % 5));
+        int KEMARup = (int)usingAngle + (5 - ((int)usingAngle % 5));
         int KEMARdown = KEMARup - 5;
 
         memset(angle1R, 0, numSamples * sizeof(float));
@@ -85,7 +97,7 @@ public:
         fft.forward(angle1L, complex1);
         fft.forward(angle2L, complex2);
 
-        float t =  (5.0f-(KEMARup - angle))/5.0f;
+        float t =  (5.0f-(KEMARup - usingAngle))/5.0f;
 
         if(std::abs(t) > 1)
             std::cout << t << std::endl;
@@ -163,7 +175,7 @@ private:
     pffft::Fft<float> fft;
 
     PackageManager& packageManager;
-    int currentAngle;
+    float currentAngle;
     int  currentEvel;
 };
 
