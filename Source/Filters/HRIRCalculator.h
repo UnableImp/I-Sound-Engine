@@ -66,10 +66,10 @@ public:
         if(currentAngle == -400)
             currentAngle = angle;
 
-        if(angle > currentAngle && (angle - 0.3) < currentAngle)
-            currentAngle += 0.3;
-        else if (angle < currentAngle && (angle + 0.3) < currentAngle)
-            currentAngle -= 0.3;
+        if(angle > currentAngle && (angle - 0.5) < currentAngle)
+            currentAngle += 0.5;
+        else if (angle < currentAngle && (angle + 0.5) < currentAngle)
+            currentAngle -= 0.5;
         else
         {
             currentAngle = angle;
