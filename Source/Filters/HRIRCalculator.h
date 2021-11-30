@@ -47,12 +47,12 @@ public:
 
         float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
 
-        currentAngle = (int)angle + (5 - ((int)angle % 5));
+        int newAngle = (int)angle + (5 - ((int)angle % 5));
 
-        if(currentAngle < 0)
-            currentAngle += 360;
-        if(currentAngle >= 360)
-            currentAngle -= 360;
+        if(newAngle < 0)
+            newAngle += 360;
+        if(newAngle >= 360)
+            newAngle -= 360;
 
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
@@ -75,6 +75,10 @@ public:
 
         leftIR.GetNextSamples(numSamples, left, left, obj);
         rightIR.GetNextSamples(numSamples, right, right, obj);
+
+        //std::cout << currentAngle << " " << newAngle << std::endl;
+
+        currentAngle = newAngle;
 
         return 0;
     }

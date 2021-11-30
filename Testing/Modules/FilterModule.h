@@ -142,7 +142,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
     tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
     Frame<float>* frame = new Frame<float>[frameSize]();
-    int angle = 0;
+    float angle = 0;
     int samples = 0;
     int totalSamples = 0;
     do
@@ -238,35 +238,12 @@ static std::string WriteToWav(const std::filesystem::path& path)
     short buffer[512];
     readFrom.read(reinterpret_cast<char*>(buffer), 1024);
 
-    short outBuf[512];
-
     for(int i = 0; i < 512; i++)
     {
         short v = (buffer[i] >> 8) | (buffer[i] << 8);
-        outBuf[i] = v;
 
-        //tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
+        tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
     }
-
-    float level = 0.4 * (1<<15);
-
-    short max = -1000;
-    for(const short& x : outBuf)
-    {
-        if(abs(x) > max)
-            max = abs(x);
-    }
-
-    for(short& x : outBuf)
-    {
-        x *= level/max;
-    }
-
-    for(int i = 0; i < 512; i++)
-    {
-        tesConvert.write(reinterpret_cast<char*>(&outBuf[i]), sizeof(short));
-    }
-
 
     return outFile;
 }
@@ -407,16 +384,19 @@ TEST(HRTF, HRTFAtOnePoint)
     GameObjectManager objectManager;
     EventManager eventManager(packageManager, objectManager);
 
-    HRIRCalculator<float> hrir(packageManager);
-    //hrir.SetAngle(110);
-    //hrir.SetElev(10);
+    objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {-1,0,0});
+    Transform trans;
+    trans.forward = {0,0,1};
+    objectManager.SetListenerTransform(trans);
 
+    HRIRCalculator<float> hrir(packageManager);
 
     ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
-    eventManager.AddEvent(sample, convolver);
+    eventManager.AddEvent(10, sample, convolver);
     simulateEventManager(eventManager, "TestFiles/TESTConvoler.wav", 512);
     //SumAllInPackageWithFFT("TestFiles/TESTConvBank.pck", "TestFiles/TESTConvFFT.wav", 1024);
 }
