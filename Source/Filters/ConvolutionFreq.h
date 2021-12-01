@@ -14,8 +14,6 @@ class ConvolutionFreq : public Filter<float>
 public:
     ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(size * 2), HRIR(HRIR)
     {
-        currentComplex = new std::complex<float>[size* 2]();
-
         leftIR = new float[size* 4]();
         rightIR = new float[size* 4]();
         rightS = new float[size* 4]();
@@ -26,11 +24,14 @@ public:
         rightComplex = new  std::complex<float>[size * 4]();
         leftIRComplex = new std::complex<float>[size * 4]();
         rightIRComplex = new std::complex<float>[size * 4]();
+        newComplexLeft = new std::complex<float>[size * 4]();
+        newComplexRight = new std::complex<float>[size * 4]();
     }
 
     virtual ~ConvolutionFreq()
     {
-        delete [] currentComplex;
+        delete [] newComplexRight;
+        delete [] newComplexLeft;
         delete [] leftIR;
         delete [] rightIR;
         delete [] rightS;
@@ -45,59 +46,19 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
-        memset(leftS, 0, 2*numSamples*sizeof(float));
-        memset(rightS, 0, 2 * numSamples * sizeof(float));
-        memset(leftIR, 0, 2*numSamples*sizeof(float));
-        memset(rightIR, 0, 2 * numSamples * sizeof(float));
 
-        HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR, obj);
-        HRIR.GetNextSamples(numSamples * 2, leftS, rightS, obj);
+        GetHRTF(leftComplex, rightComplex, numSamples, left, right, obj);
+        GetHRTF(newComplexLeft, newComplexRight, numSamples, left, right, obj);
 
-        fft.forward(leftIR, leftComplex);
-        fft.forward(rightIR, rightComplex);
-        fft.forward(leftS, leftIRComplex);
-        fft.forward(rightS, rightIRComplex);
-
-//        for(int i = 0; i < numSamples * 2; ++i)
-//        {
-//            //std::cout << leftIRComplex[i] << " ";
-//            leftIRComplex[i] = this->lerp(leftComplex[i], leftIRComplex[i], (i+512) / (numSamples * 2));
-//            rightIRComplex[i] = this->lerp(rightComplex[i], rightIRComplex[i], (i + 512) / (numSamples * 2));
-//            //std::cout << leftIRComplex[i] << " " << i << std::endl;
-//        }
-
-        //-----------------------------------------
-        // Left ear
-        //-----------------------------------------
-        memset(leftS, 0, 2 * numSamples * sizeof(float));
-        memcpy(leftS, left, numSamples * sizeof(float));
-
-        fft.forward(leftS, leftComplex);
-        //fft.forward(leftIR, rightComplex);
 
         for(int i = 0; i < numSamples * 2; ++i)
         {
-            currentComplex[i] = leftComplex[i] * leftIRComplex[i];
+            leftComplex[i] = this->lerp(leftComplex[i], newComplexLeft[i], i / (numSamples * 2));
+            rightComplex[i] = this->lerp(rightComplex[i], newComplexRight[i], i / (numSamples * 2));
         }
 
-        fft.inverse(currentComplex, leftS);
-
-        //-----------------------------------------
-        // Right ear
-        //-----------------------------------------
-
-        memset(rightS, 0, 2 * numSamples * sizeof(float));
-        memcpy(rightS, right, numSamples * sizeof(float));
-
-        fft.forward(rightS, rightComplex);
-        //fft.forward(rightIR, rightComplex);
-
-        for(int i = 0; i < numSamples * 2; ++i)
-        {
-            currentComplex[i] = rightComplex[i] * rightIRComplex[i];
-        }
-
-        fft.inverse(currentComplex, rightS);
+        fft.inverse(leftComplex, leftS);
+        fft.inverse(rightComplex, rightS);
 
         //-----------------------------------------
         // Normalize
@@ -117,6 +78,48 @@ public:
 
 private:
 
+    void GetHRTF(std::complex<float>* leftOut, std::complex<float>* rightOut, int numSamples, float* left, float* right, const GameObject& obj)
+    {
+        memset(leftS, 0, 2*numSamples*sizeof(float));
+        memset(rightS, 0, 2 * numSamples * sizeof(float));
+        memset(leftIR, 0, 2*numSamples*sizeof(float));
+        memset(rightIR, 0, 2 * numSamples * sizeof(float));
+
+        HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR, obj);
+
+        fft.forward(leftIR, leftIRComplex);
+        fft.forward(rightIR, rightIRComplex);
+
+        //-----------------------------------------
+        // Left ear
+        //-----------------------------------------
+        memset(leftS, 0, 2 * numSamples * sizeof(float));
+        memcpy(leftS, left, numSamples * sizeof(float));
+
+        fft.forward(leftS, leftOut);
+        //fft.forward(leftIR, rightComplex);
+
+        for(int i = 0; i < numSamples * 2; ++i)
+        {
+            leftOut[i] = leftOut[i] * leftIRComplex[i];
+        }
+
+        //-----------------------------------------
+        // Right ear
+        //-----------------------------------------
+
+        memset(rightS, 0, 2 * numSamples * sizeof(float));
+        memcpy(rightS, right, numSamples * sizeof(float));
+
+        fft.forward(rightS, rightOut);
+        //fft.forward(rightIR, rightComplex);
+
+        for(int i = 0; i < numSamples * 2; ++i)
+        {
+            rightOut[i] = rightOut[i] * rightIRComplex[i];
+        }
+    }
+
     float* leftIR;
     float* rightIR;
     float* leftS;
@@ -127,7 +130,8 @@ private:
     std::complex<float>* rightComplex;
     std::complex<float>* leftIRComplex;
     std::complex<float>* rightIRComplex;
-    std::complex<float>* currentComplex;
+    std::complex<float>* newComplexLeft;
+    std::complex<float>* newComplexRight;
 
     pffft::Fft<float> fft;
     HRIRCalculator<float>& HRIR;
