@@ -159,7 +159,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
 
         totalSamples += samples;
         {
-            angle += 2;
+            angle += 1;
             if (angle >= 360)
                 angle -= 360;
 

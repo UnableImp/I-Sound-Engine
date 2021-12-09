@@ -13,7 +13,7 @@
 class ConvolutionFreq : public Filter<float>
 {
 public:
-    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(size * 2), HRIR(HRIR), leftOverlap(768), rightOverlap(896)
+    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(size * 2), HRIR(HRIR), leftOverlap(1024), rightOverlap(1024)
     {
         currentComplex = new std::complex<float>[size* 2]();
 
@@ -97,7 +97,7 @@ private:
             rightOverlap.pop_front();
         }
 
-        for(int i = 0; i < numSamples*6; ++i)
+        for(int i = 0; i < numSamples*7; ++i)
         {
             leftOverlap[i] += leftS[i + numSamples];
             rightOverlap[i] += rightS[i +numSamples];
@@ -105,8 +105,8 @@ private:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            leftOverlap.push_back(leftS[i + numSamples*6]);
-            rightOverlap.push_back(rightS[i + numSamples*6]);
+            leftOverlap.push_back(leftS[i + numSamples*7]);
+            rightOverlap.push_back(rightS[i + numSamples*7]);
         }
 
 
