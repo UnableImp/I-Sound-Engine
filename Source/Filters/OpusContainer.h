@@ -20,13 +20,19 @@ class OpusContainer : public SoundContainer<sampleType>
 public:
 
     OpusContainer(SoundData& data) : SoundContainer<sampleType>(),
-                                    data(data),
-                                    decoder(48000, data.channels == ChannelType::Mono ? 1 : 2),
-                                    offsetIntoOpusFrame(std::numeric_limits<int>::max()),
-                                    offsetIntoRawOpus(0),
-                                    totalOffset(0)
+                                     data(data),
+                                     decoder(48000, data.channels == ChannelType::Mono ? 1 : 2),
+                                     offsetIntoOpusFrame(std::numeric_limits<int>::max()),
+                                     offsetIntoRawOpus(0),
+                                     totalOffset(0),
+                                     expectedOffset(0)
     {
+        decodedOpusFrame = new float[OpusFrameSize * 2 + 2]();
+    }
 
+    ~OpusContainer()
+    {
+        delete [] decodedOpusFrame;
     }
 
     virtual void Reset() override
@@ -42,7 +48,7 @@ public:
         int frames = 0;
         for(int i = 0; i < numSamples; ++i)
         {
-            if(totalOffset >= data.sampleCount)
+            if(totalOffset >= data.sampleCount - 10)
             {
                 if(this->totalLoops == -1)
                 {
@@ -60,7 +66,7 @@ public:
                 }
             }
             // Does a new frame need to be decoded
-            if (offsetIntoOpusFrame >= (OpusFrameSize * (data.channels == ChannelType::Stereo ? 2 : 1)))
+            if (offsetIntoOpusFrame > (OpusFrameSize * (data.channels)) - 2)
             {
                 decodeFrame();
             }
@@ -114,6 +120,7 @@ private:
 
     void decodeFrame()
     {
+        totalOffset = expectedOffset;
         // SanityCheck
         assert(*(data.data + offsetIntoRawOpus) == 'O'  && "OggS magic number not found in offset");
 
@@ -127,6 +134,8 @@ private:
 
         assert(returnValue >= 0 && "Opus decoder failed");
 
+        expectedOffset += returnValue;
+
         // Setup return values
         offsetIntoRawOpus += opusPacketSize;
         offsetIntoOpusFrame = totalOffset - static_cast<int>(totalOffset);
@@ -137,8 +146,10 @@ private:
 
     int offsetIntoRawOpus;
 
-    float decodedOpusFrame[OpusFrameSize * 2 + 1];
+    float* decodedOpusFrame;
     double offsetIntoOpusFrame;
+
+    double expectedOffset;
 
     double totalOffset;
 };

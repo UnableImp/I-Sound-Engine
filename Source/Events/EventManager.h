@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include "EventParser.h"
 #include "RealTimeParameters/GameObjectManager.h"
+#include "Actions/Action.h"
+#include "Actions/PostEvent.h"
 
 constexpr int buffSize =  2048;
 
@@ -44,6 +46,10 @@ public:
     int AddEvent(uint64_t id, uint64_t gameObjectId);
     int AddEvent(const std::string& name, uint64_t gameObjectId);
 
+    void StopEvent(uint64_t eventID);
+
+    void Update();
+
     void ParseEvents(const std::string& path);
 
     /*!
@@ -65,10 +71,20 @@ private:
 
     int AddEvent(Event* event)
     {
+        PostEventAction* newEvent = new PostEventAction(nextActionID, event, eventID);
+        actionList.push_back(newEvent);
+
         ++eventID;
-        events[eventID] = event;
+        ++nextActionID;
+
         return eventID;
+//        return eventID;
     }
+
+    int nextActionID;
+    int lastActedID;
+
+    std::vector<Action*> actionList;
 
     int eventID;
     std::unordered_map<int, Event*> events; //!< TODO  MAKE THREAD SAFE
