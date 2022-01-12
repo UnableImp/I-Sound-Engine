@@ -25,6 +25,27 @@
 
 #include <bitset>
 
+#include <pffft.hpp>
+
+template<typename sampleType>
+inline static sampleType lerp(sampleType a, sampleType b, float t)
+{
+    return a+(t*(b-a));
+}
+
+inline static std::complex<float> lerp(std::complex<float>& a, std::complex<float>& b, float t)
+{
+    return std::polar(lerp(std::abs(a), std::abs(b), t), lerp(std::arg(a), std::arg(b), t));
+}
+
+static void lerp(std::complex<float>* a, std::complex<float>* b, float t, std::complex<float>* out)
+{
+    for(int i = 0; i < 512; ++i)
+    {
+        out[i] = lerp(a[i], b[i], t);
+    }
+}
+
 static void addFile(std::vector<WavFile>&)
 {
 
@@ -142,7 +163,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
     tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
     Frame<float>* frame = new Frame<float>[frameSize]();
-    int angle = 0;
+    float angle = 0;
     int samples = 0;
     int totalSamples = 0;
     do
@@ -159,7 +180,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
 
         totalSamples += samples;
         {
-            angle += 1;
+            angle += 1/4.0f;
             if (angle >= 360)
                 angle -= 360;
 
@@ -205,6 +226,7 @@ static void SumAllInPackageWithFFT(const char* packageName, const char* outFileN
     simulateEventManager(eventManager, outFileName, frameSize);
 }
 
+
 static std::string WriteToWav(const std::filesystem::path& path)
 {
     WavFile wav("TestFiles/level.wav");
@@ -245,30 +267,185 @@ static std::string WriteToWav(const std::filesystem::path& path)
         short v = (buffer[i] >> 8) | (buffer[i] << 8);
         outBuf[i] = v;
 
-        //tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
+        tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
     }
 
-    float level = 0.4 * (1<<15);
+    return outFile;
+}
 
-    short max = -1000;
-    for(const short& x : outBuf)
-    {
-        if(abs(x) > max)
-            max = abs(x);
-    }
+static void WriteFileFromBuffer(const float* outData, std::string& path )
+{
+    WavFile wav("TestFiles/level.wav");
+    const std::string& outFile = path;
 
-    for(short& x : outBuf)
-    {
-        x *= level/max;
-    }
+    //std::cout << outFile << " " << path << std::endl;
+
+    std::fstream tesConvert(outFile.c_str(), std::ios_base::binary | std::ios_base::out);
+    RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
+                          0,
+                          {'W', 'A', 'V', 'E'}};
+    tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    FormatHeader fmt = wav.GetFormat();
+    fmt.channel_count = 1;
+    tesConvert.write(reinterpret_cast<const char *>(&fmt), sizeof(FormatHeader));
+    GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
+    dataChunk.chunkSize = 1024;
+    tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    std::fstream tesConver2(outFile.c_str(), std::ios_base::binary | std::ios_base::out);
+
+    tesConver2.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConver2.write(reinterpret_cast<const char *>(&fmt), sizeof(FormatHeader));
+    tesConver2.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    std::fstream readFrom(path.c_str(), std::ios_base::binary | std::ios_base::in);
+
+    short buffer[512];
+    readFrom.read(reinterpret_cast<char*>(buffer), 1024);
 
     for(int i = 0; i < 512; i++)
     {
-        tesConvert.write(reinterpret_cast<char*>(&outBuf[i]), sizeof(short));
+        short v = outData[i] * (1<<15);
+
+        tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
     }
+}
+
+static void Normalize(float* buffer, int length)
+{
+    for(int i = 0; i < length; ++i)
+        buffer[i] /= length;
+}
+
+static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, std::filesystem::path& path1, PackageEncoder& encoder)
+{
+    std::complex<float> complexOf1[512];
+    std::complex<float> complexOf2[512];
+    std::complex<float> complexOfOut[512];
+
+    float buf1[512];
+    float buf2[512];
+
+    memcpy(buf1, buf1Real, sizeof(float) * 512);
+    memcpy(buf2, buf2Real, sizeof(float) * 512);
+
+    float out[512];
+
+    pffft::Fft<float> fft(512);
+
+    fft.forward(buf1, complexOf1);
+    fft.forward(buf2, complexOf2);
+
+    std::string startOfPath = path1.string().substr(0, path1.string().length() - 5);
+    //std::cout << startOfPath << " " << startOfPath.substr(startOfPath.length() - 3, startOfPath.length()) << std::endl;
+    //----------------------------------------------------------------------------------
+    //TODO need to be rewriten to support any gaps not just 5
+    //---------------------------------------------------------------------------------
+    uint64_t number = std::stoi(startOfPath.substr(startOfPath.length() - 3, startOfPath.length()));
+
+    startOfPath = startOfPath.substr(0, startOfPath.length() - 3);
+    if(number < 100)
+        startOfPath += "0";
+    if(number < 10)
+        startOfPath += "0";
+
+    lerp(complexOf1, complexOf2, 1.0f / 5.0f, complexOfOut);
+    fft.inverse(complexOfOut, out);
+    Normalize(out, 512);
+
+    ++number;
+    std::string writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
+    WriteFileFromBuffer(out, writeFile);
+    uint64_t id = number << 32;
+    id |= static_cast<uint64_t>(1) << 52;
+    id |= static_cast<uint64_t>(isRight) << 51;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+
+    lerp(complexOf1, complexOf2, 2.0f/ 5.0f, complexOfOut);
+    fft.inverse(complexOfOut, out);
+    Normalize(out, 512);
+
+    ++number;
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
+    WriteFileFromBuffer(out, writeFile);
+    id = number << 32;
+    id |= static_cast<uint64_t>(1) << 52;
+    id |= static_cast<uint64_t>(isRight) << 51;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+
+    lerp(complexOf1, complexOf2, 3.0f / 5.0f, complexOfOut);
+    fft.inverse(complexOfOut, out);
+    Normalize(out, 512);
+
+    ++number;
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
+    WriteFileFromBuffer(out, writeFile);
+    id = number << 32;
+    id |= static_cast<uint64_t>(1) << 52;
+    id |= static_cast<uint64_t>(isRight) << 51;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+
+    lerp(complexOf1, complexOf2, 4.0f / 5.0f, complexOfOut);
+    fft.inverse(complexOfOut, out);
+    Normalize(out, 512);
+
+    ++number;
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
+    WriteFileFromBuffer(out, writeFile);
+    id = number << 32;
+    id |= static_cast<uint64_t>(1) << 52;
+    id |= static_cast<uint64_t>(isRight) << 51;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+}
+
+static void LerpMissingHRIR(PackageEncoder& encoder, std::string path)
+{
+    std::unordered_map<uint64_t, SoundData> sounds;
+    IO::MemoryMappedFile file(path);
+    PackageDecoder::DecodePackage(sounds, file);
 
 
-    return outFile;
+    for(uint64_t i = 0; i < 360; i+=5)
+    {
+        //-------------------------------------------
+        // Left Ear
+        //------------------------------------------
+
+        uint64_t curId = i << 32;
+        //Evelavation is 0 for now
+        curId |= static_cast<uint64_t>(1) << 52;
+
+        uint64_t nextId = (i + 5 < 360 ? i + 5 : 0) << 32;
+        nextId |= static_cast<uint64_t> (1) << 52;
+        std::filesystem::path sourcePath("../HRIR/KEMAR/elev0/L0e");
+        if(i < 100)
+            sourcePath += "0";
+        if(i < 10)
+            sourcePath += "0";
+
+        sourcePath += std::to_string(i) + "a.wav";
+        LerpFromBuffer(0, reinterpret_cast<float*>(sounds[curId].data), reinterpret_cast<float*>(sounds[nextId].data), sourcePath, encoder);
+
+        //--------------------------------------------
+        // Right Ear
+        //--------------------------------------------
+
+        curId = i << 32;
+        //Evelavation is 0 for now
+        curId |= static_cast<uint64_t>(1) << 52;
+        curId |= static_cast<uint64_t>(1) << 51;
+
+        nextId = ((i + 5 < 360 ? i + 5 : 0)) << 32;
+        nextId |= static_cast<uint64_t> (1) << 52;
+        sourcePath = ("../HRIR/KEMAR/elev0/R0e");
+        if(i < 100)
+            sourcePath += "0";
+        if(i < 10)
+            sourcePath += "0";
+
+        sourcePath += std::to_string(i) + "a.wav";
+        LerpFromBuffer(1, reinterpret_cast<float*>(sounds[curId].data), reinterpret_cast<float*>(sounds[nextId].data), sourcePath, encoder);
+    }
 }
 
 static void CreateKEMARAudioPack()
@@ -315,6 +492,8 @@ static void CreateKEMARAudioPack()
         }
     }
 
+    encoder.WritePackage("TestFiles/TESTKEMARHRIR.pck");
+    LerpMissingHRIR(encoder, "TestFiles/TESTKEMARHRIR.pck");
     encoder.WritePackage("TestFiles/TESTKEMARHRIR.pck");
 }
 

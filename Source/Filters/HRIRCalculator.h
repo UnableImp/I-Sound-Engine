@@ -47,12 +47,14 @@ public:
 
         float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
 
-        currentAngle = (int)angle + (5 - ((int)angle % 5));
+        currentAngle = (int)angle + (5 - ((int)angle % 1));
 
         if(currentAngle < 0)
             currentAngle += 360;
         if(currentAngle >= 360)
             currentAngle -= 360;
+
+        std::cout << currentAngle << std::endl;
 
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
