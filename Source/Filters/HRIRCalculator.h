@@ -55,8 +55,6 @@ public:
         if(currentAngle >= 360)
             currentAngle -= 360;
 
-        std::cout << currentAngle << std::endl;
-
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
 

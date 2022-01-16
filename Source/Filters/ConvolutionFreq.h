@@ -8,11 +8,15 @@
 #include "Filter.h"
 #include "HRIRCalculator.h"
 #include "pffft.hpp"
+#include <deque>
+
+constexpr int Overlap = 512;
+constexpr int BlockSize = 512;
 
 class ConvolutionFreq : public Filter<float>
 {
 public:
-    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(size * 2), HRIR(HRIR)
+    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(size * 2), HRIR(HRIR), leftOverlap((BlockSize * 2) - Overlap), rightOverlap((BlockSize * 2) - Overlap)
     {
         currentComplex = new std::complex<float>[size* 2]();
 
@@ -20,8 +24,6 @@ public:
         rightIR = new float[size* 4]();
         rightS = new float[size* 4]();
         leftS = new float[size* 4]();
-        leftOverlap = new float[size * 4]();
-        rightOverlap = new float[size * 4]();
         leftComplex = new  std::complex<float>[size * 4]();
         rightComplex = new  std::complex<float>[size * 4]();
     }
@@ -33,20 +35,29 @@ public:
         delete [] rightIR;
         delete [] rightS;
         delete [] leftS;
-        delete [] leftOverlap;
-        delete [] rightOverlap;
         delete [] leftComplex;
         delete [] rightComplex;
     }
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
-        HRIR.GetNextSamples(numSamples * 2, leftIR, rightIR, obj);
+        for(int offset = 0; offset < BlockSize; offset += Overlap)
+        {
+            CalculateBlock(Overlap, left + offset, right + offset, obj);
+        }
+        return 0;
+    }
+
+private:
+
+    void CalculateBlock(int numSamples, float* left, float* right, const GameObject& obj)
+    {
+        HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
 
         //-----------------------------------------
         // Left ear
         //-----------------------------------------
-        memset(leftS, 0, 2 * numSamples * sizeof(float));
+        memset(leftS, 0, 2 * BlockSize * sizeof(float));
         memcpy(leftS, left, numSamples * sizeof(float));
 
 
@@ -84,27 +95,38 @@ public:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlap[i]) / (numSamples * 2);
-            right[i] = (rightS[i]  + rightOverlap[i]) / (numSamples * 2);
+            left[i] = (leftS[i] + leftOverlap.front()) / (numSamples * 2);
+            right[i] = (rightS[i]  + rightOverlap.front()) / (numSamples * 2);
+            leftOverlap.pop_front();
+            rightOverlap.pop_front();
         }
 
-        memcpy(leftOverlap, leftS + numSamples, numSamples * sizeof(float));
-        memcpy(rightOverlap, rightS + numSamples, numSamples * sizeof(float));
+        for(int i = Overlap, j = 0; i < BlockSize; ++i, ++j)
+        {
+            leftOverlap[j] = leftS[i];
+            rightOverlap[j] = rightS[j];
+        }
 
-        return 0;
+        for(int i = (BlockSize * 2) - Overlap; i < BlockSize * 2; ++i)
+        {
+            leftOverlap.push_back(leftS[i]);
+            rightOverlap.push_back(rightS[i]);
+        }
     }
-
-private:
 
     float* leftIR;
     float* rightIR;
     float* leftS;
     float* rightS;
-    float* leftOverlap;
-    float* rightOverlap;
+    //float* leftOverlap;
+    //float* rightOverlap;
     std::complex<float>* leftComplex;
     std::complex<float>* rightComplex;
     std::complex<float>* currentComplex;
+
+
+    std::deque<float> leftOverlap;
+    std::deque<float> rightOverlap;
 
     pffft::Fft<float> fft;
     HRIRCalculator<float>& HRIR;
