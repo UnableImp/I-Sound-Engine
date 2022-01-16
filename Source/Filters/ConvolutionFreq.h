@@ -10,13 +10,13 @@
 #include "pffft.hpp"
 #include <deque>
 
-constexpr int Overlap = 512;
+constexpr int Overlap = 128;
 constexpr int BlockSize = 512;
 
 class ConvolutionFreq : public Filter<float>
 {
 public:
-    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(size * 2), HRIR(HRIR), leftOverlap((BlockSize * 2) - Overlap), rightOverlap((BlockSize * 2) - Overlap)
+    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(BlockSize * 2), HRIR(HRIR), leftOverlap((BlockSize * 2) - Overlap), rightOverlap((BlockSize * 2) - Overlap)
     {
         currentComplex = new std::complex<float>[size* 2]();
 
@@ -64,7 +64,7 @@ private:
         fft.forward(leftS, leftComplex);
         fft.forward(leftIR, rightComplex);
 
-        for(int i = 0; i < numSamples * 2; ++i)
+        for(int i = 0; i < BlockSize * 2; ++i)
         {
             currentComplex[i] = leftComplex[i] * rightComplex[i];
         }
@@ -75,14 +75,14 @@ private:
         // Right ear
         //-----------------------------------------
 
-        memset(rightS, 0, 2 * numSamples * sizeof(float));
+        memset(rightS, 0, 2 * BlockSize * sizeof(float));
         memcpy(rightS, right, numSamples * sizeof(float));
 
 
         fft.forward(rightS, leftComplex);
         fft.forward(rightIR, rightComplex);
 
-        for(int i = 0; i < numSamples * 2; ++i)
+        for(int i = 0; i < BlockSize * 2; ++i)
         {
             currentComplex[i] = leftComplex[i] * rightComplex[i];
         }
@@ -97,6 +97,9 @@ private:
         {
             left[i] = (leftS[i] + leftOverlap.front()) / (numSamples * 2);
             right[i] = (rightS[i]  + rightOverlap.front()) / (numSamples * 2);
+            left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.8f;
+            right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.8f;
+
             leftOverlap.pop_front();
             rightOverlap.pop_front();
         }
@@ -104,7 +107,7 @@ private:
         for(int i = Overlap, j = 0; i < BlockSize; ++i, ++j)
         {
             leftOverlap[j] = leftS[i];
-            rightOverlap[j] = rightS[j];
+            rightOverlap[j] = rightS[i];
         }
 
         for(int i = (BlockSize * 2) - Overlap; i < BlockSize * 2; ++i)
