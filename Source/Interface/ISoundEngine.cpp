@@ -103,6 +103,11 @@ ISE_API void ISoundEngine::SetListernerPosition(const IVector3& position)
     GameObjectManager::SetListenerPosition(position);
 }
 
+ISE_API void ISoundEngine::SetParam(const char* id, float value)
+{
+    GameObject::SetParam(id, value);
+}
+
 #ifdef OS_Windows
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files

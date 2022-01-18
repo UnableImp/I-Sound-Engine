@@ -48,7 +48,7 @@ public:
 
         float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
 
-        currentAngle = (int)angle + (5 - ((int)angle % 1));
+        currentAngle = (int)angle + (5 - ((int)angle % 5));
 
         if(currentAngle < 0)
             currentAngle += 360;

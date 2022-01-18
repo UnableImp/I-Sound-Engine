@@ -115,6 +115,8 @@ namespace ISoundEngine
     ISE_API void SetListenerTransform(const Transform &transform);
 
     ISE_API void SetListernerPosition(const IVector3 &position);
+
+    ISE_API void SetParam(const char* id, float value);
     }
 };
 

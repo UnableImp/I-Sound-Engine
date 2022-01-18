@@ -10,13 +10,16 @@
 #include "pffft.hpp"
 #include <deque>
 
-constexpr int Overlap = 128;
 constexpr int BlockSize = 512;
 
 class ConvolutionFreq : public Filter<float>
 {
 public:
-    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(BlockSize * 2), HRIR(HRIR), leftOverlap((BlockSize * 2) - Overlap), rightOverlap((BlockSize * 2) - Overlap)
+    ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(BlockSize * 2),
+    HRIR(HRIR),
+    Overlap(static_cast<int>(std::any_cast<float>(GameObject::GetParam("Overlap")))),
+    leftOverlap((BlockSize * 2) - Overlap),
+    rightOverlap((BlockSize * 2) - Overlap)
     {
         currentComplex = new std::complex<float>[size* 2]();
 
@@ -116,6 +119,8 @@ private:
             rightOverlap.push_back(rightS[i]);
         }
     }
+
+    const int Overlap;
 
     float* leftIR;
     float* rightIR;

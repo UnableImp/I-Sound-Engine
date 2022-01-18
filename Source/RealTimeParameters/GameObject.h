@@ -6,6 +6,8 @@
 #define I_SOUND_ENGINE_GAMEOBJECT_H
 
 #include "Transform.h"
+#include <unordered_map>
+#include <any>
 
 class GameObject
 {
@@ -20,9 +22,13 @@ public:
     const IVector3& GetUp() const;
     const IVector3& GetForward() const;
 
+    static void SetParam(std::basic_string<char> id, std::any item);
+    static const std::any& GetParam(std::basic_string<char> id);
+
 private:
 
     Transform transform;
+    static std::unordered_map<std::basic_string<char>, std::any> globalParams;
 
 };
 

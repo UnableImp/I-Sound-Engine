@@ -6,9 +6,13 @@
 
 GameObject GameObjectManager::listener;
 
+std::unordered_map<std::basic_string<char>, std::any> GameObject::globalParams;
+GameObjectManager manager; // TODO temp until somebetter to make sure its inited atleast one for testing and normal runtime
+
 GameObjectManager::GameObjectManager()
 {
-
+    std::any value = 512.0f;
+    GameObject::SetParam(std::string("Overlap"), value);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)

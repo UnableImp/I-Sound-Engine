@@ -4,6 +4,11 @@
 
 #include "GameObject.h"
 
+#include <utility>
+
+
+
+
 void GameObject::SetPosition(const IVector3 &pos)
 {
     transform.postion = pos;
@@ -41,4 +46,14 @@ const IVector3& GameObject::GetUp() const
 const IVector3& GameObject::GetForward() const
 {
     return transform.forward;
+}
+
+void GameObject::SetParam(std::basic_string<char> id, std::any item)
+{
+    globalParams[id] = item;
+}
+
+const std::any& GameObject::GetParam(std::basic_string<char> id)
+{
+    return globalParams[id];
 }
