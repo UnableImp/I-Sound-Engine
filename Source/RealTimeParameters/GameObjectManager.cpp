@@ -11,8 +11,12 @@ GameObjectManager manager; // TODO temp until somebetter to make sure its inited
 
 GameObjectManager::GameObjectManager()
 {
-    std::any value = 512.0f;
+    std::any value = 32.0f;
+    std::any preprocess = 0.0f;
+    std::any lerpHRIR = 0;
     GameObject::SetParam(std::string("Overlap"), value);
+    GameObject::SetParam("Preprocess", preprocess);
+    GameObject::SetParam("LerpHRIR", lerpHRIR);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)

@@ -107,10 +107,10 @@ private:
             rightOverlap.pop_front();
         }
 
-        for(int i = Overlap, j = 0; i < BlockSize; ++i, ++j)
+        for(int i = Overlap, j = 0; j < leftOverlap.size(); ++i, ++j)
         {
-            leftOverlap[j] = leftS[i];
-            rightOverlap[j] = rightS[i];
+            leftOverlap[j] += leftS[i];
+            rightOverlap[j] += rightS[i];
         }
 
         for(int i = (BlockSize * 2) - Overlap; i < BlockSize * 2; ++i)

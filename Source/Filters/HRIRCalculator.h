@@ -48,7 +48,8 @@ public:
 
         float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
 
-        currentAngle = (int)angle + (5 - ((int)angle % 5));
+        float shouldUsePreprocessing = std::any_cast<float>(obj.GetParam("Preprocess"));
+        currentAngle = (int)angle + (5 - ((int)angle % (shouldUsePreprocessing != 0 ? 1 : 5)));
 
         if(currentAngle < 0)
             currentAngle += 360;
