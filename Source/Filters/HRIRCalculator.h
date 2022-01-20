@@ -13,6 +13,7 @@
 
 constexpr float pi = 3.14159265359f;
 constexpr float delta = 0.003f;
+constexpr int blockSize = 512;
 
 template<typename sampleType>
 class HRIRCalculator : public Filter<sampleType>
@@ -21,8 +22,7 @@ public:
     HRIRCalculator(/*listener ref, object ref,*/PackageManager& packageManager ) : packageManager(packageManager),
                                                                                    currentEvel(0),
                                                                                    currentAngle(0),
-                                                                                   goalAngle(0),
-                                                                                   goalEvel(0)
+                                                                                   step(-1)
     {}
 
     virtual ~HRIRCalculator() {}
@@ -48,13 +48,38 @@ public:
 
         float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
 
-        float shouldUsePreprocessing = std::any_cast<float>(obj.GetParam("Preprocess"));
-        currentAngle = (int)angle + (5 - ((int)angle % (shouldUsePreprocessing != 0 ? 1 : 5)));
+        int shouldUsePreprocessing = static_cast<int>(std::any_cast<float>(obj.GetParam("Preprocess")));
+        if(shouldUsePreprocessing)
+            currentAngle = static_cast<int>(angle);
+        else
+            currentAngle = (int)angle + (5 - ((int)angle %  5));
 
         if(currentAngle < 0)
             currentAngle += 360;
         if(currentAngle >= 360)
             currentAngle -= 360;
+
+
+        int shouldLerp = static_cast<int>(std::any_cast<float>(obj.GetParam("LerpHRIR")));
+        if(shouldLerp)
+        {
+            if(step = -1)
+            {
+                step = 1;
+                oldAngle = currentAngle;
+            }
+
+            float overlapSize = std::any_cast<float>(obj.GetParam("Overlap"));
+            currentAngle = this->lerp(oldAngle, currentAngle, overlapSize/blockSize);
+
+            ++step;
+            if(((overlapSize/blockSize) * step) + 0.01 > 1.0f)
+            {
+                step = 1;
+                oldAngle = currentAngle;
+            }
+        }
+
 
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
@@ -89,10 +114,10 @@ private:
     float rightGoal[512];
 
     PackageManager& packageManager;
-    int goalEvel;
-    int goalAngle;
     int currentAngle;
     int  currentEvel;
+    int step;
+    int oldAngle;
 };
 
 #endif //I_SOUND_ENGINE_HRIRCALCULATOR_H

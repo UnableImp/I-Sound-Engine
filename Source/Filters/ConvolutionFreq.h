@@ -100,8 +100,8 @@ private:
         {
             left[i] = (leftS[i] + leftOverlap.front()) / (numSamples * 2);
             right[i] = (rightS[i]  + rightOverlap.front()) / (numSamples * 2);
-            left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.8f;
-            right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.8f;
+            left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.6f;
+            right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.6f;
 
             leftOverlap.pop_front();
             rightOverlap.pop_front();
