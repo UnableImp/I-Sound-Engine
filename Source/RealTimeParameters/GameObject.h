@@ -8,6 +8,7 @@
 #include "Transform.h"
 #include <unordered_map>
 #include <any>
+#include <string>
 
 class GameObject
 {

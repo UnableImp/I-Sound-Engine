@@ -12,11 +12,13 @@ GameObjectManager manager; // TODO temp until somebetter to make sure its inited
 GameObjectManager::GameObjectManager()
 {
     std::any value = 64.0f;
-    std::any preprocess = 1.0f;
-    std::any lerpHRIR = 1.0f;
+    std::any preprocess = 0.0f;
+    std::any lerpHRIR = 0.0f;
+    std::any phaseAlign = 1.0f;
     GameObject::SetParam(std::string("Overlap"), value);
     GameObject::SetParam("Preprocess", preprocess);
     GameObject::SetParam("LerpHRIR", lerpHRIR);
+    GameObject::SetParam("PhaseAlign", phaseAlign);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)

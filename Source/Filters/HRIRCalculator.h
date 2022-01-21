@@ -103,6 +103,45 @@ public:
         leftIR.GetNextSamples(numSamples, left, left, obj);
         rightIR.GetNextSamples(numSamples, right, right, obj);
 
+        float phaseAlign = std::any_cast<float>(obj.GetParam("PhaseAlign"));
+        if(phaseAlign > 0)
+        {
+
+            int offset = 0;
+
+            //-----------------------------------
+            // Left ear
+            //-----------------------------------
+            for(int i = 0; i < blockSize; ++i)
+            {
+                if(std::abs(left[i]) > delta)
+                {
+                    offset = i;
+                    break;
+                }
+            }
+            for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
+            {
+                std::swap(left[i], left[j]);
+            }
+
+            //-----------------------------------
+            // Right ear
+            //-----------------------------------
+            for(int i = 0; i < blockSize; ++i)
+            {
+                if(std::abs(right[i]) > delta)
+                {
+                    offset = i;
+                    break;
+                }
+            }
+            for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
+            {
+                std::swap(right[i], right[j]);
+            }
+        }
+
         return 0;
     }
 
