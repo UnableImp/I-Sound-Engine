@@ -15,10 +15,12 @@ GameObjectManager::GameObjectManager()
     std::any preprocess = 0.0f;
     std::any lerpHRIR = 0.0f;
     std::any phaseAlign = 1.0f;
+    std::any crossFade = 1.0f;
     GameObject::SetParam(std::string("Overlap"), value);
     GameObject::SetParam("Preprocess", preprocess);
     GameObject::SetParam("LerpHRIR", lerpHRIR);
     GameObject::SetParam("PhaseAlign", phaseAlign);
+    GameObject::SetParam("CrossFade", crossFade);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)

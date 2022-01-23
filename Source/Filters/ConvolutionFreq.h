@@ -23,12 +23,13 @@ public:
     {
         currentComplex = new std::complex<float>[size* 2]();
 
-        leftIR = new float[size* 4]();
-        rightIR = new float[size* 4]();
-        rightS = new float[size* 4]();
-        leftS = new float[size* 4]();
-        leftComplex = new  std::complex<float>[size * 4]();
-        rightComplex = new  std::complex<float>[size * 4]();
+        leftIR = new float[size]();
+        rightIR = new float[size]();
+        rightS = new float[size]();
+        leftS = new float[size]();
+        leftComplex = new std::complex<float>[size]();
+        rightComplex = new std::complex<float>[size]();
+        leftOld = new float[size]();
     }
 
     virtual ~ConvolutionFreq()
@@ -126,6 +127,10 @@ private:
     float* rightIR;
     float* leftS;
     float* rightS;
+
+    float* leftOld;
+    float* rightOld;
+
     //float* leftOverlap;
     //float* rightOverlap;
     std::complex<float>* leftComplex;
