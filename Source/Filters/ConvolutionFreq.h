@@ -46,19 +46,46 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
-        for(int offset = 0; offset < BlockSize; offset += Overlap)
+        float crossFade = std::any_cast<float>(obj.GetParam("CrossFade"));
+        if(crossFade != 0.0f)
         {
-            CalculateBlock(Overlap, left + offset, right + offset, obj);
+            memcpy(leftOld, left, sizeof(float) * numSamples);
+            memcpy(rightOld, right, sizeof(float) * numSamples);
+            GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, leftOverlap, rightOverlap);
+            HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
+            GetNextSamplesFromBuffer(numSamples, left, right, obj, leftOverlap, rightOverlap);
+
+            for(int i = 0; i < numSamples; i++)
+            {
+                if(left[i] != leftOld[i])
+                {
+                    //std::cout << i << " " << left[i] << " " << leftOld[i] << " pain" << std::endl;
+                }
+                left[i] = lerp(leftOld[i], left[i], static_cast<float>(i)/numSamples);
+                right[i] = lerp(rightOld[i], right[i], static_cast<float>(i)/numSamples);
+            }
+        }
+        else
+        {
+            HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
+            GetNextSamplesFromBuffer(numSamples, left, right, obj, leftOverlap, rightOverlap);
         }
         return 0;
     }
 
 private:
 
-    void CalculateBlock(int numSamples, float* left, float* right, const GameObject& obj)
+    int GetNextSamplesFromBuffer(int numSamples, float* left, float* right, const GameObject& obj, std::deque<float>& leftOverlapT, std::deque<float>& rightOverlapT)
     {
-        HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
+        for(int offset = 0; offset < BlockSize; offset += Overlap)
+        {
+            CalculateBlock(Overlap, left + offset, right + offset, obj, leftOverlapT, rightOverlapT);
+        }
+        return 0;
+    }
 
+    void CalculateBlock(int numSamples, float* left, float* right, const GameObject& obj, std::deque<float>& leftOverlapT, std::deque<float>& rightOverlapT)
+    {
         //-----------------------------------------
         // Left ear
         //-----------------------------------------
@@ -100,25 +127,25 @@ private:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlap.front()) / (numSamples * 2);
-            right[i] = (rightS[i]  + rightOverlap.front()) / (numSamples * 2);
-            left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.6f;
-            right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.6f;
+            left[i] = (leftS[i] + leftOverlapT.front()) / (numSamples * 2);
+            right[i] = (rightS[i]  + rightOverlapT.front()) / (numSamples * 2);
+            left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
+            right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
 
-            leftOverlap.pop_front();
-            rightOverlap.pop_front();
+            leftOverlapT.pop_front();
+            rightOverlapT.pop_front();
         }
 
-        for(int i = Overlap, j = 0; j < leftOverlap.size(); ++i, ++j)
+        for(int i = Overlap, j = 0; j < leftOverlapT.size(); ++i, ++j)
         {
-            leftOverlap[j] += leftS[i];
-            rightOverlap[j] += rightS[i];
+            leftOverlapT[j] += leftS[i];
+            rightOverlapT[j] += rightS[i];
         }
 
         for(int i = (BlockSize * 2) - Overlap; i < BlockSize * 2; ++i)
         {
-            leftOverlap.push_back(leftS[i]);
-            rightOverlap.push_back(rightS[i]);
+            leftOverlapT.push_back(leftS[i]);
+            rightOverlapT.push_back(rightS[i]);
         }
     }
 

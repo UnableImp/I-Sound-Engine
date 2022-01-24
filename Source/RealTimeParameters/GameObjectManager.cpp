@@ -11,9 +11,9 @@ GameObjectManager manager; // TODO temp until somebetter to make sure its inited
 
 GameObjectManager::GameObjectManager()
 {
-    std::any value = 64.0f;
+    std::any value = 512.0f;
     std::any preprocess = 0.0f;
-    std::any lerpHRIR = 0.0f;
+    std::any lerpHRIR = 1.0f;
     std::any phaseAlign = 1.0f;
     std::any crossFade = 1.0f;
     GameObject::SetParam(std::string("Overlap"), value);
