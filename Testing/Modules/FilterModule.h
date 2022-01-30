@@ -27,6 +27,8 @@
 
 #include <pffft.hpp>
 
+#include "Filters/ITD.h"
+
 template<typename sampleType>
 inline static sampleType lerp(sampleType a, sampleType b, float t)
 {
@@ -773,6 +775,69 @@ TEST(HRTF, HRTFRotationFast)
     simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTConvolerRotatingFast.wav", 512, 10, 10, objectManager, 1);
 }
 
+TEST(ITD, ITDRotationFast)
+{
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+    objectManager.AddObject(10);
+
+    ITD* itd = new ITD();
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    eventManager.AddEvent(10, sample, itd);
+    simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTITDRotatingFast.wav", 512, 10, 10, objectManager, 1);
+}
+
+TEST(ITD, ITDRotationSlow)
+{
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+    objectManager.AddObject(10);
+
+    ITD* itd = new ITD();
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    eventManager.AddEvent(10, sample, itd);
+    simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTITDRotatingSlow.wav", 512, 10, 10, objectManager, 1/4.0f);
+}
+
+TEST(ITD, ITDRAtonePoint)
+{
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+    objectManager.AddObject(10);
+
+    objectManager.SetGameObjectPosition(10, {0,50,50});
+
+    ITD* itd = new ITD();
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    eventManager.AddEvent(10, sample, itd);
+    simulateEventManager(eventManager, "TestFiles/TESTITDPoint.wav", 512);
+}
+
+
 TEST(Filters, WavLoop)
 {
     BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/Slash2.wav");
@@ -1080,3 +1145,31 @@ static void Get100GameObjects(benchmark::State& state)
     }
 }
 BENCHMARK(Get100GameObjects);
+
+static void ITD512Samples(benchmark::State& state)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    ITD* itd = new ITD();
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    Event event(0);
+    event.AddFilter(sample);
+    event.AddFilter(itd);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    for(auto _ : state)
+    {
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+    }
+}
+BENCHMARK(ITD512Samples);

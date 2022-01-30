@@ -48,12 +48,12 @@ const IVector3& GameObject::GetForward() const
     return transform.forward;
 }
 
-void GameObject::SetParam(std::basic_string<char> id, std::any item)
-{
-    globalParams[id] = item;
-}
-
-const std::any& GameObject::GetParam(std::basic_string<char> id)
-{
-    return globalParams[id];
-}
+//void GameObject::SetParam(std::basic_string<char> id, std::any item)
+//{
+//    globalParams[id] = item;
+//}
+//
+//const std::any& GameObject::GetParam(std::basic_string<char> id)
+//{
+//    return globalParams[id];
+//}

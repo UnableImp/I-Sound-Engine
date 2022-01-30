@@ -34,6 +34,15 @@ protected:
         return std::polar(lerp(std::abs(a), std::abs(b), t), lerp(std::arg(a), std::arg(b), t));
     }
 
+    inline static sampleType EaseInQuad(sampleType t)
+    {
+        return t*t;
+    }
+    inline static sampleType EaseInQuart(sampleType t)
+    {
+        return t*t*t*t;
+    }
+
 };
 
 #endif //I_SOUND_ENGINE_FILTER_H

@@ -38,7 +38,7 @@ elseif(OS_Linux)
           )
 endif()
 
-add_library(ISoundEngine STATIC ${ISE_SOURCES} Actions/Action.h Actions/PostEvent.h Actions/StopEvent.h)
+add_library(ISoundEngine STATIC ${ISE_SOURCES} Actions/Action.h Actions/PostEvent.h Actions/StopEvent.h Filters/ITD.h)
 add_library(ISoundEngine_dynamic ${ISE_SOURCES})
 
 target_include_directories(ISoundEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -23,8 +23,21 @@ public:
     const IVector3& GetUp() const;
     const IVector3& GetForward() const;
 
-    static void SetParam(std::basic_string<char> id, std::any item);
-    static const std::any& GetParam(std::basic_string<char> id);
+    template<typename T>
+    inline static void SetParam(std::basic_string<char> id, T item)
+    {
+        globalParams[id] = item;
+    }
+
+    template<typename T>
+    inline static const T GetParam(std::basic_string<char> id)
+    {
+        const auto result = globalParams.find(id);
+        if(result != globalParams.end())
+            return std::any_cast<T>(result->second);
+        assert(!"Failed to find key");
+        return T();
+    }
 
 private:
 

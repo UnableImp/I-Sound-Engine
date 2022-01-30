@@ -48,7 +48,7 @@ public:
 
         float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
 
-        int shouldUsePreprocessing = static_cast<int>(std::any_cast<float>(obj.GetParam("Preprocess")));
+        int shouldUsePreprocessing = static_cast<int>((obj.GetParam<float>("Preprocess")));
         if(shouldUsePreprocessing)
             currentAngle = static_cast<int>(angle);
         else
@@ -60,7 +60,7 @@ public:
             currentAngle -= 360;
 
 
-        int shouldLerp = static_cast<int>(std::any_cast<float>(obj.GetParam("LerpHRIR")));
+        int shouldLerp = static_cast<int>((obj.GetParam<float>("LerpHRIR")));
         if(shouldLerp)
         {
             if(step = -1)
@@ -69,7 +69,7 @@ public:
                 oldAngle = currentAngle;
             }
 
-            float overlapSize = std::any_cast<float>(obj.GetParam("Overlap"));
+            float overlapSize = (obj.GetParam<float>("Overlap"));
             currentAngle = this->lerp(oldAngle, currentAngle, overlapSize/blockSize);
 
             ++step;
@@ -103,7 +103,7 @@ public:
         leftIR.GetNextSamples(numSamples, left, left, obj);
         rightIR.GetNextSamples(numSamples, right, right, obj);
 
-        float phaseAlign = std::any_cast<float>(obj.GetParam("PhaseAlign"));
+        float phaseAlign = (obj.GetParam<float>("PhaseAlign"));
         if(phaseAlign > 0)
         {
 
@@ -147,14 +147,12 @@ public:
 
 private:
 
-    float leftCurrent[512];
-    float rightCurrent[512];
-    float leftGoal[512];
-    float rightGoal[512];
+    float leftOld[1024];
+    float rightOld[1024];
 
     PackageManager& packageManager;
     int currentAngle;
-    int  currentEvel;
+    int currentEvel;
     int step;
     int oldAngle;
 };

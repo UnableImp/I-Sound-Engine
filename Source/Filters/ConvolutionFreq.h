@@ -17,7 +17,7 @@ class ConvolutionFreq : public Filter<float>
 public:
     ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(BlockSize * 2),
     HRIR(HRIR),
-    Overlap(static_cast<int>(std::any_cast<float>(GameObject::GetParam("Overlap")))),
+    Overlap(static_cast<int>((GameObject::GetParam<float>("Overlap")))),
     leftOverlap((BlockSize * 2) - Overlap),
     rightOverlap((BlockSize * 2) - Overlap)
     {
@@ -48,7 +48,7 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
-        float crossFade = std::any_cast<float>(obj.GetParam("CrossFade"));
+        float crossFade = (obj.GetParam<float>("CrossFade"));
         if(crossFade != 0.0f)
         {
             memcpy(leftOld, left, sizeof(float) * numSamples);
@@ -62,12 +62,21 @@ public:
 
             for(int i = 0; i < numSamples; i++)
             {
-                if(left[i] != leftOld[i])
-                {
-                    //std::cout << i << " " << left[i] << " " << leftOld[i] << " pain" << std::endl;
-                }
-                left[i] = lerp(leftOld[i], left[i], static_cast<float>(i)/numSamples);
-                right[i] = lerp(rightOld[i], right[i], static_cast<float>(i)/numSamples);
+                // incorrect crossfade
+                //left[i] = lerp(leftOld[i], left[i], static_cast<float>(i)/numSamples);
+                //right[i] = lerp(rightOld[i], right[i], static_cast<float>(i)/numSamples);
+
+                // linear crossfade
+                left[i]  = (lerp(1.0f, 0.0f, static_cast<float>(i) / numSamples) * leftOld[i]) +
+                           (lerp(0.0f, 1.0f, static_cast<float>(i) / numSamples) * left[i]);
+                right[i] = (lerp(1.0f, 0.0f, static_cast<float>(i) / numSamples) * rightOld[i]) +
+                           (lerp(0.0f, 1.0f, static_cast<float>(i) / numSamples) * right[i]);
+
+                // Easing fade - sounds way worse than linear??
+//                left[i] =  (this->EaseInQuart(1.0f - (static_cast<float>(i) / numSamples)) * leftOld[i]) +
+//                           (this->EaseInQuart( static_cast<float>(i) / numSamples) * left[i]);
+//                right[i] = (this->EaseInQuart(1.0f - (static_cast<float>(i) / numSamples)) * rightOld[i]) +
+//                           (this->EaseInQuart( static_cast<float>(i) / numSamples) * right[i]);
             }
         }
         else
