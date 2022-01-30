@@ -6,7 +6,7 @@
 #define I_SOUND_ENGINE_ITD_H
 #include "Filter.h"
 #include "deque"
-
+#include <assert.h>
 #include <iostream>
 
 constexpr int sampleRate = 44100;
@@ -29,8 +29,8 @@ public:
         const auto& forward = listenerTransform.forward;
 
         // Calculate left and right directions to listener
-        auto rightDir = IVector3::Cross(up.Normalized(), forward.Normalized());
-        auto leftDir = IVector3{0,0,0} - rightDir;
+        auto leftDir = IVector3::Cross(up.Normalized(), forward.Normalized());
+        auto rightDir = IVector3{0,0,0} - leftDir;
 
         // Calculate were left and right ear are located
         float headRadius = GameObject::GetParam<float>("HeadRadius");

@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <any>
 #include <string>
+#include <assert.h>
 
 class GameObject
 {
