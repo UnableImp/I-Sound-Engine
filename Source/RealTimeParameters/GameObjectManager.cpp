@@ -12,8 +12,8 @@ GameObjectManager manager; // TODO temp until somebetter to make sure its inited
 GameObjectManager::GameObjectManager()
 {
     std::any value = 512.0f;
-    std::any preprocess = 1.0f;
-    std::any phaseAlign = 0.0f;
+    std::any preprocess = 0.0f;
+    std::any phaseAlign = 1.0f;
     std::any crossFade = 1.0f;
     std::any headRadius = 1.0f;
     std::any distanceScaler = 1.00000f;

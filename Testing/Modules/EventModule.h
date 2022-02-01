@@ -91,7 +91,8 @@ static  void BuildPackageAlternating(const char * outName, T... toRead)
     ASSERT_TRUE(encoder.WritePackage(outName) == ErrorNum::NoErrors);
 }
 
-static void simulateEventManager(EventManager& eventManager, const char* outFileName)
+
+static void simulateEventManager(EventManager& eventManager, const char* outFileName, int frameSize)
 {
     WavFile wav("TestFiles/level.wav");
     std::fstream tesConvert(outFileName, std::ios_base::binary | std::ios_base::out);
@@ -104,24 +105,23 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
     dataChunk.chunkSize = wav.GetDataSize();
     tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
-    //tesConvert.write(data[0].data, wav.GetDataSize());
-
-//    char* correctData = new char[wav.GetDataSize()];
-//    wav.GetDataInNativeType(correctData);
-//    tesConvert.write(correctData, wav.GetDataSize());
-
+    Frame<float>* frame = new Frame<float>[frameSize]();
     int samples = 0;
     do
     {
-        Frame<float> frame = {0, 0};
-        samples = eventManager.GetSamplesFromAllEvents(1, &frame);
-        short right = static_cast<short>(frame.rightChannel * (1 << 15));
-        short left = static_cast<short>(frame.leftChannel * (1 << 15));
+        samples = eventManager.GetSamplesFromAllEvents(frameSize, frame);
+        for(int i = 0; i < frameSize; ++i)
+        {
+            short right = static_cast<short>(frame[i].rightChannel * (1 << 15));
+            short left = static_cast<short>(frame[i].leftChannel * (1 << 15));
 
-        tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
-        tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
+            tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
+            tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
+        }
     } while (samples > 0);
+    delete [] frame;
 }
+
 
 static void simulateEventManagerWithStop(EventManager& eventManager, uint64_t stopID, const char* outFileName)
 {
@@ -182,7 +182,7 @@ static void SumAllInPackage(const char* packageName, const char* outFileName)
         }
     }
 
-    simulateEventManager(eventManager, outFileName);
+    simulateEventManager(eventManager, outFileName, 512);
 }
 
 static void SumAllInTwoPackage(const char* packageName, const char* package2Name, const char* outFileName)
@@ -217,7 +217,7 @@ static void SumAllInTwoPackage(const char* packageName, const char* package2Name
         }
     }
 
-    simulateEventManager(eventManager, outFileName);
+    simulateEventManager(eventManager, outFileName, 512);
 }
 
 void SumAllInPackageNoFileIo(PackageManager& data, Frame<float>* buf, int bufSize)
@@ -311,7 +311,7 @@ TEST(EventParser, EventFromIDWav)
 
     eventManager.ParseEvents("TestFiles/EventLevel.json");
     eventManager.AddEvent((uint64_t)10);
-    simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav", 512);
 }
 
 TEST(EventParser, EventFromNameWav)
@@ -328,7 +328,7 @@ TEST(EventParser, EventFromNameWav)
 
     eventManager.ParseEvents("TestFiles/EventLevel.json");
     eventManager.AddEvent("Play_Level");
-    simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav", 512);
 }
 
 TEST(EventParser, EventFromIdOpus)
@@ -345,7 +345,7 @@ TEST(EventParser, EventFromIdOpus)
 
     eventManager.ParseEvents("TestFiles/EventLevelOpus.json");
     eventManager.AddEvent((uint64_t)10);
-    simulateEventManager(eventManager, "TestFiles/TESTPaserEventOpus.wav");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventOpus.wav", 512);
 }
 
 TEST(EventParser, EventFromStringOpus)
@@ -361,7 +361,7 @@ TEST(EventParser, EventFromStringOpus)
 
     eventManager.ParseEvents("TestFiles/EventLevelOpus.json");
     eventManager.AddEvent("Play_Level");
-    simulateEventManager(eventManager, "TestFiles/TESTPaserEventOpus.wav");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventOpus.wav", 512);
 }
 
 TEST(EventParser, EventFromIDBoth)
@@ -379,7 +379,7 @@ TEST(EventParser, EventFromIDBoth)
     eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
     eventManager.AddEvent((uint64_t)10);
     eventManager.AddEvent((uint64_t)11);
-    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav", 512);
 }
 
 TEST(EventParser, EventFromStringBoth)
@@ -396,7 +396,7 @@ TEST(EventParser, EventFromStringBoth)
     eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
     eventManager.AddEvent("Play_Level");
     eventManager.AddEvent("Play_Credit");
-    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav", 512);
 }
 
 TEST(EventParser, EventFromMixBoth)
@@ -413,7 +413,7 @@ TEST(EventParser, EventFromMixBoth)
     eventManager.ParseEvents("TestFiles/EventLevelBoth.json");
     eventManager.AddEvent((uint64_t)10);
     eventManager.AddEvent("Play_Credit");
-    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav");
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEventBoth.wav", 512);
 }
 
 //TEST(EventParser, Event3D)

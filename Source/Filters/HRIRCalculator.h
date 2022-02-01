@@ -62,7 +62,7 @@ public:
         int shouldLerp = static_cast<int>((obj.GetParam<float>("LerpHRIR")));
         if(shouldLerp)
         {
-            if(step = -1)
+            if(step == -1)
             {
                 step = 1;
                 oldAngle = currentAngle;

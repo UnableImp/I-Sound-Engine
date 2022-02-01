@@ -46,8 +46,8 @@ void EventManager::Update()
 int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
 {
     auto start = std::chrono::high_resolution_clock::now();
-//    GameObject::SetParam("HRTFLoadTemp", 0.0f);
-//    GameObject::SetParam("ITDLoadTemp", 0.0f);
+    GameObject::SetParam("HRTFLoadTemp", 0.0f);
+    GameObject::SetParam("ITDLoadTemp", 0.0f);
     // Clear entire  buffer, no need for any input data
     memset(buffer, 0, numSamples * sizeof(Frame<float>));
 
@@ -119,9 +119,9 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> seconds = end-start;
-//    GameObject::SetParam("DSPLoad", seconds.count() / (512.0f/44100.0f));
-//    GameObject::SetParam("HRTFLoad", GameObject::GetParam<float>("HRTFLoadTemp") / (512.0f / 44100.0f));
-//    GameObject::SetParam("ITDLoad", GameObject::GetParam<float>("ITDLoadTemp") / (512.0f / 44100.0f));
+    GameObject::SetParam("DSPLoad", seconds.count() / (512.0f/44100.0f));
+    GameObject::SetParam("HRTFLoad", GameObject::GetParam<float>("HRTFLoadTemp") / (512.0f / 44100.0f));
+    GameObject::SetParam("ITDLoad", GameObject::GetParam<float>("ITDLoadTemp") / (512.0f / 44100.0f));
     return totalSamplesGenerated;
 }
 
