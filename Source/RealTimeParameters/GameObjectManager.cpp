@@ -12,8 +12,8 @@ GameObjectManager manager; // TODO temp until somebetter to make sure its inited
 GameObjectManager::GameObjectManager()
 {
     std::any value = 512.0f;
-    std::any preprocess = 0.0f;
-    std::any phaseAlign = 1.0f;
+    std::any preprocess = 1.0f;
+    std::any phaseAlign = 0.0f;
     std::any crossFade = 1.0f;
     std::any headRadius = 1.0f;
     std::any distanceScaler = 1.00000f;
@@ -29,6 +29,7 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParam("ITDLoad", 0.0f);
     GameObject::SetParam("HRTFLoadTemp", 0.0f);
     GameObject::SetParam("ITDLoadTemp", 0.0f);
+    GameObject::SetParam("LerpHRIR", 0.0f);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)

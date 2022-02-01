@@ -59,7 +59,6 @@ public:
         if(currentAngle >= 360)
             currentAngle -= 360;
 
-
         int shouldLerp = static_cast<int>((obj.GetParam<float>("LerpHRIR")));
         if(shouldLerp)
         {
@@ -83,12 +82,16 @@ public:
 
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
+        float phaseAlign = (obj.GetParam<float>("PhaseAlign"));
 
         //float ListenerEvel = std::atan2(lis)
 
         uint64_t id = static_cast<uint64_t>(currentAngle) << 32; // Angle
         id |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
         id |= static_cast<uint64_t>(1) << 52; // Kemar
+
+        if(phaseAlign > 0.1f)
+            id |= static_cast<uint64_t>(1) << 55;
 
         assert(packageManager.GetSounds().find(id) != packageManager.GetSounds().end());
 
@@ -103,44 +106,44 @@ public:
         leftIR.GetNextSamples(numSamples, left, left, obj);
         rightIR.GetNextSamples(numSamples, right, right, obj);
 
-        float phaseAlign = (obj.GetParam<float>("PhaseAlign"));
-        if(phaseAlign > 0)
-        {
 
-            int offset = 0;
-
-            //-----------------------------------
-            // Left ear
-            //-----------------------------------
-            for(int i = 0; i < blockSize; ++i)
-            {
-                if(std::abs(left[i]) > delta)
-                {
-                    offset = i;
-                    break;
-                }
-            }
-            for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
-            {
-                std::swap(left[i], left[j]);
-            }
-
-            //-----------------------------------
-            // Right ear
-            //-----------------------------------
-            for(int i = 0; i < blockSize; ++i)
-            {
-                if(std::abs(right[i]) > delta)
-                {
-                    offset = i;
-                    break;
-                }
-            }
-            for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
-            {
-                std::swap(right[i], right[j]);
-            }
-        }
+//        if(phaseAlign > 0)
+//        {
+//
+//            int offset = 0;
+//
+//            //-----------------------------------
+//            // Left ear
+//            //-----------------------------------
+//            for(int i = 0; i < blockSize; ++i)
+//            {
+//                if(std::abs(left[i]) > delta)
+//                {
+//                    offset = i;
+//                    break;
+//                }
+//            }
+//            for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
+//            {
+//                std::swap(left[i], left[j]);
+//            }
+//
+//            //-----------------------------------
+//            // Right ear
+//            //-----------------------------------
+//            for(int i = 0; i < blockSize; ++i)
+//            {
+//                if(std::abs(right[i]) > delta)
+//                {
+//                    offset = i;
+//                    break;
+//                }
+//            }
+//            for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
+//            {
+//                std::swap(right[i], right[j]);
+//            }
+//        }
 
         return 0;
     }
