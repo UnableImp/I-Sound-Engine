@@ -117,6 +117,8 @@ namespace ISoundEngine
     ISE_API void SetListernerPosition(const IVector3 &position);
 
     ISE_API void SetParam(const char* id, float value);
+
+    ISE_API float GetParam(const char* id);
     }
 };
 

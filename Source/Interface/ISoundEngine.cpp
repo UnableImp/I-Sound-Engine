@@ -108,6 +108,11 @@ ISE_API void ISoundEngine::SetParam(const char* id, float value)
     GameObject::SetParam(id, value);
 }
 
+ISE_API float ISoundEngine::GetParam(const char* id)
+{
+    return GameObject::GetParam<float>(id);
+}
+
 #ifdef OS_Windows
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files
