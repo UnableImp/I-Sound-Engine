@@ -23,6 +23,7 @@ public:
      */
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
+        auto start = std::chrono::steady_clock::now();
         // Get listeners transform
         const auto& listenerTransform = GameObjectManager::GetListenerPosition();
         const auto& up = listenerTransform.up;
@@ -50,7 +51,7 @@ public:
         int leftDelaySamples = (leftEarDist / speedOfSound) * sampleRate;
         int rightDelaySamples = (rightEarDist / speedOfSound) * sampleRate;
 
-        //std::cout << "Left: " << leftDelaySamples << " Right: " << rightDelaySamples << std::endl;
+        std::cout << "Left: " << leftDelaySamples << " Right: " << rightDelaySamples << std::endl;
 
         while(leftDelay.size() < leftDelaySamples)
             leftDelay.push_back(0);
@@ -83,6 +84,9 @@ public:
             leftDelay.pop_front();
             rightDelay.pop_front();
         }
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<float> time = end - start;
+        GameObject::SetParam("ITDLoadTemp", GameObject::GetParam<float>("ITDLoadTemp") + time.count());
         return 0;
     }
 

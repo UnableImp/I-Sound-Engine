@@ -9,6 +9,7 @@
 #include "HRIRCalculator.h"
 #include "pffft.hpp"
 #include <deque>
+#include <chrono>
 
 constexpr int BlockSize = 512;
 
@@ -48,6 +49,8 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
+        auto start = std::chrono::steady_clock::now();
+
         float crossFade = (obj.GetParam<float>("CrossFade"));
         if(crossFade != 0.0f)
         {
@@ -84,6 +87,9 @@ public:
             HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
             GetNextSamplesFromBuffer(numSamples, left, right, obj, leftOverlap, rightOverlap);
         }
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<float> time = end - start;
+        GameObject::SetParam("HRTFLoadTemp", GameObject::GetParam<float>("HRTFLoadTemp") + time.count());
         return 0;
     }
 
