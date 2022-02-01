@@ -121,6 +121,30 @@ static  void BuildPackageAlternating(const char * outName, T... toRead)
     ASSERT_TRUE(encoder.WritePackage(outName) == ErrorNum::NoErrors);
 }
 
+
+static void PhaseAlignSignal(float* signal)
+{
+    int offset = 0;
+
+    //-----------------------------------
+    // Left ear
+    //-----------------------------------
+    for(int i = 0; i < blockSize; ++i)
+    {
+        if(std::abs(signal[i]) > delta)
+        {
+            offset = i;
+            break;
+        }
+    }
+    for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
+    {
+        std::swap(signal[i], signal[j]);
+    }
+
+
+}
+
 static void simulateEventManager(EventManager& eventManager, const char* outFileName, int frameSize)
 {
     WavFile wav("TestFiles/level.wav");
@@ -323,13 +347,22 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
 {
     std::complex<float> complexOf1[512];
     std::complex<float> complexOf2[512];
+    std::complex<float> complexAof1[512];
+    std::complex<float> complexAof2[512];
     std::complex<float> complexOfOut[512];
 
     float buf1[512];
     float buf2[512];
+    float aligned1[512];
+    float aligned2[512];
 
     memcpy(buf1, buf1Real, sizeof(float) * 512);
     memcpy(buf2, buf2Real, sizeof(float) * 512);
+    memcpy(aligned1, buf1Real, sizeof(float) * 512);
+    memcpy(aligned2, buf2Real, sizeof(float) * 512);
+
+    PhaseAlignSignal(aligned1);
+    PhaseAlignSignal(aligned2);
 
     float out[512];
 
@@ -337,6 +370,8 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
 
     fft.forward(buf1, complexOf1);
     fft.forward(buf2, complexOf2);
+    fft.forward(aligned1, complexAof1);
+    fft.forward(aligned2, complexOf2);
 
     std::string startOfPath = path1.string().substr(0, path1.string().length() - 5);
     //std::cout << startOfPath << " " << startOfPath.substr(startOfPath.length() - 3, startOfPath.length()) << std::endl;
@@ -350,19 +385,38 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
         startOfPath += "0";
     if(number < 10)
         startOfPath += "0";
+    //--------------------------------------------------------------------------------
+    std::string writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
+    WriteFileFromBuffer(aligned1, writeFile);
+    uint64_t id = number << 32;
+    id |= static_cast<uint64_t>(1) << 52;
+    id |= static_cast<uint64_t>(isRight) << 51;
+    id |= static_cast<uint64_t>(1) << 55;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
 
+    //---------------------------------------------------------------------------------
     lerp(complexOf1, complexOf2, 1.0f / 5.0f, complexOfOut);
     fft.inverse(complexOfOut, out);
     Normalize(out, 512);
 
     ++number;
-    std::string writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
     WriteFileFromBuffer(out, writeFile);
-    uint64_t id = number << 32;
+    id = number << 32;
     id |= static_cast<uint64_t>(1) << 52;
     id |= static_cast<uint64_t>(isRight) << 51;
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
+    lerp(complexAof1, complexAof2, 1.0f / 5.0f, complexOfOut);
+    fft.inverse(complexOfOut, out);
+    Normalize(out, 512);
+
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
+    WriteFileFromBuffer(out, writeFile);
+    id |= static_cast<uint64_t>(1) << 55;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+
+    //---------------------------------------------------------------------------------
     lerp(complexOf1, complexOf2, 2.0f/ 5.0f, complexOfOut);
     fft.inverse(complexOfOut, out);
     Normalize(out, 512);
@@ -375,6 +429,16 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     id |= static_cast<uint64_t>(isRight) << 51;
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
+    lerp(complexAof1, complexAof2, 2.0f / 5.0f, complexOfOut);
+    fft.inverse(complexOfOut, out);
+    Normalize(out, 512);
+
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
+    WriteFileFromBuffer(out, writeFile);
+    id |= static_cast<uint64_t>(1) << 55;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+
+    //---------------------------------------------------------------------------------
     lerp(complexOf1, complexOf2, 3.0f / 5.0f, complexOfOut);
     fft.inverse(complexOfOut, out);
     Normalize(out, 512);
@@ -387,6 +451,16 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     id |= static_cast<uint64_t>(isRight) << 51;
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
+    lerp(complexAof1, complexAof2, 3.0f / 5.0f, complexOfOut);
+    fft.inverse(complexOfOut, out);
+    Normalize(out, 512);
+
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
+    WriteFileFromBuffer(out, writeFile);
+    id |= static_cast<uint64_t>(1) << 55;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+
+    //---------------------------------------------------------------------------------
     lerp(complexOf1, complexOf2, 4.0f / 5.0f, complexOfOut);
     fft.inverse(complexOfOut, out);
     Normalize(out, 512);
@@ -398,6 +472,26 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     id |= static_cast<uint64_t>(1) << 52;
     id |= static_cast<uint64_t>(isRight) << 51;
     encoder.AddFile(writeFile, id, Encoding::PCM);
+
+    lerp(complexAof1, complexAof2, 4.0f / 5.0f, complexOfOut);
+    fft.inverse(complexOfOut, out);
+    Normalize(out, 512);
+
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
+    WriteFileFromBuffer(out, writeFile);
+    id |= static_cast<uint64_t>(1) << 55;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+
+    //--------------------------------------------------------------------------------------------------
+    ++number;
+    writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
+    WriteFileFromBuffer(aligned2, writeFile);
+    id = number << 32;
+    id |= static_cast<uint64_t>(1) << 52;
+    id |= static_cast<uint64_t>(isRight) << 51;
+    id |= static_cast<uint64_t>(1) << 55;
+    encoder.AddFile(writeFile, id, Encoding::PCM);
+
 }
 
 static void LerpMissingHRIR(PackageEncoder& encoder, std::string path)

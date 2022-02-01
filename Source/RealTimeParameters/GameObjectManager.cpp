@@ -13,14 +13,12 @@ GameObjectManager::GameObjectManager()
 {
     std::any value = 512.0f;
     std::any preprocess = 0.0f;
-    std::any lerpHRIR = 0.0f;
     std::any phaseAlign = 1.0f;
     std::any crossFade = 1.0f;
     std::any headRadius = 1.0f;
     std::any distanceScaler = 1.00000f;
     GameObject::SetParam(std::string("Overlap"), value);
     GameObject::SetParam("Preprocess", preprocess);
-    GameObject::SetParam("LerpHRIR", lerpHRIR);
     GameObject::SetParam("PhaseAlign", phaseAlign);
     GameObject::SetParam("CrossFade", crossFade);
     GameObject::SetParam("HeadRadius", headRadius);
