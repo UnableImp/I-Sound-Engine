@@ -23,7 +23,7 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParam("CrossFade", crossFade);
     GameObject::SetParam("HeadRadius", headRadius);
     GameObject::SetParam("DistanceScaler", distanceScaler);
-    GameObject::SetParam("Telemetries", 1.0f);
+    GameObject::SetParam("Telemetries", 0.0f);
     GameObject::SetParam("DSPLoad", 0.0f);
     GameObject::SetParam("HRTFLoad", 0.0f);
     GameObject::SetParam("ITDLoad", 0.0f);
