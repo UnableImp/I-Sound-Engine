@@ -210,7 +210,7 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
             if (angle >= 360)
                 angle -= 360;
 
-            IVector3 newPos{std::cos(angle * 3.145f / 180.0f) * 20, 0,std::sin(angle * 3.145f / 180.0f) * 20};
+            IVector3 newPos{std::cos(angle * 3.145f / 180.0f) * 3, 0,std::sin(angle * 3.145f / 180.0f) * 3};
             objManager.SetGameObjectPosition(id, newPos);
         }
 

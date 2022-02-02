@@ -14,6 +14,7 @@ constexpr int sampleRate = 44100;
 class ITD : public Filter<float>
 {
 public:
+    ITD() : rightDelaySamplesOld(-1), leftDelaySamplesOld(-1) {}
     virtual ~ITD() {}
     /*!
      * Fills a buffer with audio samples, if no audio data is available zeros are filled
@@ -48,42 +49,63 @@ public:
         float speedScaler = GameObject::GetParam<float>("DistanceScaler");
         const float speedOfSound = 343 * speedScaler; // Speed of sound?
 
-        int leftDelaySamples = (leftEarDist / speedOfSound) * sampleRate;
-        int rightDelaySamples = (rightEarDist / speedOfSound) * sampleRate;
+        int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate;
+        int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate;
 
-        std::cout << "Left: " << leftDelaySamples << " Right: " << rightDelaySamples << std::endl;
-
-        while(leftDelay.size() < leftDelaySamples)
-            leftDelay.push_back(0);
-        while(rightDelay.size() < rightDelaySamples)
-            rightDelay.push_back(0);
-
-        for(int i = 0; i < numSamples; ++i)
+        if(leftDelaySamplesOld == -1)
         {
-            if(i + leftDelaySamples < leftDelay.size())
-                leftDelay[i + leftDelaySamples] += left[i];
-            else
-                leftDelay.push_back(left[i]);
+            leftDelaySamplesOld = leftDelaySamplesNew;
+            rightDelaySamplesOld = rightDelaySamplesNew;
         }
 
         for(int i = 0; i < numSamples; ++i)
         {
-            if(i + rightDelaySamples < rightDelay.size())
+            int leftDelaySamples = this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(i)  / (numSamples));
+            int rightDelaySamples = this->lerp(rightDelaySamplesOld, rightDelaySamplesNew, static_cast<float>(i)  / (numSamples));
+
+            while (leftDelay.size() < leftDelaySamples + i)
+                leftDelay.push_back(0);
+            while (rightDelay.size() < rightDelaySamples + i)
+                rightDelay.push_back(0);
+
+            if (i + leftDelaySamples < leftDelay.size())
+            {
+                leftDelay[i + leftDelaySamples] += left[i];
+                leftDelay[i + leftDelaySamples] /= 2;
+            } else
+                leftDelay.push_back(left[i]);
+
+            if (i + rightDelaySamples < rightDelay.size())
+            {
                 rightDelay[i + rightDelaySamples] += right[i];
-            else
+                rightDelay[i + rightDelaySamples] /= 2;
+            } else
                 rightDelay.push_back(right[i]);
         }
+
+        leftDelaySamplesOld = leftDelaySamplesNew;
+        rightDelaySamplesOld = rightDelaySamplesNew;
 
         assert(rightDelay.size() >= numSamples);
         assert(leftDelay.size() >= numSamples);
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = leftDelay.front();
-            right[i] = rightDelay.front();
+            if(leftDelay[1] == 0)
+                left[i] = this->lerp(leftDelay.front(), leftDelay[2], 1/2.0f);
+            else
+                left[i] = leftDelay[1];
+
+            if(rightDelay[1] == 0)
+                right[i] = this->lerp(rightDelay.front(), rightDelay[2], 1/2.0f);
+            else
+                right[i] = rightDelay[1];
+
             leftDelay.pop_front();
             rightDelay.pop_front();
         }
+
+
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<float> time = end - start;
         GameObject::SetParam("ITDLoadTemp", GameObject::GetParam<float>("ITDLoadTemp") + time.count());
@@ -94,6 +116,8 @@ public:
 private:
     std::deque<float> leftDelay;
     std::deque<float> rightDelay;
+    int leftDelaySamplesOld;
+    int rightDelaySamplesOld;
 };
 
 #endif //I_SOUND_ENGINE_ITD_H
