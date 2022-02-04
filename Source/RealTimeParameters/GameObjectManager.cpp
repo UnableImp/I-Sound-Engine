@@ -15,7 +15,7 @@ GameObjectManager::GameObjectManager()
     std::any preprocess = 0.0f;
     std::any phaseAlign = 1.0f;
     std::any crossFade = 1.0f;
-    std::any headRadius = 1.0f;
+    std::any headRadius = 0.0875f;
     std::any distanceScaler = 1.00000f;
     GameObject::SetParam(std::string("Overlap"), value);
     GameObject::SetParam("Preprocess", preprocess);
@@ -30,6 +30,7 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParam("HRTFLoadTemp", 0.0f);
     GameObject::SetParam("ITDLoadTemp", 0.0f);
     GameObject::SetParam("LerpHRIR", 0.0f);
+    GameObject::SetParam("Woodworth", 1.0f);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)

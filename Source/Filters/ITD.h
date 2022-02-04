@@ -8,6 +8,7 @@
 #include "deque"
 #include <assert.h>
 #include <iostream>
+#include <numbers>
 
 constexpr int sampleRate = 44100;
 
@@ -24,6 +25,7 @@ public:
      */
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
     {
+
         auto start = std::chrono::steady_clock::now();
         // Get listeners transform
         const auto& listenerTransform = GameObjectManager::GetListenerPosition();
@@ -37,7 +39,7 @@ public:
         // Calculate were left and right ear are located
         float headRadius = GameObject::GetParam<float>("HeadRadius");
 
-        // TODO test if nomraliztion is needed
+        // TODO test if normalization is needed
         auto leftEar = (leftDir * headRadius) + listenerTransform.postion;
         auto rightEar = (rightDir * headRadius) + listenerTransform.postion;
 
@@ -51,6 +53,30 @@ public:
 
         int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate;
         int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate;
+
+        float ShouldWoodworth = GameObject::GetParam<float>("Woodworth");
+        if(ShouldWoodworth)
+        {
+            const auto& headToObj = obj.GetPosition() -  listenerTransform.postion;
+
+            float angle = IVector3::Angle(forward, headToObj);
+            if (angle > pi / 2)
+                angle = pi - angle;
+
+            float itd = (headRadius / speedOfSound) * (std::sin(angle) + angle);
+            int ITDDelay = itd * sampleRate;
+
+            if(rightDelaySamplesNew < leftDelaySamplesNew)
+                leftDelaySamplesNew = rightDelaySamplesNew + ITDDelay;
+            else
+                rightDelaySamplesNew = leftDelaySamplesNew + ITDDelay;
+
+        }
+
+        if(rightDelaySamplesNew < 3)
+            rightDelaySamplesNew = 3;
+        if(leftDelaySamplesNew < 3)
+            leftDelaySamplesNew = 3;
 
         if(leftDelaySamplesOld == -1)
         {
@@ -85,6 +111,8 @@ public:
 
         leftDelaySamplesOld = leftDelaySamplesNew;
         rightDelaySamplesOld = rightDelaySamplesNew;
+
+
 
         assert(rightDelay.size() >= numSamples);
         assert(leftDelay.size() >= numSamples);

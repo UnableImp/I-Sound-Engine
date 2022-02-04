@@ -87,6 +87,21 @@ struct IVector3
 
     }
 
+    static float Dot(const IVector3& lhs, const IVector3& rhs)
+    {
+        return (lhs.x * rhs.x) + (lhs.y * rhs.y) + (lhs.z * rhs.z);
+    }
+
+    float Mag() const
+    {
+        return std::sqrt((x * x) + (y * y) + (z * z));
+    }
+
+    static float Angle(const IVector3& lhs, const IVector3& rhs)
+    {
+        return std::acos(IVector3::Dot(lhs, rhs) / (lhs.Mag() * rhs.Mag()));
+    }
+
 };
 
 
