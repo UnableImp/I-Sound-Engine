@@ -6,10 +6,13 @@
 #define I_SOUND_ENGINE_IVECTOR3_H
 
 #include <cmath>
+#include <iostream>
 
 struct IVector3
 {
     float x,y,z;
+
+    friend std::ostream& operator<<(std::ostream& os, const IVector3& vec);
 
     IVector3 operator-(const IVector3& rhs) const
     {
@@ -104,6 +107,10 @@ struct IVector3
 
 };
 
-
+inline std::ostream& operator<<(std::ostream& os, const IVector3& vec)
+{
+    os << "[" << vec.x << ", " << vec.y << ", " << vec.z << "]";
+    return os;
+}
 
 #endif //I_SOUND_ENGINE_IVECTOR3_H

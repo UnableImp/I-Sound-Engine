@@ -46,7 +46,7 @@ public:
         if(sourceAngle < 0)
             sourceAngle += 2 * pi;
 
-        float angle = ((listenerAngle - sourceAngle) * (180.0f / pi));
+        float angle = ((listenerAngle - sourceAngle) * (180.0f / pi)) * -1;
 
         int shouldUsePreprocessing = static_cast<int>((obj.GetParam<float>("Preprocess")));
         if(shouldUsePreprocessing)

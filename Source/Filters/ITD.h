@@ -8,7 +8,6 @@
 #include "deque"
 #include <assert.h>
 #include <iostream>
-#include <numbers>
 
 constexpr int sampleRate = 44100;
 
@@ -57,11 +56,13 @@ public:
         float ShouldWoodworth = GameObject::GetParam<float>("Woodworth");
         if(ShouldWoodworth)
         {
-            const auto& headToObj = obj.GetPosition() -  listenerTransform.postion;
+            const auto& headToObj =  obj.GetPosition() - listenerTransform.postion ;
 
             float angle = IVector3::Angle(forward, headToObj);
+
             if (angle > pi / 2)
                 angle = pi - angle;
+
 
             float itd = (headRadius / speedOfSound) * (std::sin(angle) + angle);
             int ITDDelay = itd * sampleRate;

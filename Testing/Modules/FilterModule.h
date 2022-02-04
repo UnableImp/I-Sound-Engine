@@ -207,8 +207,6 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
         totalSamples += samples;
         {
             angle += speed;
-            if (angle >= 360)
-                angle -= 360;
 
             IVector3 newPos{std::cos(angle * 3.145f / 180.0f) * 3, 0,std::sin(angle * 3.145f / 180.0f) * 3};
             objManager.SetGameObjectPosition(id, newPos);
@@ -1037,14 +1035,14 @@ TEST(Audio3D, RotationFast)
     objectManager.AddObject(10);
 
     HRIRCalculator<float> hrir(packageManager);
+    ITD* itd = new ITD();
 
     ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
-    //ITD* itd = new ITD();
 
-    eventManager.AddEvent(10, sample, convolver);
-    simulateEventManagerWithCalulator(eventManager, "TestFiles/TEST3DAudioRotatingFast.wav", 512, 10, 10, objectManager, 1);
+    eventManager.AddEvent(10, sample, convolver, itd);
+    simulateEventManagerWithCalulator(eventManager, "TestFiles/TEST3DAudio.wav", 512, 10, 10, objectManager, 1);
 }
 
 TEST(Filters, WavLoop)
