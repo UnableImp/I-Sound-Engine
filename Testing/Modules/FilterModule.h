@@ -40,9 +40,9 @@ inline static std::complex<float> lerp(std::complex<float>& a, std::complex<floa
     return std::polar(lerp(std::abs(a), std::abs(b), t), lerp(std::arg(a), std::arg(b), t));
 }
 
-static void lerp(std::complex<float>* a, std::complex<float>* b, float t, std::complex<float>* out)
+static void lerp(std::complex<float>* a, std::complex<float>* b, float t, std::complex<float>* out, int cnt)
 {
-    for(int i = 0; i < 512; ++i)
+    for(int i = 0; i < cnt; ++i)
     {
         out[i] = lerp(a[i], b[i], t);
     }
@@ -361,11 +361,6 @@ static void WriteFileFromBuffer(const float* outData, std::string& path )
     tesConver2.write(reinterpret_cast<const char *>(&fmt), sizeof(FormatHeader));
     tesConver2.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
-    std::fstream readFrom(path.c_str(), std::ios_base::binary | std::ios_base::in);
-
-    short buffer[512];
-    readFrom.read(reinterpret_cast<char*>(buffer), 1024);
-
     for(int i = 0; i < 512; i++)
     {
         short v = outData[i] * (1<<15);
@@ -382,16 +377,19 @@ static void Normalize(float* buffer, int length)
 
 static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, std::filesystem::path& path1, PackageEncoder& encoder)
 {
-    std::complex<float>* complexOf1 = new std::complex<float>[512];
-    std::complex<float>* complexOf2 = new std::complex<float>[512];
-    std::complex<float>* complexAof1 = new std::complex<float>[512];
-    std::complex<float>* complexAof2 = new std::complex<float>[512];
-    std::complex<float>* complexOfOut = new std::complex<float>[512];
+    int size = 1024;
+    int lerpcnt = 1024;
 
-    float* buf1 = new float[512];
-    float* buf2 = new float[512];
-    float* aligned1 = new float[512];
-    float* aligned2 = new float[512];
+    std::complex<float>* complexOf1 = new std::complex<float>[size]();
+    std::complex<float>* complexOf2 = new std::complex<float>[size]();
+    std::complex<float>* complexAof1 = new std::complex<float>[size]();
+    std::complex<float>* complexAof2 = new std::complex<float>[size]();
+    std::complex<float>* complexOfOut = new std::complex<float>[size]();
+
+    float* buf1 = new float[size]();
+    float* buf2 = new float[size]();
+    float* aligned1 = new float[size]();
+    float* aligned2 = new float[size]();
 
     memcpy(buf1, buf1Real, sizeof(float) * 512);
     memcpy(buf2, buf2Real, sizeof(float) * 512);
@@ -401,9 +399,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     PhaseAlignSignal(aligned1);
     PhaseAlignSignal(aligned2);
 
-    float out[512];
+    float*  out = new float[size]();
 
-    pffft::Fft<float> fft(512);
+    pffft::Fft<float> fft(size);
 
     fft.forward(buf1, complexOf1);
     fft.forward(buf2, complexOf2);
@@ -432,9 +430,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
     //---------------------------------------------------------------------------------
-    lerp(complexOf1, complexOf2, 1.0f / 5.0f, complexOfOut);
+    lerp(complexOf1, complexOf2, 1.0f / 5.0f, complexOfOut, lerpcnt);
     fft.inverse(complexOfOut, out);
-    Normalize(out, 512);
+    Normalize(out, size);
 
     ++number;
     writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
@@ -444,9 +442,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     id |= static_cast<uint64_t>(isRight) << 51;
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
-    lerp(complexAof1, complexAof2, 1.0f / 5.0f, complexOfOut);
+    lerp(complexAof1, complexAof2, 1.0f / 5.0f, complexOfOut, lerpcnt);
     fft.inverse(complexOfOut, out);
-    Normalize(out, 512);
+    Normalize(out, size);
 
     writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
     WriteFileFromBuffer(out, writeFile);
@@ -454,9 +452,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
     //---------------------------------------------------------------------------------
-    lerp(complexOf1, complexOf2, 2.0f/ 5.0f, complexOfOut);
+    lerp(complexOf1, complexOf2, 2.0f/ 5.0f, complexOfOut, lerpcnt);
     fft.inverse(complexOfOut, out);
-    Normalize(out, 512);
+    Normalize(out, size);
 
     ++number;
     writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
@@ -466,9 +464,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     id |= static_cast<uint64_t>(isRight) << 51;
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
-    lerp(complexAof1, complexAof2, 2.0f / 5.0f, complexOfOut);
+    lerp(complexAof1, complexAof2, 2.0f / 5.0f, complexOfOut, lerpcnt);
     fft.inverse(complexOfOut, out);
-    Normalize(out, 512);
+    Normalize(out, size);
 
     writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
     WriteFileFromBuffer(out, writeFile);
@@ -476,9 +474,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
     //---------------------------------------------------------------------------------
-    lerp(complexOf1, complexOf2, 3.0f / 5.0f, complexOfOut);
+    lerp(complexOf1, complexOf2, 3.0f / 5.0f, complexOfOut, lerpcnt);
     fft.inverse(complexOfOut, out);
-    Normalize(out, 512);
+    Normalize(out, size);
 
     ++number;
     writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
@@ -488,9 +486,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     id |= static_cast<uint64_t>(isRight) << 51;
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
-    lerp(complexAof1, complexAof2, 3.0f / 5.0f, complexOfOut);
+    lerp(complexAof1, complexAof2, 3.0f / 5.0f, complexOfOut, lerpcnt);
     fft.inverse(complexOfOut, out);
-    Normalize(out, 512);
+    Normalize(out, size);
 
     writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
     WriteFileFromBuffer(out, writeFile);
@@ -498,9 +496,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
     //---------------------------------------------------------------------------------
-    lerp(complexOf1, complexOf2, 4.0f / 5.0f, complexOfOut);
+    lerp(complexOf1, complexOf2, 4.0f / 5.0f, complexOfOut, lerpcnt);
     fft.inverse(complexOfOut, out);
-    Normalize(out, 512);
+    Normalize(out, size);
 
     ++number;
     writeFile = std::string(startOfPath + std::to_string(number) + std::string("a.wav"));
@@ -510,9 +508,9 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     id |= static_cast<uint64_t>(isRight) << 51;
     encoder.AddFile(writeFile, id, Encoding::PCM);
 
-    lerp(complexAof1, complexAof2, 4.0f / 5.0f, complexOfOut);
+    lerp(complexAof1, complexAof2, 4.0f / 5.0f, complexOfOut, lerpcnt);
     fft.inverse(complexOfOut, out);
-    Normalize(out, 512);
+    Normalize(out, size);
 
     writeFile = std::string(startOfPath + std::to_string(number) + std::string("aAligned.wav"));
     WriteFileFromBuffer(out, writeFile);
@@ -538,6 +536,7 @@ static void LerpFromBuffer(uint64_t isRight, float* buf1Real, float* buf2Real, s
     delete [] buf2;
     delete [] aligned1;
     delete [] aligned2;
+    delete [] out;
 }
 
 static void LerpMissingHRIR(PackageEncoder& encoder, std::string path)
