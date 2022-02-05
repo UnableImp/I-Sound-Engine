@@ -56,10 +56,10 @@ public:
         {
             memcpy(leftOld, left, sizeof(float) * numSamples);
             memcpy(rightOld, right, sizeof(float) * numSamples);
-            //auto overlap1 = leftOverlap;
-            //auto overlap2 = rightOverlap;
+            auto overlap1 = leftOverlap;
+            auto overlap2 = rightOverlap;
             //GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, overlap1, overlap2);
-            GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, leftOverlap, rightOverlap);
+            GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, overlap1, overlap2);
             HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
             GetNextSamplesFromBuffer(numSamples, left, right, obj, leftOverlap, rightOverlap);
 

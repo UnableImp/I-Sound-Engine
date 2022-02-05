@@ -56,7 +56,7 @@ public:
         float ShouldWoodworth = GameObject::GetParam<float>("Woodworth");
         if(ShouldWoodworth)
         {
-            const auto& headToObj =  obj.GetPosition() - listenerTransform.postion ;
+            const auto& headToObj =  obj.GetPosition() - listenerTransform.postion;
 
             float angle = IVector3::Angle(forward, headToObj);
 
