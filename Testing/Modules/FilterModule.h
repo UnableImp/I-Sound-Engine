@@ -1238,7 +1238,7 @@ static void HRTF512Samples(benchmark::State& state)
 {
     CreateKEMARAudioPack();
 
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/levl.wav");
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
 
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTConvBank.pck");
