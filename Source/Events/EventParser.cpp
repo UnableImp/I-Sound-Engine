@@ -10,6 +10,7 @@
 #include "FilterParsers/DeserializedSound.h"
 #include "Event.h"
 #include "FilterParsers/Deserialized3DSound.h"
+#include "FilterParsers/DeserializedITD.h"
 
 constexpr const char* id = "id";
 
@@ -45,6 +46,7 @@ void EventParser::ParseEvents(const std::string& path)
             if(std::string("3D") == filter->name.GetString())
             {
                 IdToEvent[eventID].push_back(new Deserialize3DSound(filter->value));
+                IdToEvent[eventID].push_back(new DeserializedITD(filter->value));
             }
         }
     }

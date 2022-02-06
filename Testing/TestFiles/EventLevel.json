@@ -5,5 +5,12 @@
       "PlayID": 0,
       "Volume": 1
     }
+  },
+  "Play_3D": {
+    "ID": 11,
+    "3D": {
+      "PlayID": 0,
+      "Volume": 1
+    }
   }
 }

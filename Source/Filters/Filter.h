@@ -21,7 +21,7 @@ public:
      * @param buffer Buffer to fill
      * @return Number of samples filled
      */
-    virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) = 0;
+    virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) {return 0;};
 
 protected:
     inline static sampleType lerp(sampleType a, sampleType b, float t)

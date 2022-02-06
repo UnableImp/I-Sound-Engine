@@ -8,6 +8,9 @@
 #include "deque"
 #include <assert.h>
 #include <iostream>
+#include <chrono>
+#include "RealTimeParameters/GameObjectManager.h"
+#include "HRIRCalculator.h"
 
 constexpr int sampleRate = 44100;
 
@@ -32,8 +35,8 @@ public:
         const auto& forward = listenerTransform.forward;
 
         // Calculate left and right directions to listener
-        auto leftDir = IVector3::Cross(up.Normalized(), forward.Normalized());
-        auto rightDir = IVector3{0,0,0} - leftDir;
+        auto rightDir = IVector3::Cross(up.Normalized(), forward.Normalized());
+        auto leftDir = IVector3{0,0,0} - rightDir;
 
         // Calculate were left and right ear are located
         float headRadius = GameObject::GetParam<float>("HeadRadius");
@@ -53,12 +56,15 @@ public:
         int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate;
         int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate;
 
-        float ShouldWoodworth = GameObject::GetParam<float>("Woodworth");
+         float ShouldWoodworth = GameObject::GetParam<float>("Woodworth");
         if(ShouldWoodworth)
         {
-            const auto& headToObj =  obj.GetPosition() - listenerTransform.postion;
+            const auto& headToObj =  (obj.GetPosition() - listenerTransform.postion).Normalized();
 
-            float angle = IVector3::Angle(forward, headToObj);
+            auto newForward = IVector3{forward.x, 0 , forward.z};
+            auto newHeadToObj = IVector3{headToObj.x, 0, headToObj.z};
+
+            float angle = IVector3::Angle(newForward, newHeadToObj);
 
             if (angle > pi / 2)
                 angle = pi - angle;
