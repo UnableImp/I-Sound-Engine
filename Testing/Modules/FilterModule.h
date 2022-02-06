@@ -1238,7 +1238,7 @@ static void HRTF512Samples(benchmark::State& state)
 {
     CreateKEMARAudioPack();
 
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/levl.wav");
 
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTConvBank.pck");
@@ -1260,6 +1260,8 @@ static void HRTF512Samples(benchmark::State& state)
     Frame<float> buff[512];
 
     GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
     for(auto _ : state)
     {
         event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
@@ -1354,7 +1356,7 @@ BENCHMARK(Get100GameObjects);
 
 static void ITD512Samples(benchmark::State& state)
 {
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
 
     PackageManager packageManager;
     packageManager.LoadPack("TestFiles/TESTConvBank.pck");
@@ -1373,6 +1375,8 @@ static void ITD512Samples(benchmark::State& state)
     Frame<float> buff[512];
 
     GameObject obj;
+
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
     for(auto _ : state)
     {
         event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
