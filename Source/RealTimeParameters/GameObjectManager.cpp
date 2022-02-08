@@ -30,7 +30,7 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParam("HRTFLoadTemp", 0.0f);
     GameObject::SetParam("ITDLoadTemp", 0.0f);
     GameObject::SetParam("LerpHRIR", 0.0f);
-    GameObject::SetParam("Woodworth", 0.0f);
+    GameObject::SetParam("Woodworth", 1.0f);
     GameObject::SetParam("UseHRTF", 1.0f);
     GameObject::SetParam("UseITD" , 1.0f);
 

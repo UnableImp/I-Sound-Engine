@@ -25,7 +25,7 @@ void Event::AddFilter(Filter<float>* filter)
 int Event::GetSamples(int numSamples, float* left, float* right, const GameObject& obj)
 {
     int dataAdded = 0;
-    for(auto& filter: filters)
+    for(const auto& filter: filters)
     {
         dataAdded += filter->GetNextSamples(numSamples, left, right, obj);
     }

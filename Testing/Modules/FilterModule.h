@@ -1234,40 +1234,6 @@ static void PFFFT512(benchmark::State& state)
 }
 BENCHMARK(PFFFT512);
 
-static void HRTF512Samples(benchmark::State& state)
-{
-    CreateKEMARAudioPack();
-
-    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
-
-    PackageManager packageManager;
-    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
-    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
-    GameObjectManager objectManager;
-    EventManager eventManager(packageManager,objectManager);
-
-    HRIRCalculator<float> hrir(packageManager);
-
-    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
-
-    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
-
-    Event event(0);
-    event.AddFilter(sample);
-    event.AddFilter(convolver);
-
-    //eventManager.AddEvent(sample, convolver);
-    Frame<float> buff[512];
-
-    GameObject obj;
-    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
-
-    for(auto _ : state)
-    {
-        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
-    }
-}
-BENCHMARK(HRTF512Samples);
 
 #endif //I_SOUND_ENGINE_FILTERMODULE_H
 
@@ -1354,6 +1320,41 @@ static void Get100GameObjects(benchmark::State& state)
 }
 BENCHMARK(Get100GameObjects);
 
+static void HRTF512Samples(benchmark::State& state)
+{
+    CreateKEMARAudioPack();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    HRIRCalculator<float> hrir(packageManager);
+
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    Event event(0);
+    event.AddFilter(sample);
+    event.AddFilter(convolver);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
+    for(auto _ : state)
+    {
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+    }
+}
+BENCHMARK(HRTF512Samples);
+
 static void ITD512Samples(benchmark::State& state)
 {
     BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
@@ -1383,3 +1384,71 @@ static void ITD512Samples(benchmark::State& state)
     }
 }
 BENCHMARK(ITD512Samples);
+
+//static void Wav512Samples(benchmark::State& state)
+//{
+//    CreateKEMARAudioPack();
+//
+//    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+//
+//    PackageManager packageManager;
+//    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+//    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+//    GameObjectManager objectManager;
+//    EventManager eventManager(packageManager,objectManager);
+//
+//    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+//
+//    Event event(0);
+//    event.AddFilter(sample);
+//
+//    //eventManager.AddEvent(sample, convolver);
+//    Frame<float> buff[512];
+//
+//    GameObject obj;
+//    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+//
+//    for(auto _ : state)
+//    {
+//        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+//    }
+//}
+//BENCHMARK(Wav512Samples);
+
+static void Combined512Samples(benchmark::State& state)
+{
+    CreateKEMARAudioPack();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    HRIRCalculator<float> hrir(packageManager);
+
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    ITD* itd = new ITD();
+
+    Event event(0);
+    event.AddFilter(sample);
+    event.AddFilter(convolver);
+    event.AddFilter(itd);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
+    for(auto _ : state)
+    {
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+    }
+}
+BENCHMARK(Combined512Samples);
