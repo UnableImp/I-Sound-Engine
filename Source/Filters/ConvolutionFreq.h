@@ -58,10 +58,10 @@ public:
             memcpy(rightOld, right, sizeof(float) * numSamples);
             auto overlap1 = leftOverlap;
             auto overlap2 = rightOverlap;
-            //GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, overlap1, overlap2);
-            GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, overlap1, overlap2);
+
+            GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, overlap1, overlap2, false);
             HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
-            GetNextSamplesFromBuffer(numSamples, left, right, obj, leftOverlap, rightOverlap);
+            GetNextSamplesFromBuffer(numSamples, left, right, obj, leftOverlap, rightOverlap, true);
 
             for(int i = 0; i < numSamples; i++)
             {
@@ -85,7 +85,7 @@ public:
         else
         {
             HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
-            GetNextSamplesFromBuffer(numSamples, left, right, obj, leftOverlap, rightOverlap);
+            GetNextSamplesFromBuffer(numSamples, left, right, obj, leftOverlap, rightOverlap, true);
         }
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<float> time = end - start;
@@ -95,23 +95,22 @@ public:
 
 private:
 
-    int GetNextSamplesFromBuffer(int numSamples, float* left, float* right, const GameObject& obj, std::deque<float>& leftOverlapT, std::deque<float>& rightOverlapT)
+    int GetNextSamplesFromBuffer(int numSamples, float* left, float* right, const GameObject& obj, std::deque<float>& leftOverlapT, std::deque<float>& rightOverlapT, bool saveOverlap)
     {
         for(int offset = 0; offset < BlockSize; offset += Overlap)
         {
-            CalculateBlock(Overlap, left + offset, right + offset, obj, leftOverlapT, rightOverlapT);
+            CalculateBlock(Overlap, left + offset, right + offset, obj, leftOverlapT, rightOverlapT, saveOverlap);
         }
         return 0;
     }
 
-    void CalculateBlock(int numSamples, float* left, float* right, const GameObject& obj, std::deque<float>& leftOverlapT, std::deque<float>& rightOverlapT)
+    void CalculateBlock(int numSamples, float* left, float* right, const GameObject& obj, std::deque<float>& leftOverlapT, std::deque<float>& rightOverlapT, bool saveOverlap)
     {
         //-----------------------------------------
         // Left ear
         //-----------------------------------------
-        memset(leftS, 0, 2 * BlockSize * sizeof(float));
+        memset(leftS + blockSize, 0,  BlockSize * sizeof(float));
         memcpy(leftS, left, numSamples * sizeof(float));
-
 
         fft.forward(leftS, leftComplex);
         fft.forward(leftIR, rightComplex);
@@ -127,11 +126,6 @@ private:
         // Right ear
         //-----------------------------------------
 
-        memset(rightS, 0, 2 * BlockSize * sizeof(float));
-        memcpy(rightS, right, numSamples * sizeof(float));
-
-
-        fft.forward(rightS, leftComplex);
         fft.forward(rightIR, rightComplex);
 
         for(int i = 0; i < BlockSize * 2; ++i)
@@ -156,16 +150,19 @@ private:
             rightOverlapT.pop_front();
         }
 
-        for(int i = Overlap, j = 0; j < leftOverlapT.size(); ++i, ++j)
+        if(saveOverlap)
         {
-            leftOverlapT[j] += leftS[i];
-            rightOverlapT[j] += rightS[i];
-        }
+            for (int i = Overlap, j = 0; j < leftOverlapT.size(); ++i, ++j)
+            {
+                leftOverlapT[j] += leftS[i];
+                rightOverlapT[j] += rightS[i];
+            }
 
-        for(int i = (BlockSize * 2) - Overlap; i < BlockSize * 2; ++i)
-        {
-            leftOverlapT.push_back(leftS[i]);
-            rightOverlapT.push_back(rightS[i]);
+            for (int i = (BlockSize * 2) - Overlap; i < BlockSize * 2; ++i)
+            {
+                leftOverlapT.push_back(leftS[i]);
+                rightOverlapT.push_back(rightS[i]);
+            }
         }
     }
 

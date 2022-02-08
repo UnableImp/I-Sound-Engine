@@ -59,25 +59,25 @@ public:
         if(currentAngle >= 360)
             currentAngle -= 360;
 
-        int shouldLerp = static_cast<int>((obj.GetParam<float>("LerpHRIR")));
-        if(shouldLerp)
-        {
-            if(step == -1)
-            {
-                step = 1;
-                oldAngle = currentAngle;
-            }
-
-            float overlapSize = (obj.GetParam<float>("Overlap"));
-            currentAngle = this->lerp(oldAngle, currentAngle, overlapSize/blockSize);
-
-            ++step;
-            if(((overlapSize/blockSize) * step) + 0.01 > 1.0f)
-            {
-                step = 1;
-                oldAngle = currentAngle;
-            }
-        }
+//        int shouldLerp = static_cast<int>((obj.GetParam<float>("LerpHRIR")));
+//        if(shouldLerp)
+//        {
+//            if(step == -1)
+//            {
+//                step = 1;
+//                oldAngle = currentAngle;
+//            }
+//
+//            float overlapSize = (obj.GetParam<float>("Overlap"));
+//            currentAngle = this->lerp(oldAngle, currentAngle, overlapSize/blockSize);
+//
+//            ++step;
+//            if(((overlapSize/blockSize) * step) + 0.01 > 1.0f)
+//            {
+//                step = 1;
+//                oldAngle = currentAngle;
+//            }
+//        }
 
 
         // Calculate elevation
@@ -103,61 +103,18 @@ public:
 
         WavContainer<float> rightIR(packageManager.GetSounds()[id]);
 
-        leftIR.GetNextSamples(numSamples, left, left, obj);
-        rightIR.GetNextSamples(numSamples, right, right, obj);
-
-
-//        if(phaseAlign > 0)
-//        {
-//
-//            int offset = 0;
-//
-//            //-----------------------------------
-//            // Left ear
-//            //-----------------------------------
-//            for(int i = 0; i < blockSize; ++i)
-//            {
-//                if(std::abs(left[i]) > delta)
-//                {
-//                    offset = i;
-//                    break;
-//                }
-//            }
-//            for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
-//            {
-//                std::swap(left[i], left[j]);
-//            }
-//
-//            //-----------------------------------
-//            // Right ear
-//            //-----------------------------------
-//            for(int i = 0; i < blockSize; ++i)
-//            {
-//                if(std::abs(right[i]) > delta)
-//                {
-//                    offset = i;
-//                    break;
-//                }
-//            }
-//            for(int i = offset, j = 0; i < blockSize * 2; ++i, ++j)
-//            {
-//                std::swap(right[i], right[j]);
-//            }
-//        }
+        leftIR.GetNextSamples(numSamples/2, left, left, obj);
+        rightIR.GetNextSamples(numSamples/2, right, right, obj);
 
         return 0;
     }
 
 private:
-
-    float leftOld[1024];
-    float rightOld[1024];
-
     PackageManager& packageManager;
     int currentAngle;
     int currentEvel;
     int step;
-    int oldAngle;
+
 };
 
 #endif //I_SOUND_ENGINE_HRIRCALCULATOR_H
