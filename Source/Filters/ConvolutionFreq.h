@@ -112,28 +112,24 @@ private:
         memset(leftS + blockSize, 0,  BlockSize * sizeof(float));
         memcpy(leftS, left, numSamples * sizeof(float));
 
-        fft.forward(leftS, leftComplex);
-        fft.forward(leftIR, rightComplex);
+        fft.forwardToInternalLayout(leftS, reinterpret_cast<float *>(leftComplex));
+        fft.forwardToInternalLayout(leftIR, reinterpret_cast<float *>(rightComplex));
 
-        for(int i = 0; i < BlockSize * 2; ++i)
-        {
-            currentComplex[i] = leftComplex[i] * rightComplex[i];
-        }
+        fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
+                     reinterpret_cast<float *>(currentComplex), 1.0f/ (numSamples * 2));
 
-        fft.inverse(currentComplex, leftS);
+        fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), leftS);
 
         //-----------------------------------------
         // Right ear
         //-----------------------------------------
 
-        fft.forward(rightIR, rightComplex);
+        fft.forwardToInternalLayout(rightIR, reinterpret_cast<float *>(rightComplex));
 
-        for(int i = 0; i < BlockSize * 2; ++i)
-        {
-            currentComplex[i] = leftComplex[i] * rightComplex[i];
-        }
+        fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
+                     reinterpret_cast<float *>(currentComplex), 1.0f/ (numSamples * 2));
 
-        fft.inverse(currentComplex, rightS);
+        fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), rightS);
 
         //-----------------------------------------
         // Normalize
@@ -141,8 +137,8 @@ private:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlapT.front()) / (numSamples * 2);
-            right[i] = (rightS[i]  + rightOverlapT.front()) / (numSamples * 2);
+            left[i] = (leftS[i] + leftOverlapT.front());// / (numSamples * 2);
+            right[i] = (rightS[i]  + rightOverlapT.front());// / (numSamples * 2);
             left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
             right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
 
