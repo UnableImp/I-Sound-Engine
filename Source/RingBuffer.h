@@ -27,6 +27,16 @@ public:
         buffer[pos] = item;
     }
 
+    void set(int index, T item)
+    {
+        int toSet = pos - index;
+
+        if(toSet < 0)
+            toSet += count;
+
+        buffer[toSet] = item;
+    }
+
     T get(int index)
     {
         int toGet = pos - index;
