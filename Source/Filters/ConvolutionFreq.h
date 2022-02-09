@@ -138,8 +138,8 @@ private:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlap.get(i-1));// / (numSamples * 2);
-            right[i] = (rightS[i]  + rightOverlap.get(i-1));// / (numSamples * 2);
+            left[i] = (leftS[i] + leftOverlap.get((Overlap - i) - 1));// / (numSamples * 2);
+            right[i] = (rightS[i]  + rightOverlap.get((Overlap - i) - 1));// / (numSamples * 2);
             //left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
             //right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
 
