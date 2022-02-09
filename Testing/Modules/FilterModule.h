@@ -1179,7 +1179,10 @@ static void PFFFT2048(benchmark::State& state)
     pffft::Fft<float> fft(size);
     for(auto _ : state)
     {
-        fft.forward(data, complex);
+        fft.forwardToInternalLayout(data, reinterpret_cast<float *>(complex));
+        fft.forwardToInternalLayout(data, reinterpret_cast<float *>(complex));
+        fft.convolve(reinterpret_cast<const float *>(complex), reinterpret_cast<const float *>(complex), data, 1.0f/512);
+        fft.inverseFromInternalLayout(data, reinterpret_cast<float *>(songData));
     }
 }
 BENCHMARK(PFFFT2048);
@@ -1198,10 +1201,10 @@ static void PFFFT1024(benchmark::State& state)
     pffft::Fft<float> fft(size);
     for(auto _ : state)
     {
-        fft.forward(data, complex);
-
-        fft.forward(data, complex);
-
+        fft.forwardToInternalLayout(data, reinterpret_cast<float *>(complex));
+        fft.forwardToInternalLayout(data, reinterpret_cast<float *>(complex));
+        fft.convolve(reinterpret_cast<const float *>(complex), reinterpret_cast<const float *>(complex), data, 1.0f/512);
+        fft.inverseFromInternalLayout(data, reinterpret_cast<float *>(songData));
     }
 }
 BENCHMARK(PFFFT1024);
@@ -1220,16 +1223,10 @@ static void PFFFT512(benchmark::State& state)
     pffft::Fft<float> fft(size);
     for(auto _ : state)
     {
-        fft.forward(data, complex);
-
-
-        fft.forward(data+512, complex);
-
-
-        fft.forward(data+1024, complex);
-
-
-        fft.forward(data + 1536, complex);
+        fft.forwardToInternalLayout(data, reinterpret_cast<float *>(complex));
+        fft.forwardToInternalLayout(data, reinterpret_cast<float *>(complex));
+        fft.convolve(reinterpret_cast<const float *>(complex), reinterpret_cast<const float *>(complex), data, 1.0f/512);
+        fft.inverseFromInternalLayout(data, reinterpret_cast<float *>(songData));
     }
 }
 BENCHMARK(PFFFT512);

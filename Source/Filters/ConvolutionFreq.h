@@ -127,7 +127,7 @@ private:
         fft.forwardToInternalLayout(rightIR, reinterpret_cast<float *>(rightComplex));
 
         fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 1.0f/ (numSamples * 2));
+                     reinterpret_cast<float *>(currentComplex), 0.5f/ (numSamples * 2));
 
         fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), rightS);
 
@@ -139,8 +139,8 @@ private:
         {
             left[i] = (leftS[i] + leftOverlapT.front());// / (numSamples * 2);
             right[i] = (rightS[i]  + rightOverlapT.front());// / (numSamples * 2);
-            left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
-            right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
+            //left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
+            //right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
 
             leftOverlapT.pop_front();
             rightOverlapT.pop_front();
