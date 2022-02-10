@@ -11,6 +11,7 @@
 #include <deque>
 #include <chrono>
 #include "RingBuffer.h"
+#include "immintrin.h"
 
 constexpr int BlockSize = 512;
 
@@ -19,9 +20,7 @@ class ConvolutionFreq : public Filter<float>
 public:
     ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(BlockSize * 2),
     HRIR(HRIR),
-    Overlap(static_cast<int>((GameObject::GetParam<float>("Overlap")))),
-    leftOverlap(1024),
-    rightOverlap(1024)
+    Overlap(static_cast<int>((GameObject::GetParam<float>("Overlap"))))
     {
         currentComplex = new std::complex<float>[size* 2]();
 
@@ -33,6 +32,8 @@ public:
         rightComplex = new std::complex<float>[size*2]();
         leftOld = new float[size*2]();
         rightOld = new float[size*2]();
+        leftOverlap = new float[size * 2]();
+        rightOverlap = new float[size * 2]();
     }
 
     virtual ~ConvolutionFreq()
@@ -46,6 +47,8 @@ public:
         delete [] rightComplex;
         delete [] rightOld;
         delete [] leftOld;
+        delete [] leftOverlap;
+        delete [] rightOverlap;
     }
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj)
@@ -136,13 +139,25 @@ private:
         // Normalize
         //-----------------------------------------
 
+//        for(int i = 0; i < 512; i += 8)
+//        {
+//            __m256 one = _mm256_loadu_ps(&left[i]);
+//            __m256 two = _mm256_loadu_ps(&leftOverlap[i]);
+//
+//            __m256 three = _mm256_loadu_ps(&right[i]);
+//            __m256 four = _mm256_loadu_ps(&rightOverlap[i]);
+//
+//            __m256 out1 = _mm256_add_ps(one, two);
+//            __m256 out2 = _mm256_add_ps(three, four);
+//
+//            _mm256_storeu_ps(&left[i], out1);
+//            _mm256_storeu_ps(&right[i], out2);
+//        }
+
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlap.get((Overlap - i) - 1));// / (numSamples * 2);
-            right[i] = (rightS[i]  + rightOverlap.get((Overlap - i) - 1));// / (numSamples * 2);
-            //left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
-            //right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
-
+            left[i] = (leftS[i] + leftOverlap[i]);
+            right[i] = (rightS[i]  + rightOverlap[i]);
         }
 
         if(saveOverlap)
@@ -153,11 +168,8 @@ private:
 //                rightOverlapT[j] += rightS[i];
 //            }
 
-            for (int i = (BlockSize * 2) - Overlap; i < BlockSize * 2; ++i)
-            {
-                leftOverlap.put(leftS[i]);
-                rightOverlap.put(rightS[i]);
-            }
+            memcpy(leftOverlap, &leftS[512], 512 * sizeof(float));
+            memcpy(rightOverlap, &rightS[512], 512 * sizeof(float));
         }
     }
 
@@ -178,8 +190,8 @@ private:
     std::complex<float>* currentComplex;
 
 
-    RingBuffer<float> leftOverlap;
-    RingBuffer<float> rightOverlap;
+    float* leftOverlap;
+    float* rightOverlap;
 
     pffft::Fft<float> fft;
     HRIRCalculator<float>& HRIR;
