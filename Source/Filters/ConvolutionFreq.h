@@ -69,10 +69,10 @@ public:
                 //right[i] = lerp(rightOld[i], right[i], static_cast<float>(i)/numSamples);
 
                 // linear crossfade
-                left[i]  = (lerp(1.0f, 0.0f, static_cast<float>(i) / numSamples) * leftOld[i]) +
-                           (lerp(0.0f, 1.0f, static_cast<float>(i) / numSamples) * left[i]);
-                right[i] = (lerp(1.0f, 0.0f, static_cast<float>(i) / numSamples) * rightOld[i]) +
-                           (lerp(0.0f, 1.0f, static_cast<float>(i) / numSamples) * right[i]);
+                left[i]  = ((1 - static_cast<float>(i) / numSamples) * leftOld[i]) +
+                           ((static_cast<float>(i) / numSamples)     * left[i]);
+                right[i] = ((1 - static_cast<float>(i) / numSamples) * rightOld[i]) +
+                           ((static_cast<float>(i) / numSamples)     * right[i]);
 
                 // Easing fade - sounds way worse than linear??
 //                left[i] =  (this->EaseInQuart(1.0f - (static_cast<float>(i) / numSamples)) * leftOld[i]) +
