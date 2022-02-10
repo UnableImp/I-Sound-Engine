@@ -122,6 +122,7 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     GameObject::SetParam("DSPLoad", seconds.count() / (512.0f/44100.0f));
     GameObject::SetParam("HRTFLoad", GameObject::GetParam<float>("HRTFLoadTemp") / (512.0f / 44100.0f));
     GameObject::SetParam("ITDLoad", GameObject::GetParam<float>("ITDLoadTemp") / (512.0f / 44100.0f));
+    GameObject::SetParam("RunningObjs", static_cast<float>(events.size()));
     return totalSamplesGenerated;
 }
 
