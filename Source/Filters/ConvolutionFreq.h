@@ -113,27 +113,52 @@ private:
         //-----------------------------------------
         // Left ear
         //-----------------------------------------
-        memset(leftS + blockSize, 0,  BlockSize * sizeof(float));
-        memcpy(leftS, left, numSamples * sizeof(float));
+        memset(leftS, 0,  2* BlockSize * sizeof(float));
+        memset(rightS, 0,  2* BlockSize * sizeof(float));
+        //memcpy(leftS, left, numSamples * sizeof(float));
 
-        fft.forwardToInternalLayout(leftS, reinterpret_cast<float *>(leftComplex));
-        fft.forwardToInternalLayout(leftIR, reinterpret_cast<float *>(rightComplex));
+        for(int i = 0; i < numSamples; ++i)
+        {
+            for(int j = 0; j < 512; j += 8)
+            {
+//                __m256 inVec{left[i],left[i],left[i],left[i],left[i],left[i],left[i],left[i]};
+//                __m256 leftIRVec = _mm256_loadu_ps(&leftIR[j]);
+//                __m256 rightIRVec = _mm256_loadu_ps(&rightIR[j]);
+//
+//                __m256 leftOut  = _mm256_mul_ps(inVec, leftIRVec);
+//                __m256 rightOut = _mm256_mul_ps(inVec, rightIRVec);
+//
+//                inVec = _mm256_loadu_ps(&leftS[i+j]);
+//                __m256 outVec = _mm256_add_ps(inVec, leftOut);
+//                _mm256_storeu_ps(&leftS[i+j], outVec);
+//
+//                inVec  = _mm256_loadu_ps(&rightS[i+j]);
+//                outVec = _mm256_add_ps(inVec, rightOut);
+//                _mm256_storeu_ps(&rightS[i+j], outVec);
 
-        fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 1.0f/ (numSamples * 2));
+                leftS[i+j] += leftIR[j] * left[i];
+                rightS[i+j] += rightIR[j] * left[i];
+            }
+        }
 
-        fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), leftS);
-
-        //-----------------------------------------
-        // Right ear
-        //-----------------------------------------
-
-        fft.forwardToInternalLayout(rightIR, reinterpret_cast<float *>(rightComplex));
-
-        fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 0.5f/ (numSamples * 2));
-
-        fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), rightS);
+//        fft.forwardToInternalLayout(leftS, reinterpret_cast<float *>(leftComplex));
+//        fft.forwardToInternalLayout(leftIR, reinterpret_cast<float *>(rightComplex));
+//
+//        fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
+//                     reinterpret_cast<float *>(currentComplex), 1.0f/ (numSamples * 2));
+//
+//        fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), leftS);
+//
+//        //-----------------------------------------
+//        // Right ear
+//        //-----------------------------------------
+//
+//        fft.forwardToInternalLayout(rightIR, reinterpret_cast<float *>(rightComplex));
+//
+//        fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
+//                     reinterpret_cast<float *>(currentComplex), 0.5f/ (numSamples * 2));
+//
+//        fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), rightS);
 
         //-----------------------------------------
         // Normalize
