@@ -121,23 +121,23 @@ private:
         {
             for(int j = 0; j < 512; j += 8)
             {
-//                __m256 inVec{left[i],left[i],left[i],left[i],left[i],left[i],left[i],left[i]};
-//                __m256 leftIRVec = _mm256_loadu_ps(&leftIR[j]);
-//                __m256 rightIRVec = _mm256_loadu_ps(&rightIR[j]);
-//
-//                __m256 leftOut  = _mm256_mul_ps(inVec, leftIRVec);
-//                __m256 rightOut = _mm256_mul_ps(inVec, rightIRVec);
-//
-//                inVec = _mm256_loadu_ps(&leftS[i+j]);
-//                __m256 outVec = _mm256_add_ps(inVec, leftOut);
-//                _mm256_storeu_ps(&leftS[i+j], outVec);
-//
-//                inVec  = _mm256_loadu_ps(&rightS[i+j]);
-//                outVec = _mm256_add_ps(inVec, rightOut);
-//                _mm256_storeu_ps(&rightS[i+j], outVec);
+                __m256 inVec{left[i],left[i],left[i],left[i],left[i],left[i],left[i],left[i]};
+                __m256 leftIRVec = _mm256_loadu_ps(&leftIR[j]);
+                __m256 rightIRVec = _mm256_loadu_ps(&rightIR[j]);
 
-                leftS[i+j] += leftIR[j] * left[i];
-                rightS[i+j] += rightIR[j] * left[i];
+                __m256 leftOut  = _mm256_mul_ps(inVec, leftIRVec);
+                __m256 rightOut = _mm256_mul_ps(inVec, rightIRVec);
+
+                inVec = _mm256_loadu_ps(&leftS[i+j]);
+                __m256 outVec = _mm256_add_ps(inVec, leftOut);
+                _mm256_storeu_ps(&leftS[i+j], outVec);
+
+                inVec  = _mm256_loadu_ps(&rightS[i+j]);
+                outVec = _mm256_add_ps(inVec, rightOut);
+                _mm256_storeu_ps(&rightS[i+j], outVec);
+
+//                leftS[i+j] += leftIR[j] * left[i];
+//                rightS[i+j] += rightIR[j] * left[i];
             }
         }
 
