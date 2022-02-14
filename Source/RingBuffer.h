@@ -9,7 +9,7 @@ template<typename T>
 class RingBuffer
 {
 public:
-    RingBuffer(int size) : pos(0), count(size)
+    RingBuffer(int size) : pos(0), count(size), flag(size - 1)
     {
         buffer = new T[size]();
     }
@@ -22,8 +22,7 @@ public:
     void put(T item)
     {
         ++pos;
-        if(pos >= count)
-            pos = 0;
+        pos &= flag;
         buffer[pos] = item;
     }
 
@@ -31,8 +30,7 @@ public:
     {
         int toSet = pos - index;
 
-        if(toSet < 0)
-            toSet += count;
+        toSet &= flag;
 
         buffer[toSet] = item;
     }
@@ -41,8 +39,7 @@ public:
     {
         int toGet = pos - index;
 
-        if(toGet < 0)
-            toGet += count;
+        toGet &= flag;
 
         return buffer[toGet];
     }
@@ -51,6 +48,7 @@ private:
     T* buffer;
     int pos;
     int count;
+    int flag;
 };
 
 #endif //I_SOUND_ENGINE_RINGBUFFER_H
