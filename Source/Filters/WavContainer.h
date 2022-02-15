@@ -37,6 +37,20 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) override
     {
+      if(this->playbackModifier == 1.0f)
+          return GetNextSamplesStatic(numSamples, left, right, obj);
+      return GetNextSamplesNonStatic(numSamples, left, right, obj);
+    }
+
+    void Seek(int position)
+    {
+
+    }
+
+private:
+
+    int GetNextSamplesNonStatic(int numSamples, float* left, float* right, const GameObject& obj)
+    {
         int frames = 0;
         for(int i = 0; i < numSamples; ++i)
         {
@@ -92,12 +106,59 @@ public:
         return frames;
     }
 
-    void Seek(int position)
+    int GetNextSamplesStatic(int numSamples, float* left, float* right, const GameObject& obj)
     {
+        int frames = 0;
+        for(int i = 0; i < numSamples; ++i)
+        {
+            if(totalOffset >= data.sampleCount - 2)
+            {
+                if(this->totalLoops == -1)
+                {
+                    Reset();
+                }
+                else if(this->currentLoopCount < this->totalLoops)
+                {
+                    Reset();
+                    ++this->currentLoopCount;
+                }
+                else
+                {
+                    this->FillZeros(numSamples - i, left + i, right + i);
+                    return frames;
+                }
+            }
 
+            if (data.channels == ChannelType::Mono)
+            {
+                float* sampleArray = reinterpret_cast<float*>(data.data);
+
+                sampleType value = sampleArray[static_cast<int>(totalOffset)];
+
+                left[i] += value;
+                right[i] += value;
+                ++totalOffset; //+= this->playbackModifier;
+            }
+            else
+            {
+                float* sampleArray = reinterpret_cast<float*>(data.data);
+
+                sampleType value = sampleArray[static_cast<int>(totalOffset)];
+
+                left[i] += value;
+                ++totalOffset;
+
+                value = sampleArray[static_cast<int>(totalOffset)];
+
+                right[i] += value;
+                ++totalOffset;
+            }
+            ++frames;
+        }
+        return frames;
     }
 
-private:
+
     double totalOffset = 0;
     SoundData& data;
 };

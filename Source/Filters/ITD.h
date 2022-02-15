@@ -35,7 +35,7 @@ public:
         const auto& forward = listenerTransform.forward;
 
         // Calculate left and right directions to listener
-        auto rightDir = IVector3::Cross(up.Normalized(), forward.Normalized());
+        auto rightDir = IVector3::Cross(up, forward);
         auto leftDir = IVector3{0,0,0} - rightDir;
 
         // Calculate were left and right ear are located
