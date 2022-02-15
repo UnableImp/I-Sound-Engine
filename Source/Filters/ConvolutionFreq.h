@@ -139,26 +139,26 @@ private:
         // Normalize
         //-----------------------------------------
 
-        for(int i = 0; i < 512; i += 8)
-        {
-            __m256 one = _mm256_loadu_ps(&left[i]);
-            __m256 two = _mm256_loadu_ps(&leftOverlap[i]);
-
-            __m256 three = _mm256_loadu_ps(&right[i]);
-            __m256 four = _mm256_loadu_ps(&rightOverlap[i]);
-
-            __m256 out1 = _mm256_add_ps(one, two);
-            __m256 out2 = _mm256_add_ps(three, four);
-
-            _mm256_storeu_ps(&left[i], out1);
-            _mm256_storeu_ps(&right[i], out2);
-        }
-
-//        for(int i = 0; i < numSamples; ++i)
+//        for(int i = 0; i < 512; i += 8)
 //        {
-//            left[i] = (leftS[i] + leftOverlap[i]);
-//            right[i] = (rightS[i]  + rightOverlap[i]);
+//            __m256 one = _mm256_loadu_ps(&left[i]);
+//            __m256 two = _mm256_loadu_ps(&leftOverlap[i]);
+//
+//            __m256 three = _mm256_loadu_ps(&right[i]);
+//            __m256 four = _mm256_loadu_ps(&rightOverlap[i]);
+//
+//            __m256 out1 = _mm256_add_ps(one, two);
+//            __m256 out2 = _mm256_add_ps(three, four);
+//
+//            _mm256_storeu_ps(&left[i], out1);
+//            _mm256_storeu_ps(&right[i], out2);
 //        }
+
+        for(int i = 0; i < numSamples; ++i)
+        {
+            left[i] = (leftS[i] + leftOverlap[i]);
+            right[i] = (rightS[i]  + rightOverlap[i]);
+        }
 
         if(saveOverlap)
         {
