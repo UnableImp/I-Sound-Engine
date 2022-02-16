@@ -51,6 +51,11 @@ public:
     {
         auto start = std::chrono::steady_clock::now();
 
+        // Source signal never changes
+        memset(leftS + blockSize, 0,  BlockSize * sizeof(float));
+        memcpy(leftS, left, numSamples * sizeof(float));
+        fft.forwardToInternalLayout(leftS, reinterpret_cast<float *>(leftComplex));
+
         float crossFade = (obj.GetParam<float>("CrossFade"));
         if(crossFade != 0.0f)
         {
@@ -108,14 +113,11 @@ private:
         //-----------------------------------------
         // Left ear
         //-----------------------------------------
-        memset(leftS + blockSize, 0,  BlockSize * sizeof(float));
-        memcpy(leftS, left, numSamples * sizeof(float));
 
-        fft.forwardToInternalLayout(leftS, reinterpret_cast<float *>(leftComplex));
         fft.forwardToInternalLayout(leftIR, reinterpret_cast<float *>(rightComplex));
 
         fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 1.0f/ (numSamples * 2));
+                     reinterpret_cast<float *>(currentComplex), 0.5f / (numSamples * 2));
 
         fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), leftS);
 
@@ -126,7 +128,7 @@ private:
         fft.forwardToInternalLayout(rightIR, reinterpret_cast<float *>(rightComplex));
 
         fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 0.5f/ (numSamples * 2));
+                     reinterpret_cast<float *>(currentComplex), 0.5f / (numSamples * 2));
 
         fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), rightS);
 
@@ -136,12 +138,8 @@ private:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlap[i]);// / (numSamples * 2);
-            right[i] = (rightS[i]  + rightOverlap[i]);// / (numSamples * 2);
-            //left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
-            //right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
-
-
+            left[i] = (leftS[i] + leftOverlap[i]);
+            right[i] = (rightS[i]  + rightOverlap[i]);
         }
 
         if(saveOverlap)
