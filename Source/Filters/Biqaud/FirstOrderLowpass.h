@@ -24,11 +24,11 @@ public:
         T theta = 2 * pi * (cutoff / sampleRate);
         T gama = std::cos(theta) / (1 + std::sin(theta));
 
-        a0 = a1 = (1.0 - gama) / 2.0;
-        b1 = -gama;
-        c0 = 1;
+        this->a0 = this->a1 = (1.0 - gama) / 2.0;
+        this->b1 = -gama;
+        this->c0 = 1;
 
-        a2 = b2 = d0 = 0;
+        this->a2 = this->b2 = this->d0 = 0;
     }
 };
 
