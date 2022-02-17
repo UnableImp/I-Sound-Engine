@@ -10,10 +10,8 @@
 #include "AudioPackage/PackageManager.h"
 #include "RealTimeParameters/GameObjectManager.h"
 #include "WavContainer.h"
+#include "../Constants.h"
 
-constexpr float pi = 3.14159265359f;
-constexpr float delta = 0.003f;
-constexpr int blockSize = 512;
 
 template<typename sampleType>
 class HRIRCalculator : public Filter<sampleType>

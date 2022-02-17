@@ -19,6 +19,9 @@
 #include "Filters/ConvolutionFreq.h"
 #include "RealTimeParameters/GameObjectManager.h"
 
+#include "Filters/Biqaud/DualBiquad.h"
+#include "Filters/Biqaud/FirstOrderLowpass.h"
+
 #include <filesystem>
 
 #include <immintrin.h>
@@ -162,6 +165,39 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
     int samples = 0;
     do
     {
+        samples = eventManager.GetSamplesFromAllEvents(frameSize, frame);
+        for(int i = 0; i < frameSize; ++i)
+        {
+            short right = static_cast<short>(frame[i].rightChannel * (1 << 15));
+            short left = static_cast<short>(frame[i].leftChannel * (1 << 15));
+
+            tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
+            tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
+        }
+    } while (samples > 0);
+    delete [] frame;
+}
+
+static void simulateEventManagerDecreasingCutoff(EventManager& eventManager, const char* outFileName, int frameSize, DualBiquad<float>* qaud)
+{
+    WavFile wav("TestFiles/level.wav");
+    std::fstream tesConvert(outFileName, std::ios_base::binary | std::ios_base::out);
+    RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
+                          0,
+                          {'W', 'A', 'V', 'E'}};
+    tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConvert.write(reinterpret_cast<const char *>(&wav.GetFormat()), sizeof(FormatHeader));
+    GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
+    dataChunk.chunkSize = wav.GetDataSize();
+    tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    Frame<float>* frame = new Frame<float>[frameSize]();
+    int samples = 0;
+    int cutoff = 2000;
+    do
+    {
+        qaud->SetCutoff(cutoff);
+        cutoff -= 7;
         samples = eventManager.GetSamplesFromAllEvents(frameSize, frame);
         for(int i = 0; i < frameSize; ++i)
         {
@@ -1129,6 +1165,26 @@ TEST(Filters, FFTTest)
     ASSERT_EQ(vec[0], vec2[0]/32);
 }
 
+TEST(Filters, FirstOrderLowpass)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager, objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    FirstOrderLowpass<float>* lowpass1 = new FirstOrderLowpass<float>;
+    FirstOrderLowpass<float>* lowpass2 = new FirstOrderLowpass<float>;
+
+    DualBiquad<float>* qaud = new DualBiquad<float>(lowpass1, lowpass2);
+
+    eventManager.AddEvent(sample, qaud);
+    simulateEventManagerDecreasingCutoff(eventManager, "TestFiles/TESTFirstOrderLowPass.wav", 512, qaud);
+}
+
 static void Get2048Samples(Frame<float>* samples)
 {
     BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
@@ -1316,6 +1372,37 @@ static void Get100GameObjects(benchmark::State& state)
     }
 }
 BENCHMARK(Get100GameObjects);
+
+static void FirstOrderLowpass512Samples(benchmark::State& state)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    FirstOrderLowpass<float>* lowpass = new FirstOrderLowpass<float>;
+    lowpass->SetCutoff(1000);
+
+    Event event(0);
+    event.AddFilter(sample);
+    event.AddFilter(lowpass);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
+    for(auto _ : state)
+    {
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+    }
+}
+BENCHMARK(FirstOrderLowpass512Samples);
 
 static void HRTF512Samples(benchmark::State& state)
 {

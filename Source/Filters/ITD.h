@@ -11,8 +11,7 @@
 #include <chrono>
 #include "RealTimeParameters/GameObjectManager.h"
 #include "HRIRCalculator.h"
-
-constexpr int sampleRate = 44100;
+#include "Constants.h"
 
 class ITD : public Filter<float>
 {
