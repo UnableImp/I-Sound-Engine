@@ -1511,6 +1511,70 @@ static void FirstOrderLowpass512Samples(benchmark::State& state)
 }
 BENCHMARK(FirstOrderLowpass512Samples);
 
+static void SecondOrderLowpass512Samples(benchmark::State& state)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    SecondOrderLowpass<float>* lowpass = new SecondOrderLowpass<float>;
+    lowpass->SetCutoff(1000);
+
+    Event event(0);
+    event.AddFilter(sample);
+    event.AddFilter(lowpass);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
+    for(auto _ : state)
+    {
+        lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
+        //event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+    }
+}
+BENCHMARK(SecondOrderLowpass512Samples);
+
+static void LinkwitzRielyLowpass512Samples(benchmark::State& state)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    LinkwitzRileyLowpass<float>* lowpass = new LinkwitzRileyLowpass<float>;
+    lowpass->SetCutoff(1000);
+
+    Event event(0);
+    event.AddFilter(sample);
+    event.AddFilter(lowpass);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
+    for(auto _ : state)
+    {
+        lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
+        //event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+    }
+}
+BENCHMARK(LinkwitzRielyLowpass512Samples);
+
 static void HRTF512Samples(benchmark::State& state)
 {
     CreateKEMARAudioPack();
@@ -1576,35 +1640,6 @@ static void ITD512Samples(benchmark::State& state)
 }
 BENCHMARK(ITD512Samples);
 
-//static void Wav512Samples(benchmark::State& state)
-//{
-//    CreateKEMARAudioPack();
-//
-//    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
-//
-//    PackageManager packageManager;
-//    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
-//    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
-//    GameObjectManager objectManager;
-//    EventManager eventManager(packageManager,objectManager);
-//
-//    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
-//
-//    Event event(0);
-//    event.AddFilter(sample);
-//
-//    //eventManager.AddEvent(sample, convolver);
-//    Frame<float> buff[512];
-//
-//    GameObject obj;
-//    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
-//
-//    for(auto _ : state)
-//    {
-//        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
-//    }
-//}
-//BENCHMARK(Wav512Samples);
 
 static void Combined512Samples(benchmark::State& state)
 {
