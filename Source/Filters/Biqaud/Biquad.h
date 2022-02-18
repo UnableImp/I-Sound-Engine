@@ -52,8 +52,6 @@ protected:
     T a2;
     T b1;
     T b2;
-    T c0;
-    T d0;
 
     T x1;
     T x2;

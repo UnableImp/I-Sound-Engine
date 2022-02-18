@@ -33,6 +33,7 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParam("Woodworth", 1.0f);
     GameObject::SetParam("UseHRTF", 1.0f);
     GameObject::SetParam("UseITD" , 1.0f);
+    GameObject::SetParam("Q", 0.7f);
 
 }
 

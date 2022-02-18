@@ -21,6 +21,8 @@
 
 #include "Filters/Biqaud/DualBiquad.h"
 #include "Filters/Biqaud/FirstOrderLowpass.h"
+#include "Filters/Biqaud/SecondOrderLowpass.h"
+#include "Filters/Biqaud/LinkwitzRileyLowpass.h"
 
 #include <filesystem>
 
@@ -1165,7 +1167,7 @@ TEST(Filters, FFTTest)
     ASSERT_EQ(vec[0], vec2[0]/32);
 }
 
-TEST(Filters, FirstOrderLowpass)
+TEST(Filters, FirstOrderLowpassMoving)
 {
     BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/DrySignal.wav");
 
@@ -1182,8 +1184,112 @@ TEST(Filters, FirstOrderLowpass)
     DualBiquad<float>* qaud = new DualBiquad<float>(lowpass1, lowpass2);
 
     eventManager.AddEvent(sample, qaud);
-    simulateEventManagerDecreasingCutoff(eventManager, "TestFiles/TESTFirstOrderLowPass.wav", 512, qaud);
+    simulateEventManagerDecreasingCutoff(eventManager, "TestFiles/TESTFirstOrderLowPassMoving.wav", 512, qaud);
 }
+
+TEST(Filters, FirstOrderLowpassStill)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager, objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    FirstOrderLowpass<float>* lowpass1 = new FirstOrderLowpass<float>;
+    FirstOrderLowpass<float>* lowpass2 = new FirstOrderLowpass<float>;
+
+    DualBiquad<float>* quad = new DualBiquad<float>(lowpass1, lowpass2);
+    quad->SetCutoff(1000);
+
+    eventManager.AddEvent(sample, quad);
+    simulateEventManager(eventManager, "TestFiles/TESTFirstOrderLowPassStill.wav", 512);
+}
+
+TEST(Filters, SecondOrderLowpassMoving)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager, objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    SecondOrderLowpass<float>* lowpass1 = new SecondOrderLowpass<float>;
+    SecondOrderLowpass<float>* lowpass2 = new SecondOrderLowpass<float>;
+
+    DualBiquad<float>* qaud = new DualBiquad<float>(lowpass1, lowpass2);
+
+    eventManager.AddEvent(sample, qaud);
+    simulateEventManagerDecreasingCutoff(eventManager, "TestFiles/TESTSecondOrderLowPassMoving.wav", 512, qaud);
+}
+
+TEST(Filters, SecondOrderLowpassStill)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager, objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    SecondOrderLowpass<float>* lowpass1 = new SecondOrderLowpass<float>;
+    SecondOrderLowpass<float>* lowpass2 = new SecondOrderLowpass<float>;
+
+    DualBiquad<float>* quad = new DualBiquad<float>(lowpass1, lowpass2);
+    quad->SetCutoff(1000);
+
+    eventManager.AddEvent(sample, quad);
+    simulateEventManager(eventManager, "TestFiles/TESTSecondOrderLowPassStill.wav", 512);
+}
+
+TEST(Filters, LinkwitzRileyLowpassMoving)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager, objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+   LinkwitzRileyLowpass<float>* lowpass1 = new LinkwitzRileyLowpass<float>;
+   LinkwitzRileyLowpass<float>* lowpass2 = new LinkwitzRileyLowpass<float>;
+
+    DualBiquad<float>* qaud = new DualBiquad<float>(lowpass1, lowpass2);
+
+    eventManager.AddEvent(sample, qaud);
+    simulateEventManagerDecreasingCutoff(eventManager, "TestFiles/TESTLinkwitzRileyLowpassMoving.wav", 512, qaud);
+}
+
+TEST(Filters, LinkwitzRileyLowpassStill)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTWavBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTWavBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager, objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    SecondOrderLowpass<float>* lowpass1 = new SecondOrderLowpass<float>;
+    SecondOrderLowpass<float>* lowpass2 = new SecondOrderLowpass<float>;
+
+    DualBiquad<float>* quad = new DualBiquad<float>(lowpass1, lowpass2);
+    quad->SetCutoff(1000);
+
+    eventManager.AddEvent(sample, quad);
+    simulateEventManager(eventManager, "TestFiles/TESTLinkwitzRileyLowpassStill.wav", 512);
+}
+
 
 static void Get2048Samples(Frame<float>* samples)
 {
@@ -1399,7 +1505,8 @@ static void FirstOrderLowpass512Samples(benchmark::State& state)
 
     for(auto _ : state)
     {
-        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
+       //event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
     }
 }
 BENCHMARK(FirstOrderLowpass512Samples);

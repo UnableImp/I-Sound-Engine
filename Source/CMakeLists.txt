@@ -38,7 +38,7 @@ elseif(OS_Linux)
           )
 endif()
 
-add_library(ISoundEngine STATIC ${ISE_SOURCES} RingBuffer.h Filters/Biqaud/Biquad.h Filters/Biqaud/FirstOrderLowpass.h Constants.h Filters/Biqaud/DualBiquad.h)
+add_library(ISoundEngine STATIC ${ISE_SOURCES} RingBuffer.h Filters/Biqaud/Biquad.h Filters/Biqaud/FirstOrderLowpass.h Constants.h Filters/Biqaud/DualBiquad.h Filters/Biqaud/SecondOrderLowpass.h Filters/Biqaud/LinkwitzRileyLowpass.h)
 add_library(ISoundEngine_dynamic ${ISE_SOURCES})
 
 target_include_directories(ISoundEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
