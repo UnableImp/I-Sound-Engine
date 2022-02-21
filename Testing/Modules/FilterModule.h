@@ -24,6 +24,8 @@
 #include "Filters/Biqaud/SecondOrderLowpass.h"
 #include "Filters/Biqaud/LinkwitzRileyLowpass.h"
 
+#include "Filters/DistanceAttenuation.h"
+
 #include <filesystem>
 
 #include <immintrin.h>
@@ -1289,6 +1291,28 @@ TEST(Filters, LinkwitzRileyLowpassStill)
     eventManager.AddEvent(sample, quad);
     simulateEventManager(eventManager, "TestFiles/TESTLinkwitzRileyLowpassStill.wav", 512);
 }
+
+TEST(DistanceAttenuation, Forward)
+{
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/Siren.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+    objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {1,0,-130});
+    FirstOrderLowpass<float>* pass = new FirstOrderLowpass<float>;
+    DistanceAttenuation* itd = new DistanceAttenuation(pass);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    eventManager.AddEvent(10, sample, itd);
+    simulateEventManagerWithDirection(eventManager, "TestFiles/TESTDAForward.wav", 512, 10,  objectManager, {0,0,1/4.0f});
+}
+
 
 
 static void Get2048Samples(Frame<float>* samples)

@@ -38,9 +38,26 @@ protected:
     {
         return t*t;
     }
+    inline static sampleType EaseInCubic(sampleType t)
+    {
+        return t*t*t;
+    }
     inline static sampleType EaseInQuart(sampleType t)
     {
         return t*t*t*t;
+    }
+
+    inline sampleType EaseOutQuad(sampleType t)
+    {
+        return 1 - ((1 - t) * (1 - t));
+    }
+    inline sampleType EaseOutCubic(sampleType t)
+    {
+        return 1 - ((1-t)*(1-t)*(1-t)*(1-t));
+    }
+    inline sampleType EaseOutQuart(sampleType t)
+    {
+        return 1 - std::pow(2, -10*t);
     }
 
 };
