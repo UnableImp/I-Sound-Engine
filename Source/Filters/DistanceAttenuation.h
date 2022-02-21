@@ -12,6 +12,12 @@ class DistanceAttenuation : public Filter<float>
 public:
     DistanceAttenuation(Biquad<float>* lowpass) : lowpass(lowpass) {}
 
+    ~DistanceAttenuation()
+    {
+        if(lowpass)
+            delete lowpass;
+    }
+
     int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) override
     {
 
@@ -21,7 +27,6 @@ public:
         float distScaler = std::max(IVector3::Distance(listener.postion, source.postion) / obj.GetParam<float>("MaxSoundDistance"), 0.0f);
 
         float levelScaler = 1.0f;
-        float rollOffFunc = static_cast<int>(obj.GetParam<float>("RolloffFunc"));
         switch(static_cast<int>(obj.GetParam<float>("RolloffFunc")))
         {
             case 0:
@@ -48,10 +53,11 @@ public:
             default:
                 assert(!"Not a valid rolloff fucntion");
         }
-
-        lowpass->SetCutoff((levelScaler) * (sampleRate/2));
-        lowpass->GetNextSamples(numSamples, left, right, obj);
-
+        if(lowpass)
+        {
+            lowpass->SetCutoff((levelScaler) * (sampleRate / 2));
+            lowpass->GetNextSamples(numSamples, left, right, obj);
+        }
         for(int i = 0; i < numSamples; ++i)
         {
             left[i] *= levelScaler;

@@ -36,7 +36,7 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParam("Q", 0.7f);
     GameObject::SetParam("LowpassType", 0.0f);
     GameObject::SetParam("MaxSoundDistance", 100.0f);
-    GameObject::SetParam("RolloffFunc", 4.0f);
+    GameObject::SetParam("RolloffFunc", 0.0f);
     GameObject::SetParam("UseLowpass", 1.0f);
     GameObject::SetParam("DistanceIntensity", 4.0f);
 }

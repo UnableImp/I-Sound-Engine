@@ -26,6 +26,8 @@
 
 #include "Filters/DistanceAttenuation.h"
 
+#include "Filters/DualFilter.h"
+
 #include <filesystem>
 
 #include <immintrin.h>
@@ -635,6 +637,9 @@ static void CreateKEMARAudioPack()
     PackageEncoder encoder;
     std::filesystem::directory_iterator top("../HRIR/KEMAR/");
 
+    if(std::filesystem::exists("TestFiles/TESTKEMARHRIR.pck"))
+        return;
+
     for(auto& elev : top)
     {
         if(elev.is_directory())
@@ -1080,9 +1085,76 @@ TEST(Audio3D, RotationFast)
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
-    eventManager.AddEvent(10, sample, convolver, itd);
+    FirstOrderLowpass<float>* lowpass = new FirstOrderLowpass<float>;
+    DistanceAttenuation* attenuation = new DistanceAttenuation(lowpass);
+
+    eventManager.AddEvent(10, sample,attenuation, convolver, itd);
     simulateEventManagerWithCalulator(eventManager, "TestFiles/TEST3DAudio.wav", 512, 10, 10, objectManager, 1);
 }
+
+
+TEST(Audio3D, DoppleLeftRight)
+{
+    CreateKEMARAudioPack();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/Siren.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+    objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {20,0,-130});
+
+    FirstOrderLowpass<float>* pass = new FirstOrderLowpass<float>;
+    DistanceAttenuation* da = new DistanceAttenuation(pass);
+
+    HRIRCalculator<float> hrir(packageManager);
+    ITD* itd = new ITD();
+
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    GameObject::SetParam("RolloffFunc", 2.0f);
+
+    eventManager.AddEvent(10, sample, da, convolver, itd);
+    simulateEventManagerWithDirection(eventManager, "TestFiles/TEST3DAudioDopplerRightLeft.wav", 512, 10,  objectManager, {0,0,1/4.0f});
+}
+
+TEST(Audio3D, DoppleForward)
+{
+    CreateKEMARAudioPack();
+
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/Siren.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+    objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {-130,0,20});
+
+    FirstOrderLowpass<float>* pass = new FirstOrderLowpass<float>;
+    DistanceAttenuation* da = new DistanceAttenuation(pass);
+
+    HRIRCalculator<float> hrir(packageManager);
+    ITD* itd = new ITD();
+
+    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    GameObject::SetParam("RolloffFunc", 1.0f);
+
+    eventManager.AddEvent(10, sample, da, convolver, itd);
+    simulateEventManagerWithDirection(eventManager, "TestFiles/TEST3DAudioDopplerForward.wav", 512, 10,  objectManager, {1/4.0f,0,0});
+}
+
 
 TEST(Filters, WavLoop)
 {
@@ -1292,9 +1364,8 @@ TEST(Filters, LinkwitzRileyLowpassStill)
     simulateEventManager(eventManager, "TestFiles/TESTLinkwitzRileyLowpassStill.wav", 512);
 }
 
-TEST(DistanceAttenuation, Forward)
+void DistanceHelper(char* outName, float value)
 {
-
     BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/Siren.wav");
 
     PackageManager packageManager;
@@ -1306,14 +1377,47 @@ TEST(DistanceAttenuation, Forward)
     objectManager.SetGameObjectPosition(10, {1,0,-130});
     FirstOrderLowpass<float>* pass = new FirstOrderLowpass<float>;
     DistanceAttenuation* itd = new DistanceAttenuation(pass);
+    FirstOrderLowpass<float>* pass2 = new FirstOrderLowpass<float>;
+    DistanceAttenuation* itd2 = new DistanceAttenuation(pass2);
+
+    DualFilter* dualFilter = new DualFilter(itd, itd2);
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
-    eventManager.AddEvent(10, sample, itd);
-    simulateEventManagerWithDirection(eventManager, "TestFiles/TESTDAForward.wav", 512, 10,  objectManager, {0,0,1/4.0f});
+    GameObject::SetParam("RolloffFunc", value);
+
+    eventManager.AddEvent(10, sample, dualFilter);
+    simulateEventManagerWithDirection(eventManager, outName, 512, 10,  objectManager, {0,0,1/4.0f});
 }
 
-
+TEST(DistanceAttenuation, ForwardFunc1)
+{
+    DistanceHelper("TestFiles/TESTDistanceForwardFunc1.wav", 0);
+}
+TEST(DistanceAttenuation, ForwardFunc2)
+{
+    DistanceHelper("TestFiles/TESTDistanceForwardFunc2.wav", 1);
+}
+TEST(DistanceAttenuation, ForwardFunc3)
+{
+    DistanceHelper("TestFiles/TESTDistanceForwardFunc3.wav", 2);
+}
+TEST(DistanceAttenuation, ForwardFunc4)
+{
+    DistanceHelper("TestFiles/TESTDistanceForwardFunc4.wav", 3);
+}
+TEST(DistanceAttenuation, ForwardFunc5)
+{
+    DistanceHelper("TestFiles/TESTDistanceForwardFunc5.wav", 4);
+}
+TEST(DistanceAttenuation, ForwardFunc6)
+{
+    DistanceHelper("TestFiles/TESTDistanceForwardFunc6.wav", 5);
+}
+TEST(DistanceAttenuation, ForwardFunc7)
+{
+    DistanceHelper("TestFiles/TESTDistanceForwardFunc7.wav", 6);
+}
 
 static void Get2048Samples(Frame<float>* samples)
 {
@@ -1599,6 +1703,39 @@ static void LinkwitzRielyLowpass512Samples(benchmark::State& state)
 }
 BENCHMARK(LinkwitzRielyLowpass512Samples);
 
+static void DistanceAttenuation512Samples(benchmark::State& state)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    FirstOrderLowpass<float>* lowpass = new FirstOrderLowpass<float>;
+
+    DistanceAttenuation* attenuation = new DistanceAttenuation(lowpass);
+
+    Event event(0);
+    event.AddFilter(sample);
+    event.AddFilter(attenuation);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
+    for(auto _ : state)
+    {
+        //lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+    }
+}
+BENCHMARK(DistanceAttenuation512Samples);
+
 static void HRTF512Samples(benchmark::State& state)
 {
     CreateKEMARAudioPack();
@@ -1685,8 +1822,12 @@ static void Combined512Samples(benchmark::State& state)
 
     ITD* itd = new ITD();
 
+    FirstOrderLowpass<float>* pass2 = new FirstOrderLowpass<float>;
+    DistanceAttenuation* itd2 = new DistanceAttenuation(pass2);
+
     Event event(0);
     event.AddFilter(sample);
+    event.AddFilter(itd2);
     event.AddFilter(convolver);
     event.AddFilter(itd);
 
