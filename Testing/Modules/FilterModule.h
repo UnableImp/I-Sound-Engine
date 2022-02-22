@@ -1633,8 +1633,9 @@ static void FirstOrderLowpass512Samples(benchmark::State& state)
 
     for(auto _ : state)
     {
-        lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
-       //event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        //lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
     }
 }
 BENCHMARK(FirstOrderLowpass512Samples);
@@ -1665,8 +1666,9 @@ static void SecondOrderLowpass512Samples(benchmark::State& state)
 
     for(auto _ : state)
     {
-        lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
-        //event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        //lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
     }
 }
 BENCHMARK(SecondOrderLowpass512Samples);
@@ -1697,8 +1699,9 @@ static void LinkwitzRielyLowpass512Samples(benchmark::State& state)
 
     for(auto _ : state)
     {
-        lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
-        //event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        //lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
     }
 }
 BENCHMARK(LinkwitzRielyLowpass512Samples);
@@ -1732,6 +1735,7 @@ static void DistanceAttenuation512Samples(benchmark::State& state)
     {
         //lowpass->GetNextSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
         event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
     }
 }
 BENCHMARK(DistanceAttenuation512Samples);
@@ -1767,6 +1771,7 @@ static void HRTF512Samples(benchmark::State& state)
     for(auto _ : state)
     {
         event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
     }
 }
 BENCHMARK(HRTF512Samples);
@@ -1797,6 +1802,7 @@ static void ITD512Samples(benchmark::State& state)
     for(auto _ : state)
     {
         event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
     }
 }
 BENCHMARK(ITD512Samples);
@@ -1840,6 +1846,7 @@ static void Combined512Samples(benchmark::State& state)
     for(auto _ : state)
     {
         event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
     }
 }
 BENCHMARK(Combined512Samples);
