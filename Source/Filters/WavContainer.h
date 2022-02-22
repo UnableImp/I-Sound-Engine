@@ -28,7 +28,6 @@ public:
     virtual void Reset() override
     {
         totalOffset = 0;
-        this->RandomPitch();
     }
 
     // Fully contaioned sound object
