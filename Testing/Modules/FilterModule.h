@@ -1607,6 +1607,65 @@ static void Get100GameObjects(benchmark::State& state)
 }
 BENCHMARK(Get100GameObjects);
 
+
+static void ReadMono512Samples(benchmark::State& state)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    Event event(0);
+    event.AddFilter(sample);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
+    for(auto _ : state)
+    {
+
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
+    }
+}
+BENCHMARK(ReadMono512Samples);
+
+static void ReadStereo512Samples(benchmark::State& state)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");
+
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+
+    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+
+    Event event(0);
+    event.AddFilter(sample);
+
+    //eventManager.AddEvent(sample, convolver);
+    Frame<float> buff[512];
+
+    GameObject obj;
+    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+
+    for(auto _ : state)
+    {
+
+        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        sample->Reset();
+    }
+}
+BENCHMARK(ReadStereo512Samples);
+
 static void FirstOrderLowpass512Samples(benchmark::State& state)
 {
     BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/level.wav");

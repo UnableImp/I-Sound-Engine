@@ -62,7 +62,6 @@ public:
             memcpy(leftOld, left, sizeof(float) * numSamples);
             memcpy(rightOld, right, sizeof(float) * numSamples);
 
-
             GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, false);
             HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
             GetNextSamplesFromBuffer(numSamples, left, right, obj, true);
