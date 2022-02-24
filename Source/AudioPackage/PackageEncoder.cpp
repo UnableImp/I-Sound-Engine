@@ -37,7 +37,7 @@ ErrorNum PackageEncoder::WritePackage(std::string path)
     std::fstream bank(path.c_str(), std::ios_base::binary | std::ios_base::out);
     if(!bank.is_open())
     {
-        //std::cerr << std::strerror(errno) << std::endl;
+        std::cerr << std::strerror(errno) << std::endl;
         return ErrorNum::FailedToWriteFile;
     }
     //bank.write(reinterpret_cast<char*>(&bufferSize), sizeof(uint32_t));

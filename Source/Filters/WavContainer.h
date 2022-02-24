@@ -59,12 +59,11 @@ private:
 
     int GetNextSamplesStaticStereo(int numSamples, float* left, float* right, const GameObject& obj)
     {
-        int toRead = numSamples;
+        int toRead = numSamples * 2;
         if(toRead + totalOffset >= data.sampleCount - 2)
         {
-            toRead = (data.sampleCount - 2) - totalOffset;
+            toRead = ((data.sampleCount - 2) - totalOffset) / 2.0f;
         }
-
 
         for(int i = 0; i < toRead; ++i)
         {
@@ -188,7 +187,7 @@ private:
             }
             else
             {
-                this->FillZeros(numSamples - toRead, left + toRead, right + toRead);
+                return 0;
             }
         }
 
