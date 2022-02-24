@@ -60,9 +60,10 @@ private:
     int GetNextSamplesStaticStereo(int numSamples, float* left, float* right, const GameObject& obj)
     {
         int toRead = numSamples * 2;
-        if(toRead + totalOffset >= data.sampleCount - 4)
+        if(toRead + totalOffset >= data.sampleCount)
         {
-            toRead = ((data.sampleCount - 4) - totalOffset) / 2.0f;
+            //std::cout << static_cast<int>(totalOffset) << std::endl << data.sampleCount << std::endl << data.sampleCount -static_cast<int>(totalOffset) << std::endl << std::endl;
+            toRead = ((data.sampleCount) - totalOffset);
         }
 
         for(int i = 0; i < toRead/2; ++i)
@@ -90,6 +91,7 @@ private:
             }
             else
             {
+                //std::cout << static_cast<int>(totalOffset) << std::endl << data.sampleCount << std::endl << data.sampleCount -static_cast<int>(totalOffset) << std::endl << std::endl;
                 return toRead;
             }
         }
@@ -187,7 +189,7 @@ private:
             }
             else
             {
-                return 0;
+                return toRead;
             }
         }
 
