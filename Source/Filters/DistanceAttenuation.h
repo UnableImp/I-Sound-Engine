@@ -53,11 +53,19 @@ public:
             default:
                 assert(!"Not a valid rolloff fucntion");
         }
+
+        float lowpassScaler = levelScaler;
+        int power = GameObject::GetParam<float>("DistanceIntensity");
+       for(int i = 0; i < power; ++i)
+           lowpassScaler *= lowpassScaler;
+
+
         if(lowpass)
         {
-            lowpass->SetCutoff((levelScaler) * (sampleRate / 2));
+            lowpass->SetCutoff((lowpassScaler) * (sampleRate / 2));
             lowpass->GetNextSamples(numSamples, left, right, obj);
         }
+
         for(int i = 0; i < numSamples; ++i)
         {
             left[i] *= levelScaler;

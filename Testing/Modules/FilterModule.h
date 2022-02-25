@@ -1909,3 +1909,4 @@ static void Combined512Samples(benchmark::State& state)
     }
 }
 BENCHMARK(Combined512Samples);
+

@@ -38,7 +38,7 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParam("MaxSoundDistance", 100.0f);
     GameObject::SetParam("RolloffFunc", 0.0f);
     GameObject::SetParam("UseLowpass", 1.0f);
-    GameObject::SetParam("DistanceIntensity", 4.0f);
+    GameObject::SetParam("DistanceIntensity", 1.0f);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)
