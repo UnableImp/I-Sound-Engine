@@ -16,3 +16,6 @@
 [submodule "Libraries/pffft"]
 	path = Libraries/pffft
 	url = git@github.com:marton78/pffft.git
+[submodule "Libraries/libsofa"]
+	path = Libraries/libsofa
+	url = git@github.com:zkrolikowski/API_Cpp.git
