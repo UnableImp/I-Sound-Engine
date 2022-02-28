@@ -4,7 +4,6 @@
 
 #include "gtest/gtest.h"
 //#include "Modules/ContainerModule.h"
-#include "Modules/SofaModule.h"
 
 int main(int argc, char** argv)
 {
