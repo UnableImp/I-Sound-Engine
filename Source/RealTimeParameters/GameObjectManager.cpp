@@ -12,17 +12,12 @@ GameObjectManager manager; // TODO temp until somebetter to make sure its inited
 GameObjectManager::GameObjectManager()
 {
     std::any value = 512.0f;
-    std::any preprocess = 1.0f;
-    std::any phaseAlign = 1.0f;
-    std::any crossFade = 1.0f;
-    std::any headRadius = 0.0875f;
-    std::any distanceScaler = 1.00000f;
     GameObject::SetParam(std::string("Overlap"), value);
-    GameObject::SetParam("Preprocess", preprocess);
-    GameObject::SetParam("PhaseAlign", phaseAlign);
-    GameObject::SetParam("CrossFade", crossFade);
-    GameObject::SetParam("HeadRadius", headRadius);
-    GameObject::SetParam("DistanceScaler", distanceScaler);
+    GameObject::SetParam("Preprocess", 1.0f);
+    GameObject::SetParam("PhaseAlign", 1.0f);
+    GameObject::SetParam("CrossFade", 1.0f);
+    GameObject::SetParam("HeadRadius", 0.0875f);
+    GameObject::SetParam("DistanceScaler", 1.0f);
     GameObject::SetParam("Telemetries", 0.0f);
     GameObject::SetParam("DSPLoad", 0.0f);
     GameObject::SetParam("HRTFLoad", 0.0f);

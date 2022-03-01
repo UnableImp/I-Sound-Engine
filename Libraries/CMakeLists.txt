@@ -53,3 +53,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 
 endif()
+
+add_subdirectory(libmysofa)
+target_include_directories(mysofa-static PUBLIC libmysofa/src/hrtf)

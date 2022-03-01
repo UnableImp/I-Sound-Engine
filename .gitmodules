@@ -19,3 +19,6 @@
 [submodule "Libraries/libsofa"]
 	path = Libraries/libsofa
 	url = git@github.com:zkrolikowski/API_Cpp.git
+[submodule "Libraries/libmysofa"]
+	path = Libraries/libmysofa
+	url = git@github.com:hoene/libmysofa.git
