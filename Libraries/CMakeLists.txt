@@ -33,26 +33,10 @@ target_include_directories(PFFFT PUBLIC pffft)
 add_library(rapidjson INTERFACE)
 target_include_directories(rapidjson INTERFACE rapidjson/include)
 
-#sofa
-add_library(SOFA INTERFACE)
-target_include_directories(SOFA INTERFACE libsofa/libsofa/dependencies/include)
-target_include_directories(SOFA INTERFACE libsofa/libsofa/src)
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-    target_link_libraries(SOFA INTERFACE
-            ${CMAKE_CURRENT_SOURCE_DIR}/libsofa/libsofa/dependencies/lib/win/libcurl_imp_x64.lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/libsofa/libsofa/dependencies/lib/win/libhdf5_hl_x64.lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/libsofa/libsofa/dependencies/lib/win/netcdf_x64.lib
-            ${CMAKE_CURRENT_SOURCE_DIR}/libsofa/libsofa/dependencies/lib/win/zlib_x64.lib)
-
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        target_link_libraries(SOFA INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/libsofa/libsofa/lib/libsofa_debug_x64.lib)
-    else()
-        target_link_libraries(SOFA INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/libsofa/libsofa/lib/libsofa_x64.lib)
-    endif()
-
-endif()
-
+#libmysofa
+option(BUILD_TESTS "Build test programs" off)
 add_subdirectory(libmysofa)
 target_include_directories(mysofa-static PUBLIC libmysofa/src/hrtf)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    target_link_libraries(mysofa-static INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/libmysofa/windows/third-party/zlib-1.2.11/lib/zlibstatic.lib)
+endif()
