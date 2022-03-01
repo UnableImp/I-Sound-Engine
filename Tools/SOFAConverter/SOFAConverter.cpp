@@ -83,44 +83,67 @@ int SOFAToPck(char* sofaIn, char* packOut)
     float leftDelay;
     float rightDelay;
 
+    std::filesystem::create_directory("toDelete/");
+
     PackageEncoder encoder;
-    for(int i = 0; i < 360; ++i)
+    for(int j = -40; j < 90; ++j)
     {
-        float x = std::cos(i * 3.145f / 180.0f);
-        float y = std::sin(i * 3.145f / 180.0f);
-        float z = 0;
-        mysofa_getfilter_float_nointerp(hrtf, x, y, z, leftIR, rightIR, &leftDelay, &rightDelay);
+        std::cout << j << std::endl;
+        float z = j * 3.145f / 180.0f;
 
-        std::string path = "toDelete/0_";
-        if(i < 100)
-            path += "0";
-        if(i < 10)
-            path += "0";
-        path += std::to_string(i);
+        std::string elv = "toDelete/";
+        int encodingValue = j;
+        if(encodingValue < 0)
+        {
+            encodingValue += 360;
+        }
 
-        WriteFileFromBuffer(leftIR, path + "L.wav", filter_length, 10);
-        WriteFileFromBuffer(rightIR, path + "R.wav", filter_length, 10);
-        WriteFileFromBufferMinPhase(leftIR, path + "Lm.wav", filter_length, 10);
-        WriteFileFromBufferMinPhase(rightIR, path + "Rm.wav", filter_length, 10);
+        if(encodingValue < 100)
+            elv += "0";
+        if(encodingValue < 10)
+            elv += "0";
+        elv += std::to_string(encodingValue);
+        elv += "_";
 
-        uint64_t id = static_cast<uint64_t >(i) << 32;
-        id |= static_cast<uint64_t>(1) << 52;
-        encoder.AddFile(path + "L.wav", id, Encoding::PCM);
-        id |= static_cast<uint64_t>(1) << 51;
-        encoder.AddFile(path + "R.wav", id, Encoding::PCM);
+        for (int i = 0; i < 360; ++i)
+        {
+            float x = std::cos(i * 3.145f / 180.0f);
+            float y = std::sin(i * 3.145f / 180.0f);
+            mysofa_getfilter_float_nointerp(hrtf, x, y, z, leftIR, rightIR, &leftDelay, &rightDelay);
 
-        id = static_cast<uint64_t >(i) << 32;
-        id |= static_cast<uint64_t>(1) << 52;
-        id |= static_cast<uint64_t>(1) << 55;
-        encoder.AddFile(path + "Lm.wav", id, Encoding::PCM);
-        id |= static_cast<uint64_t>(1) << 51;
-        encoder.AddFile(path + "Rm.wav", id, Encoding::PCM);
+            std::string path = elv;
+            if (i < 100)
+                path += "0";
+            if (i < 10)
+                path += "0";
+            path += std::to_string(i);
+
+            WriteFileFromBuffer(leftIR, path + "L.wav", filter_length, 10);
+            WriteFileFromBuffer(rightIR, path + "R.wav", filter_length, 10);
+            WriteFileFromBufferMinPhase(leftIR, path + "Lm.wav", filter_length, 10);
+            WriteFileFromBufferMinPhase(rightIR, path + "Rm.wav", filter_length, 10);
+
+            uint64_t id = static_cast<uint64_t >(i) << 32;
+            id |= static_cast<uint64_t>(encodingValue) << 41;
+            id |= static_cast<uint64_t>(1) << 52;
+            encoder.AddFile(path + "L.wav", id, Encoding::PCM);
+            id |= static_cast<uint64_t>(1) << 51;
+            encoder.AddFile(path + "R.wav", id, Encoding::PCM);
+
+            id = static_cast<uint64_t >(i) << 32;
+            id |= static_cast<uint64_t>(encodingValue) << 41;
+            id |= static_cast<uint64_t>(1) << 52;
+            id |= static_cast<uint64_t>(1) << 55;
+            encoder.AddFile(path + "Lm.wav", id, Encoding::PCM);
+            id |= static_cast<uint64_t>(1) << 51;
+            encoder.AddFile(path + "Rm.wav", id, Encoding::PCM);
+        }
     }
-
     encoder.WritePackage("TestFiles/TESTDADECHRIR.pck");
     delete [] leftIR;
     delete [] rightIR;
     mysofa_close(hrtf);
+    std::filesystem::remove_all("toDelete/");
     return 0;
 }
 
