@@ -97,8 +97,6 @@ int PackageEncoder::WritePCM(char* buffer, FileInfo& file)
     // Write data
     wavFile.GetDataAsFloat(reinterpret_cast<float*>(buffer + offset));
     offset += dataChunk.chunkSize;
-    if(offset > 2000)
-        std::cout << "pain " << std::endl;
     return offset;
 }
 

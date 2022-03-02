@@ -1910,3 +1910,7 @@ static void Combined512Samples(benchmark::State& state)
 }
 BENCHMARK(Combined512Samples);
 
+//TEST(buildBank, testBank)
+//{
+//    BuildPackageAllPCM(0, "TestFiles/TESTEventPack.pck", "TestFiles/DrySignal.wav", "TestFiles/level.wav", "TestFiles/Siren.wav");
+//}

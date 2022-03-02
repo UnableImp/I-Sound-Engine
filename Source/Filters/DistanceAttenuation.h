@@ -6,6 +6,8 @@
 #define I_SOUND_ENGINE_DISTANCEATTENUATION_H
 #include "Filter.h"
 #include "Biqaud/Biquad.h"
+#include "RealTimeParameters/GameObject.h"
+#include "RealTimeParameters/GameObjectManager.h"
 
 class DistanceAttenuation : public Filter<float>
 {
@@ -53,6 +55,8 @@ public:
             default:
                 assert(!"Not a valid rolloff fucntion");
         }
+
+        levelScaler = std::max(std::min(levelScaler, 1.0f), 0.0f);
 
         float lowpassScaler = levelScaler;
         int power = GameObject::GetParam<float>("DistanceIntensity");

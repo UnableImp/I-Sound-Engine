@@ -23,6 +23,10 @@ static void WriteFileFromBuffer(const float* outData, std::string path, int coun
     //std::cout << outFile << " " << path << std::endl;
 
     std::fstream tesConvert(outFile.c_str(), std::ios_base::binary | std::ios_base::out);
+    if(!tesConvert)
+    {
+        std::cerr << "failed to create file" << std::endl;
+    }
     RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
                           0,
                           {'W', 'A', 'V', 'E'}};
@@ -33,11 +37,6 @@ static void WriteFileFromBuffer(const float* outData, std::string path, int coun
     GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
     dataChunk.chunkSize = count * 2;
     tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
-    std::fstream tesConver2(outFile.c_str(), std::ios_base::binary | std::ios_base::out);
-
-    tesConver2.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
-    tesConver2.write(reinterpret_cast<const char *>(&fmt), sizeof(FormatHeader));
-    tesConver2.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
 
     for(int i = 0; i < count; i++)
     {
@@ -54,7 +53,7 @@ static void WriteFileFromBufferMinPhase(const float* outData, std::string path, 
 {
     for(int i = 0; i < count; ++i)
     {
-        if(outData[i] > delta)
+        if(outData[i] * scaler > delta)
         {
             WriteFileFromBuffer(outData + i, path, count - i, scaler);
             break;
@@ -118,23 +117,23 @@ int SOFAToPck(char* sofaIn, char* packOut, uint64_t HRIRid)
                 path += "0";
             path += std::to_string(i);
 
-            WriteFileFromBuffer(leftIR, path + "L.wav", filter_length, 0.25f);
-            WriteFileFromBuffer(rightIR, path + "R.wav", filter_length, 0.25f);
-            WriteFileFromBufferMinPhase(leftIR, path + "Lm.wav", filter_length, 0.25f);
-            WriteFileFromBufferMinPhase(rightIR, path + "Rm.wav", filter_length, 0.25f);
+            WriteFileFromBuffer(leftIR, path + "L.wav", filter_length, 1.2);
+            WriteFileFromBuffer(rightIR, path + "R.wav", filter_length, 1.2);
+            WriteFileFromBufferMinPhase(leftIR, path + "Lm.wav", filter_length, 1.2);
+            WriteFileFromBufferMinPhase(rightIR, path + "Rm.wav", filter_length, 1.2);
 
             uint64_t id = static_cast<uint64_t >(i) << 32;
             id |= static_cast<uint64_t>(encodingValue) << 41;
             id |= static_cast<uint64_t>(HRIRid) << 52;
             if(encoder.AddFile(path + "L.wav", id, Encoding::PCM) != ErrorNum::NoErrors)
             {
-                std::cout << "Failed to save file" << std::endl;
+                std::cerr << "Failed to open file" << std::endl;
             }
 
             id |= static_cast<uint64_t>(1) << 51;
             if(encoder.AddFile(path + "R.wav", id, Encoding::PCM) != ErrorNum::NoErrors)
             {
-                std::cout << "Failed to save file" << std::endl;
+                std::cerr << "Failed to open file" << std::endl;
             }
 
             id = static_cast<uint64_t >(i) << 32;
@@ -143,13 +142,13 @@ int SOFAToPck(char* sofaIn, char* packOut, uint64_t HRIRid)
             id |= static_cast<uint64_t>(1) << 55;
             if(encoder.AddFile(path + "Lm.wav", id, Encoding::PCM) != ErrorNum::NoErrors)
             {
-                std::cout << "Failed to save file" << std::endl;
+                std::cerr << "Failed to open file" << std::endl;
             }
             id |= static_cast<uint64_t>(1) << 51;
 
             if(encoder.AddFile(path + "Rm.wav", id, Encoding::PCM) != ErrorNum::NoErrors)
             {
-                std::cout << "Failed to save file" << std::endl;
+                std::cerr << "Failed to open file" << std::endl;
             }
         }
     }
