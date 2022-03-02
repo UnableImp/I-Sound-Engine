@@ -20,7 +20,8 @@ public:
     HRIRCalculator(/*listener ref, object ref,*/PackageManager& packageManager ) : packageManager(packageManager),
                                                                                    currentEvel(0),
                                                                                    currentAngle(0),
-                                                                                   step(-1)
+                                                                                   step(-1),
+                                                                                   collection(static_cast<int>(GameObject::GetParam<float>("HRIRSet")))
     {}
 
     virtual ~HRIRCalculator() {}
@@ -57,26 +58,6 @@ public:
         if(currentAngle >= 360)
             currentAngle -= 360;
 
-//        int shouldLerp = static_cast<int>((obj.GetParam<float>("LerpHRIR")));
-//        if(shouldLerp)
-//        {
-//            if(step == -1)
-//            {
-//                step = 1;
-//                oldAngle = currentAngle;
-//            }
-//
-//            float overlapSize = (obj.GetParam<float>("Overlap"));
-//            currentAngle = this->lerp(oldAngle, currentAngle, overlapSize/blockSize);
-//
-//            ++step;
-//            if(((overlapSize/blockSize) * step) + 0.01 > 1.0f)
-//            {
-//                step = 1;
-//                oldAngle = currentAngle;
-//            }
-//        }
-
 
         // Calculate elevation
         IVector3 elevDir = listener.up - source.postion;
@@ -86,7 +67,7 @@ public:
 
         uint64_t id = static_cast<uint64_t>(currentAngle) << 32; // Angle
         id |= static_cast<uint64_t>(currentEvel) << 41; // Evelation
-        id |= static_cast<uint64_t>(1) << 52; // Kemar
+        id |= static_cast<uint64_t>(collection) << 52; // pack to use
 
         if(phaseAlign > 0.1f)
             id |= static_cast<uint64_t>(1) << 55;
@@ -112,6 +93,7 @@ private:
     int currentAngle;
     int currentEvel;
     int step;
+    int collection;
 
 };
 

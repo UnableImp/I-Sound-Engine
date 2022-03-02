@@ -15,7 +15,7 @@
 
 constexpr float delta = 0.003f;
 
-static void WriteFileFromBuffer(const float* outData, std::string path, int count, int scaler )
+static void WriteFileFromBuffer(const float* outData, std::string path, int count, float scaler )
 {
     WavFile wav("TestFiles/level.wav");
     const std::string& outFile = path;
@@ -42,7 +42,7 @@ static void WriteFileFromBuffer(const float* outData, std::string path, int coun
     for(int i = 0; i < count; i++)
     {
         if(std::abs(outData[i] * scaler) > 1)
-            std::cout << "problem" << std::endl;
+            std::cout << "problem: " << outData[i-1] << " " << outData[i] << " " << outData[i+1] <<  std::endl;
         short v = outData[i] * (1<<15) * scaler;
 
         tesConvert.write(reinterpret_cast<char*>(&v), sizeof(short));
@@ -50,7 +50,7 @@ static void WriteFileFromBuffer(const float* outData, std::string path, int coun
 }
 
 
-static void WriteFileFromBufferMinPhase(const float* outData, std::string path, int count, int scaler )
+static void WriteFileFromBufferMinPhase(const float* outData, std::string path, int count, float scaler )
 {
     for(int i = 0; i < count; ++i)
     {
@@ -64,7 +64,7 @@ static void WriteFileFromBufferMinPhase(const float* outData, std::string path, 
 
 
 
-int SOFAToPck(char* sofaIn, char* packOut)
+int SOFAToPck(char* sofaIn, char* packOut, uint64_t HRIRid)
 {
     int filter_length;
     int err;
@@ -118,28 +118,42 @@ int SOFAToPck(char* sofaIn, char* packOut)
                 path += "0";
             path += std::to_string(i);
 
-            WriteFileFromBuffer(leftIR, path + "L.wav", filter_length, 10);
-            WriteFileFromBuffer(rightIR, path + "R.wav", filter_length, 10);
-            WriteFileFromBufferMinPhase(leftIR, path + "Lm.wav", filter_length, 10);
-            WriteFileFromBufferMinPhase(rightIR, path + "Rm.wav", filter_length, 10);
+            WriteFileFromBuffer(leftIR, path + "L.wav", filter_length, 0.25f);
+            WriteFileFromBuffer(rightIR, path + "R.wav", filter_length, 0.25f);
+            WriteFileFromBufferMinPhase(leftIR, path + "Lm.wav", filter_length, 0.25f);
+            WriteFileFromBufferMinPhase(rightIR, path + "Rm.wav", filter_length, 0.25f);
 
             uint64_t id = static_cast<uint64_t >(i) << 32;
             id |= static_cast<uint64_t>(encodingValue) << 41;
-            id |= static_cast<uint64_t>(1) << 52;
-            encoder.AddFile(path + "L.wav", id, Encoding::PCM);
+            id |= static_cast<uint64_t>(HRIRid) << 52;
+            if(encoder.AddFile(path + "L.wav", id, Encoding::PCM) != ErrorNum::NoErrors)
+            {
+                std::cout << "Failed to save file" << std::endl;
+            }
+
             id |= static_cast<uint64_t>(1) << 51;
-            encoder.AddFile(path + "R.wav", id, Encoding::PCM);
+            if(encoder.AddFile(path + "R.wav", id, Encoding::PCM) != ErrorNum::NoErrors)
+            {
+                std::cout << "Failed to save file" << std::endl;
+            }
 
             id = static_cast<uint64_t >(i) << 32;
             id |= static_cast<uint64_t>(encodingValue) << 41;
-            id |= static_cast<uint64_t>(1) << 52;
+            id |= static_cast<uint64_t>(HRIRid) << 52;
             id |= static_cast<uint64_t>(1) << 55;
-            encoder.AddFile(path + "Lm.wav", id, Encoding::PCM);
+            if(encoder.AddFile(path + "Lm.wav", id, Encoding::PCM) != ErrorNum::NoErrors)
+            {
+                std::cout << "Failed to save file" << std::endl;
+            }
             id |= static_cast<uint64_t>(1) << 51;
-            encoder.AddFile(path + "Rm.wav", id, Encoding::PCM);
+
+            if(encoder.AddFile(path + "Rm.wav", id, Encoding::PCM) != ErrorNum::NoErrors)
+            {
+                std::cout << "Failed to save file" << std::endl;
+            }
         }
     }
-    encoder.WritePackage("TestFiles/TESTDADECHRIR.pck");
+    encoder.WritePackage(packOut);
     delete [] leftIR;
     delete [] rightIR;
     mysofa_close(hrtf);
@@ -149,10 +163,10 @@ int SOFAToPck(char* sofaIn, char* packOut)
 
 int main(int argc, char** argv)
 {
-    if(argc < 3)
+    if(argc < 4)
         std::cout << "not enough args" << std::endl;
 
-    SOFAToPck(argv[1], argv[2]);
+    SOFAToPck(argv[1], argv[2], std::stoi(argv[3]));
 
     return 0;
 }
