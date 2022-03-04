@@ -35,6 +35,21 @@ public:
         const auto& source = obj.GetTransform();
 
         IVector3 sourceDir = source.postion - listener.postion;
+        IVector3 parralleDir = IVector3{sourceDir.x, listener.forward.y, sourceDir.z};
+
+        float elevation = IVector3::Angle(parralleDir, sourceDir);
+        // Basic not scalable elevation check
+        if(source.postion.y < listener.postion.y)
+            elevation *= -1;
+
+        currentEvel = static_cast<int>((elevation * 180 / pi));
+        if(currentEvel < -40)
+            currentEvel = -40;
+        if(currentEvel < 0)
+            currentEvel += 360;
+
+        //std::cout << elevation << " " << (elevation * 180) / pi << std::endl;
+
 
         // Get the angle betwen the forward vector and the source
         float listenerAngle = std::atan2(listener.forward.z,listener.forward.x);

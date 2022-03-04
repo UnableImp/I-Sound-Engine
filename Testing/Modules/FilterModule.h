@@ -258,6 +258,50 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
     delete [] frame;
 }
 
+static void simulateEventManagerWithElevation(EventManager& eventManager, const char* outFileName, int frameSize, int id, int start, GameObjectManager& objManager, float speed)
+{
+    WavFile wav("TestFiles/level.wav");
+    std::fstream tesConvert(outFileName, std::ios_base::binary | std::ios_base::out);
+    RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
+                          0,
+                          {'W', 'A', 'V', 'E'}};
+    tesConvert.write(reinterpret_cast<char *>(&riffHeader), sizeof(riffHeader));
+    tesConvert.write(reinterpret_cast<const char *>(&wav.GetFormat()), sizeof(FormatHeader));
+    GenericHeaderChunk dataChunk{{'d', 'a', 't', 'a'}, wav.GetDataSize()};
+    dataChunk.chunkSize = wav.GetDataSize();
+    tesConvert.write(reinterpret_cast<char *>(&dataChunk), sizeof(dataChunk));
+
+    Frame<float>* frame = new Frame<float>[frameSize]();
+    float angle = 0;
+    int samples = 0;
+    int totalSamples = 0;
+    do
+    {
+        samples = eventManager.GetSamplesFromAllEvents(frameSize, frame);
+        for(int i = 0; i < frameSize; ++i)
+        {
+            short right = static_cast<short>(frame[i].rightChannel * (1 << 15));
+            short left = static_cast<short>(frame[i].leftChannel * (1 << 15));
+
+            tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
+            tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
+        }
+
+        totalSamples += samples;
+        {
+            angle += speed;
+
+            GameObject obj;
+            objManager.GetGameObject(10, obj);
+            IVector3 curPos = obj.GetPosition();
+            IVector3 newPos{curPos.x, curPos.y + speed, curPos.z};
+            objManager.SetGameObjectPosition(id, newPos);
+        }
+
+    } while (samples > 0);
+    delete [] frame;
+}
+
 static void simulateEventManagerWithDirection(EventManager& eventManager, const char* outFileName, int frameSize, int id, GameObjectManager& objManager, IVector3 dir)
 {
     WavFile wav("TestFiles/level.wav");
@@ -779,7 +823,7 @@ TEST(HRTF, HRTFAtOnePoint)
 
 
     objectManager.AddObject(10);
-    objectManager.SetGameObjectPosition(10, {0.312,0.123,0.45});
+    objectManager.SetGameObjectPosition(10, {0.312,0,0.45});
     Transform trans;
     trans.forward = {0,0,1};
     objectManager.SetListenerTransform(trans);
@@ -918,6 +962,7 @@ TEST(HRTF, HRTFRotationSlow)
     GameObjectManager objectManager;
     EventManager eventManager(packageManager,objectManager);
     objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {10,0,10});
 
     HRIRCalculator<float> hrir(packageManager);
     //hrir.SetAngle(110);
@@ -945,6 +990,7 @@ TEST(HRTF, HRTFRotationFast)
     GameObjectManager objectManager;
     EventManager eventManager(packageManager,objectManager);
     objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, {10,0,10});
 
     HRIRCalculator<float> hrir(packageManager);
     //hrir.SetAngle(110);
@@ -958,6 +1004,32 @@ TEST(HRTF, HRTFRotationFast)
     eventManager.AddEvent(10, sample, convolver);
     simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTConvolerRotatingFast.wav", 512, 10, 10, objectManager, 1);
 }
+
+//TEST(HRTF, HRTFElevation)
+//{
+//
+//    BuildPackageAllPCM(0, "TestFiles/TESTConvBank.pck","TestFiles/DrySignal.wav");
+//
+//    PackageManager packageManager;
+//    packageManager.LoadPack("TestFiles/TESTConvBank.pck");
+//    packageManager.LoadPack("../HRIR/KEMAR_s.pck");
+//
+//    GameObjectManager objectManager;
+//    EventManager eventManager(packageManager,objectManager);
+//    objectManager.AddObject(10);
+//    objectManager.SetGameObjectPosition(10, {10, -10, 0});
+//    HRIRCalculator<float> hrir(packageManager);
+//    //hrir.SetAngle(110);
+//    //hrir.SetElev(10);
+//
+//
+//    ConvolutionFreq* convolver = new ConvolutionFreq(512, hrir);
+//
+//    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
+//
+//    eventManager.AddEvent(10, sample, convolver);
+//    simulateEventManagerWithElevation(eventManager, "TestFiles/TESTConvolerElevation.wav", 512, 10, 10, objectManager, 1);
+//}
 
 TEST(ITD, ITDRotationFast)
 {
