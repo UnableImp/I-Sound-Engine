@@ -1149,6 +1149,7 @@ TEST(Audio3D, RotationFast)
     GameObjectManager objectManager;
     EventManager eventManager(packageManager,objectManager);
     objectManager.AddObject(10);
+    objectManager.SetGameObjectPosition(10, IVector3{10,0,0});
 
     HRIRCalculator<float> hrir(packageManager);
     ITD* itd = new ITD();
