@@ -48,7 +48,7 @@ public:
         if(currentEvel < 0)
             currentEvel += 360;
 
-        //std::cout << elevation << " " << (elevation * 180) / pi << std::endl;
+        //std::cout << elevation << " " << (elevation * 180) / pi << " " << sourceDir << " " << parralleDir << std::endl;
 
 
         // Get the angle betwen the forward vector and the source

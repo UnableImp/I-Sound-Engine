@@ -1004,7 +1004,7 @@ TEST(HRTF, HRTFRotationFast)
     eventManager.AddEvent(10, sample, convolver);
     simulateEventManagerWithCalulator(eventManager, "TestFiles/TESTConvolerRotatingFast.wav", 512, 10, 10, objectManager, 1);
 }
-
+//
 //TEST(HRTF, HRTFElevation)
 //{
 //
@@ -1028,7 +1028,7 @@ TEST(HRTF, HRTFRotationFast)
 //    WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 //
 //    eventManager.AddEvent(10, sample, convolver);
-//    simulateEventManagerWithElevation(eventManager, "TestFiles/TESTConvolerElevation.wav", 512, 10, 10, objectManager, 1);
+//    simulateEventManagerWithElevation(eventManager, "TestFiles/TESTConvolerElevation.wav", 512, 10, 10, objectManager, 0.1);
 //}
 
 TEST(ITD, ITDRotationFast)

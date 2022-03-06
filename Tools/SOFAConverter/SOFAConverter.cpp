@@ -88,7 +88,6 @@ int SOFAToPck(char* sofaIn, char* packOut, uint64_t HRIRid)
     for(int j = -40; j < 90; ++j)
     {
         std::cout << j << std::endl;
-        float z = j * 3.145f / 180.0f;
 
         std::string elv = "toDelete/";
         int encodingValue = j;
@@ -106,8 +105,13 @@ int SOFAToPck(char* sofaIn, char* packOut, uint64_t HRIRid)
 
         for (int i = 0; i < 360; ++i)
         {
-            float x = std::cos(i * 3.145f / 180.0f);
-            float y = std::sin(i * 3.145f / 180.0f);
+            float s2c[3] = {static_cast<float>(i), static_cast<float>(j), 1.0f};
+            mysofa_s2c(s2c);
+            float x = s2c[0];
+            float y = s2c[1];
+            float z = s2c[2];
+
+
             mysofa_getfilter_float_nointerp(hrtf, x, y, z, leftIR, rightIR, &leftDelay, &rightDelay);
 
             std::string path = elv;
@@ -117,10 +121,10 @@ int SOFAToPck(char* sofaIn, char* packOut, uint64_t HRIRid)
                 path += "0";
             path += std::to_string(i);
 
-            WriteFileFromBuffer(leftIR, path + "L.wav", filter_length, 1.2);
-            WriteFileFromBuffer(rightIR, path + "R.wav", filter_length, 1.2);
-            WriteFileFromBufferMinPhase(leftIR, path + "Lm.wav", filter_length, 1.2);
-            WriteFileFromBufferMinPhase(rightIR, path + "Rm.wav", filter_length, 1.2);
+            WriteFileFromBuffer(leftIR, path + "L.wav", filter_length, 0.2);
+            WriteFileFromBuffer(rightIR, path + "R.wav", filter_length, 0.2);
+            WriteFileFromBufferMinPhase(leftIR, path + "Lm.wav", filter_length, 0.2);
+            WriteFileFromBufferMinPhase(rightIR, path + "Rm.wav", filter_length, 0.2);
 
             uint64_t id = static_cast<uint64_t >(i) << 32;
             id |= static_cast<uint64_t>(encodingValue) << 41;
