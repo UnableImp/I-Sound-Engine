@@ -68,7 +68,7 @@ ISE_API uint64_t ISoundEngine::PostEvent(uint64_t id)
     return eventManager->AddEvent(id);
 }
 
-ISE_API uint64_t PostEventObject(uint64_t id, uint64_t gameobject)
+ISE_API uint64_t ISoundEngine::PostEventObject(uint64_t id, uint64_t gameobject)
 {
     return eventManager->AddEvent(id, gameobject);
 }

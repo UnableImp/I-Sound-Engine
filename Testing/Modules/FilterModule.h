@@ -38,6 +38,8 @@
 
 #include "Filters/ITD.h"
 
+#include "RingBuffer.h"
+
 template<typename sampleType>
 inline static sampleType lerp(sampleType a, sampleType b, float t)
 {
@@ -1680,6 +1682,38 @@ static void Get100GameObjects(benchmark::State& state)
 }
 BENCHMARK(Get100GameObjects);
 
+static void RingBufferWrite(benchmark::State& state)
+{
+    RingBuffer<int> buff(1024);
+    int num = 0;
+    int64_t max = 100 * 1000;
+    for(auto _ : state)
+    {
+
+        for (int64_t i = 0; i != max; ++i)
+        {
+            buff.put(num);
+            ++num;
+        }
+    }
+}
+BENCHMARK(RingBufferWrite);
+
+static void RingBufferRemove(benchmark::State& state)
+{
+    RingBuffer<int> buff(1024);
+    int num = 0;
+    int64_t max = 100 * 1000;
+    for(auto _ : state)
+    {
+
+        for (int64_t i = 0; i != max; ++i)
+        {
+            benchmark::DoNotOptimize(buff.get(num));
+        }
+    }
+}
+BENCHMARK(RingBufferWrite);
 
 static void ReadMono512Samples(benchmark::State& state)
 {
