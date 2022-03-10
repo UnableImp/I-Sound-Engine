@@ -12,11 +12,12 @@
 #include "RealTimeParameters/GameObjectManager.h"
 #include "HRIRCalculator.h"
 #include "Constants.h"
+#include "RingDeque.h"
 
 class ITD : public Filter<float>
 {
 public:
-    ITD() : rightDelaySamplesOld(-1), leftDelaySamplesOld(-1) {}
+    ITD() : rightDelaySamplesOld(-1), leftDelaySamplesOld(-1), leftDelay(1<<17), rightDelay(1<<17) {}
     virtual ~ITD() {}
     /*!
      * Fills a buffer with audio samples, if no audio data is available zeros are filled
@@ -148,8 +149,8 @@ public:
 
 
 private:
-    std::deque<float> leftDelay;
-    std::deque<float> rightDelay;
+    RingDeque<float> leftDelay;
+    RingDeque<float> rightDelay;
     int leftDelaySamplesOld;
     int rightDelaySamplesOld;
 };
