@@ -10,6 +10,7 @@
 #include "pffft.hpp"
 #include <deque>
 #include <chrono>
+#include "RingDeque.h"
 
 constexpr int BlockSize = 512;
 
@@ -19,8 +20,8 @@ public:
     ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(BlockSize * 2),
     HRIR(HRIR),
     Overlap(static_cast<int>((GameObject::GetParam<float>("Overlap")))),
-    leftOverlap((BlockSize * 2) - Overlap),
-    rightOverlap((BlockSize * 2) - Overlap)
+    leftOverlap( 1024,((BlockSize * 2) - Overlap) - 1),
+    rightOverlap( 1024,((BlockSize * 2) - Overlap) - 1)
     {
         currentComplex = new std::complex<float>[size* 2]();
 
@@ -180,8 +181,8 @@ private:
     std::complex<float>* currentComplex;
 
 
-    std::deque<float> leftOverlap;
-    std::deque<float> rightOverlap;
+    RingDeque<float> leftOverlap;
+    RingDeque<float> rightOverlap;
 
     pffft::Fft<float> fft;
     HRIRCalculator<float>& HRIR;

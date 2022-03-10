@@ -14,7 +14,7 @@ public:
         buffer = new T[size]();
     }
 
-    RingDeque(int size, int startingSize) : flag(size - 1), frontIndex(startingSize), backIndex(0), sizeIndex(0)
+    RingDeque(int size, int startingSize) : flag(size - 1), frontIndex(startingSize), sizeIndex(startingSize), backIndex(0)
     {
         buffer = new T[size]();
     }
