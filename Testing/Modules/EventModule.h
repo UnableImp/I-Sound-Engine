@@ -96,6 +96,8 @@ static void simulateEventManager(EventManager& eventManager, const char* outFile
 {
     WavFile wav("TestFiles/level.wav");
     std::fstream tesConvert(outFileName, std::ios_base::binary | std::ios_base::out);
+    if(!tesConvert)
+        ASSERT_ANY_THROW("File failed to open");
     RiffHeader riffHeader{{'R', 'I', 'F', 'F'},
                           0,
                           {'W', 'A', 'V', 'E'}};

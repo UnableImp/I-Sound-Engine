@@ -11,9 +11,8 @@
 #include <chrono>
 #include "RealTimeParameters/GameObjectManager.h"
 #include "HRIRCalculator.h"
+#include "Constants.h"
 #include "RingDeque.h"
-
-constexpr int sampleRate = 44100;
 
 class ITD : public Filter<float>
 {

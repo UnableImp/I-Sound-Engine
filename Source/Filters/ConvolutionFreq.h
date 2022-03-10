@@ -10,7 +10,6 @@
 #include "pffft.hpp"
 #include <deque>
 #include <chrono>
-#include "RingBuffer.h"
 
 constexpr int BlockSize = 512;
 
@@ -20,8 +19,8 @@ public:
     ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(BlockSize * 2),
     HRIR(HRIR),
     Overlap(static_cast<int>((GameObject::GetParam<float>("Overlap")))),
-    leftOverlap(1024),
-    rightOverlap(1024)
+    leftOverlap((BlockSize * 2) - Overlap),
+    rightOverlap((BlockSize * 2) - Overlap)
     {
         currentComplex = new std::complex<float>[size* 2]();
 
@@ -52,9 +51,9 @@ public:
     {
         auto start = std::chrono::steady_clock::now();
 
+        // Source signal never changes
         memset(leftS + blockSize, 0,  BlockSize * sizeof(float));
         memcpy(leftS, left, numSamples * sizeof(float));
-
         fft.forwardToInternalLayout(leftS, reinterpret_cast<float *>(leftComplex));
 
         float crossFade = (obj.GetParam<float>("CrossFade"));
@@ -62,8 +61,6 @@ public:
         {
             memcpy(leftOld, left, sizeof(float) * numSamples);
             memcpy(rightOld, right, sizeof(float) * numSamples);
-//            auto overlap1 = leftOverlap;
-//            auto overlap2 = rightOverlap;
 
             GetNextSamplesFromBuffer(numSamples, leftOld, rightOld, obj, false);
             HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
@@ -91,7 +88,7 @@ public:
         else
         {
             HRIR.GetNextSamples(BlockSize * 2, leftIR, rightIR, obj);
-            GetNextSamplesFromBuffer(numSamples, left, right, obj, true);
+            GetNextSamplesFromBuffer(numSamples, left, right, obj,  true);
         }
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<float> time = end - start;
@@ -119,7 +116,7 @@ private:
         fft.forwardToInternalLayout(leftIR, reinterpret_cast<float *>(rightComplex));
 
         fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 1.0f/ (numSamples * 2));
+                     reinterpret_cast<float *>(currentComplex), 0.5f / (numSamples * 2));
 
         fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), leftS);
 
@@ -130,7 +127,7 @@ private:
         fft.forwardToInternalLayout(rightIR, reinterpret_cast<float *>(rightComplex));
 
         fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 0.5f/ (numSamples * 2));
+                     reinterpret_cast<float *>(currentComplex), 0.5f / (numSamples * 2));
 
         fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), rightS);
 
@@ -140,25 +137,28 @@ private:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] = (leftS[i] + leftOverlap.get((Overlap - i) - 1));// / (numSamples * 2);
-            right[i] = (rightS[i]  + rightOverlap.get((Overlap - i) - 1));// / (numSamples * 2);
-            //left[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
-            //right[i] *= (static_cast<float>(Overlap) / BlockSize) * 0.5f;
-
+            left[i] = (leftS[i] + leftOverlap[i]);
+            right[i] = (rightS[i]  + rightOverlap[i]);
         }
 
         if(saveOverlap)
         {
-//            for (int i = Overlap, j = 0; j < leftOverlapT.size(); ++i, ++j)
-//            {
-//                leftOverlapT[j] += leftS[i];
-//                rightOverlapT[j] += rightS[i];
-//            }
+            for (int i = 0; i < numSamples; ++i)
+            {
+                leftOverlap.pop_front();
+                rightOverlap.pop_front();
+            }
+
+            for (int i = Overlap, j = 0; j < leftOverlap.size(); ++i, ++j)
+            {
+                leftOverlap[j] += leftS[i];
+                rightOverlap[j] += rightS[i];
+            }
 
             for (int i = (BlockSize * 2) - Overlap; i < BlockSize * 2; ++i)
             {
-                leftOverlap.put(leftS[i]);
-                rightOverlap.put(rightS[i]);
+                leftOverlap.push_back(leftS[i]);
+                rightOverlap.push_back(rightS[i]);
             }
         }
     }
@@ -180,8 +180,8 @@ private:
     std::complex<float>* currentComplex;
 
 
-    RingBuffer<float> leftOverlap;
-    RingBuffer<float> rightOverlap;
+    std::deque<float> leftOverlap;
+    std::deque<float> rightOverlap;
 
     pffft::Fft<float> fft;
     HRIRCalculator<float>& HRIR;

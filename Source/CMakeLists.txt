@@ -23,7 +23,8 @@ set(ISE_SOURCES
   "Events/Event.h"
   "Events/Event.cpp"
   "AudioFrame.h" AudioPackage/PackageManager.cpp AudioPackage/PackageManager.h Events/EventManager.cpp Events/EventManager.h RealTimeAudio/RealTimeAudio.cpp RealTimeAudio/RealTimeAudio.h Events/EventParser.cpp Events/EventParser.h Events/FilterParsers/DeserializeFilter.h Interface/ISoundEngine.cpp Interface/ISoundEngine.h Filters/ConvolutionFreq.h Filters/HRIRCalculator.h RealTimeParameters/Transform.h RealTimeParameters/IVector3.h RealTimeParameters/GameObjectManager.cpp RealTimeParameters/GameObjectManager.h RealTimeParameters/GameObject.cpp RealTimeParameters/GameObject.h
-        Events/FilterParsers/Deserialzied3DSound.cpp Events/FilterParsers/Deserialized3DSound.h Events/FilterParsers/DeserializedSound.cpp Actions/Action.h Actions/PostEvent.h Actions/StopEvent.h Filters/ITD.h Events/FilterParsers/DeserializedITD.cpp Events/FilterParsers/DeserializedITD.h)
+        Events/FilterParsers/Deserialzied3DSound.cpp Events/FilterParsers/Deserialized3DSound.h Events/FilterParsers/DeserializedSound.cpp Actions/Action.h Actions/PostEvent.h Actions/StopEvent.h Filters/ITD.h Events/FilterParsers/DeserializedITD.cpp Events/FilterParsers/DeserializedITD.h
+        Events/FilterParsers/DeserializedDistance.cpp Events/FilterParsers/DeserializedDistance.h)
 
 # append platform specific sources
 if (OS_Windows)
@@ -38,7 +39,7 @@ elseif(OS_Linux)
           )
 endif()
 
-add_library(ISoundEngine STATIC ${ISE_SOURCES} RingBuffer.h RingDeque.h)
+add_library(ISoundEngine STATIC ${ISE_SOURCES} RingBuffer.h Filters/Biqaud/Biquad.h Filters/Biqaud/FirstOrderLowpass.h Constants.h Filters/Biqaud/DualBiquad.h Filters/Biqaud/SecondOrderLowpass.h Filters/Biqaud/LinkwitzRileyLowpass.h Filters/DistanceAttenuation.h Filters/DualFilter.h )
 add_library(ISoundEngine_dynamic ${ISE_SOURCES})
 
 target_include_directories(ISoundEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

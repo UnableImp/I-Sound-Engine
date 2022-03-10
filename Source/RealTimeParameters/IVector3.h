@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 struct IVector3
 {
@@ -102,7 +103,12 @@ struct IVector3
 
     static float Angle(const IVector3& lhs, const IVector3& rhs)
     {
-        return std::acos(IVector3::Dot(lhs, rhs) / (lhs.Mag() * rhs.Mag()));
+//        float mag = lhs.Mag() * rhs.Mag();
+//        float dot = IVector3::Dot(lhs, rhs);
+//        float out = dot / mag;
+//        float angle = std::acos(out);
+//        return angle;
+        return std::acos(std::clamp(IVector3::Dot(lhs, rhs) / (lhs.Mag() * rhs.Mag()), -1.0f, 1.0f));
     }
 
 };

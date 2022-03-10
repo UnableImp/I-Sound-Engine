@@ -11,18 +11,13 @@ GameObjectManager manager; // TODO temp until somebetter to make sure its inited
 
 GameObjectManager::GameObjectManager()
 {
-    std::any value = 512.0f;
-    std::any preprocess = 1.0f;
-    std::any phaseAlign = 1.0f;
-    std::any crossFade = 1.0f;
-    std::any headRadius = 0.0875f;
-    std::any distanceScaler = 1.00000f;
-    GameObject::SetParam(std::string("Overlap"), value);
-    GameObject::SetParam("Preprocess", preprocess);
-    GameObject::SetParam("PhaseAlign", phaseAlign);
-    GameObject::SetParam("CrossFade", crossFade);
-    GameObject::SetParam("HeadRadius", headRadius);
-    GameObject::SetParam("DistanceScaler", distanceScaler);
+    GameObject::SetParam("HRIRSet", 1.0f);
+    GameObject::SetParam("Overlap", 512.0f);
+    GameObject::SetParam("Preprocess", 1.0f);
+    GameObject::SetParam("PhaseAlign", 1.0f);
+    GameObject::SetParam("CrossFade", 1.0f);
+    GameObject::SetParam("HeadRadius", 0.0875f);
+    GameObject::SetParam("DistanceScaler", 1.0f);
     GameObject::SetParam("Telemetries", 0.0f);
     GameObject::SetParam("DSPLoad", 0.0f);
     GameObject::SetParam("HRTFLoad", 0.0f);
@@ -33,7 +28,13 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParam("Woodworth", 1.0f);
     GameObject::SetParam("UseHRTF", 1.0f);
     GameObject::SetParam("UseITD" , 1.0f);
-
+    GameObject::SetParam("UseDistanceAtten", 1.0f);
+    GameObject::SetParam("Q", 0.7f);
+    GameObject::SetParam("LowpassType", 0.0f);
+    GameObject::SetParam("MaxSoundDistance", 100.0f);
+    GameObject::SetParam("RolloffFunc", 0.0f);
+    GameObject::SetParam("UseLowpass", 1.0f);
+    GameObject::SetParam("DistanceIntensity", 1.0f);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)

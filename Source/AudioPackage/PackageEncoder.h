@@ -38,7 +38,7 @@ public:
 
 private:
 
-    unsigned bufferSize = 0;
+    uint64_t bufferSize = 0;
 
     struct FileInfo
     {

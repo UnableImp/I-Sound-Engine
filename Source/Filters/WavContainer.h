@@ -28,7 +28,6 @@ public:
     virtual void Reset() override
     {
         totalOffset = 0;
-        this->RandomPitch();
     }
 
     // Fully contaioned sound object
@@ -38,7 +37,16 @@ public:
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) override
     {
       if(this->playbackModifier == 1.0f)
-          return GetNextSamplesStatic(numSamples, left, right, obj);
+      {
+          if (data.channels == ChannelType::Mono)
+          {
+              return GetNextSamplesStatic(numSamples, left, right, obj);
+          }
+          else
+          {
+              return GetNextSamplesStaticStereo(numSamples, left, right, obj);
+          }
+      }
       return GetNextSamplesNonStatic(numSamples, left, right, obj);
     }
 
@@ -48,6 +56,48 @@ public:
     }
 
 private:
+
+    int GetNextSamplesStaticStereo(int numSamples, float* left, float* right, const GameObject& obj)
+    {
+        int toRead = numSamples * 2;
+        if(toRead + totalOffset >= data.sampleCount)
+        {
+            //std::cout << static_cast<int>(totalOffset) << std::endl << data.sampleCount << std::endl << data.sampleCount -static_cast<int>(totalOffset) << std::endl << std::endl;
+            toRead = ((data.sampleCount) - totalOffset);
+        }
+
+        for(int i = 0; i < toRead/2; ++i)
+        {
+            float* sampleArray = reinterpret_cast<float*>(data.data);
+
+            left[i] += sampleArray[static_cast<int>(totalOffset)];;
+            right[i] += sampleArray[static_cast<int>(totalOffset + 1)];;
+
+            totalOffset += 2;
+        }
+
+        if(toRead != numSamples*2)
+        {
+            if(this->totalLoops == -1)
+            {
+                Reset();
+                toRead += GetNextSamplesStaticStereo(numSamples - toRead, left+toRead, right+toRead, obj);
+            }
+            else if(this->currentLoopCount < this->totalLoops)
+            {
+                Reset();
+                ++this->currentLoopCount;
+                toRead += GetNextSamplesStaticStereo(numSamples - toRead, left+toRead, right+toRead, obj);
+            }
+            else
+            {
+                //std::cout << static_cast<int>(totalOffset) << std::endl << data.sampleCount << std::endl << data.sampleCount -static_cast<int>(totalOffset) << std::endl << std::endl;
+                return toRead;
+            }
+        }
+
+        return toRead;
+    }
 
     int GetNextSamplesNonStatic(int numSamples, float* left, float* right, const GameObject& obj)
     {
@@ -108,54 +158,42 @@ private:
 
     int GetNextSamplesStatic(int numSamples, float* left, float* right, const GameObject& obj)
     {
-        int frames = 0;
-        for(int i = 0; i < numSamples; ++i)
+        int toRead = numSamples;
+        if(toRead + totalOffset >= data.sampleCount - 2)
         {
-            if(totalOffset >= data.sampleCount - 2)
+            toRead = (data.sampleCount - 2) - totalOffset;
+        }
+
+        for(int i = 0; i < toRead; ++i)
+        {
+            float* sampleArray = reinterpret_cast<float*>(data.data);
+
+            left[i] += sampleArray[static_cast<int>(totalOffset)];;
+            right[i] += sampleArray[static_cast<int>(totalOffset)];;
+
+            totalOffset += 1;
+        }
+
+        if(toRead != numSamples)
+        {
+            if(this->totalLoops == -1)
             {
-                if(this->totalLoops == -1)
-                {
-                    Reset();
-                }
-                else if(this->currentLoopCount < this->totalLoops)
-                {
-                    Reset();
-                    ++this->currentLoopCount;
-                }
-                else
-                {
-                    this->FillZeros(numSamples - i, left + i, right + i);
-                    return frames;
-                }
+                Reset();
+                toRead += GetNextSamplesStaticStereo(numSamples - toRead, left+toRead, right+toRead, obj);
             }
-
-            if (data.channels == ChannelType::Mono)
+            else if(this->currentLoopCount < this->totalLoops)
             {
-                float* sampleArray = reinterpret_cast<float*>(data.data);
-
-                sampleType value = sampleArray[static_cast<int>(totalOffset)];
-
-                left[i] += value;
-                right[i] += value;
-                ++totalOffset; //+= this->playbackModifier;
+                Reset();
+                ++this->currentLoopCount;
+                toRead += GetNextSamplesStaticStereo(numSamples - toRead, left+toRead, right+toRead, obj);
             }
             else
             {
-                float* sampleArray = reinterpret_cast<float*>(data.data);
-
-                sampleType value = sampleArray[static_cast<int>(totalOffset)];
-
-                left[i] += value;
-                ++totalOffset;
-
-                value = sampleArray[static_cast<int>(totalOffset)];
-
-                right[i] += value;
-                ++totalOffset;
+                return toRead;
             }
-            ++frames;
         }
-        return frames;
+
+        return toRead;
     }
 
 
