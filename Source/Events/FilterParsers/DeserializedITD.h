@@ -12,6 +12,7 @@ class DeserializedITD : public DeserializedFilter
 public:
     DeserializedITD(rapidjson::Value& object);
     ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager);
+    ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj);
 };
 
 

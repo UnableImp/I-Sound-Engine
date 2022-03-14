@@ -23,6 +23,9 @@ public:
     void SetGameObjectTransform(uint64_t id, const Transform& transform);
     void SetGameObjectPosition(uint64_t id, const IVector3& position);
 
+    // Warning no error handling
+    GameObject& operator[](uint64_t id);
+
     static void SetListenerTransform(const Transform& transform);
     static void SetListenerPosition(const IVector3& position);
 

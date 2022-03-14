@@ -46,8 +46,8 @@ void EventManager::Update()
 int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
 {
     auto start = std::chrono::high_resolution_clock::now();
-    GameObject::SetParam("HRTFLoadTemp", 0.0f);
-    GameObject::SetParam("ITDLoadTemp", 0.0f);
+    GameObject::SetParamStatic("HRTFLoadTemp", 0.0f);
+    GameObject::SetParamStatic("ITDLoadTemp", 0.0f);
     // Clear entire  buffer, no need for any input data
     memset(buffer, 0, numSamples * sizeof(Frame<float>));
 
@@ -119,10 +119,10 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> seconds = end-start;
-    GameObject::SetParam("DSPLoad", seconds.count() / (512.0f/44100.0f));
-    GameObject::SetParam("HRTFLoad", GameObject::GetParam<float>("HRTFLoadTemp") / (512.0f / 44100.0f));
-    GameObject::SetParam("ITDLoad", GameObject::GetParam<float>("ITDLoadTemp") / (512.0f / 44100.0f));
-    GameObject::SetParam("RunningObjs", static_cast<float>(events.size()));
+    GameObject::SetParamStatic("DSPLoad", seconds.count() / (512.0f/44100.0f));
+    GameObject::SetParamStatic("HRTFLoad", GameObject::GetParamStatic<float>("HRTFLoadTemp") / (512.0f / 44100.0f));
+    GameObject::SetParamStatic("ITDLoad", GameObject::GetParamStatic<float>("ITDLoadTemp") / (512.0f / 44100.0f));
+    GameObject::SetParamStatic("RunningObjs", static_cast<float>(events.size()));
     return totalSamplesGenerated;
 }
 
@@ -152,7 +152,7 @@ int EventManager::AddEvent(const std::string& name)
 int EventManager::AddEvent(uint64_t id, uint64_t gameObjectId)
 {
     Event* event;
-    ErrorNum isValid = eventParser.GetEvent(id, &event, soundData);
+    ErrorNum isValid = eventParser.GetEvent(id, &event, soundData, objectManager[gameObjectId]);
     if(isValid != ErrorNum::NoErrors)
         return isValid;
     event->SetParent(gameObjectId);
@@ -162,7 +162,7 @@ int EventManager::AddEvent(uint64_t id, uint64_t gameObjectId)
 int EventManager::AddEvent(const std::string& name, uint64_t gameObjectId)
 {
     Event* event;
-    ErrorNum isValid = eventParser.GetEvent(name, &event, soundData);
+    ErrorNum isValid = eventParser.GetEvent(name, &event, soundData, objectManager[gameObjectId]);
     if(isValid != ErrorNum::NoErrors)
         return isValid;
     event->SetParent(gameObjectId);

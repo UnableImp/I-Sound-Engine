@@ -77,6 +77,29 @@ ErrorNum EventParser::GetEvent(uint64_t id, Event **event,  PackageManager& mana
     return ErrorNum::NoErrors;
 }
 
+ErrorNum EventParser::GetEvent(const std::string& name, Event **event,  PackageManager& manager, GameObject& obj)
+{
+    return GetEvent(stringToId[name], event, manager, obj);
+}
+
+ErrorNum EventParser::GetEvent(uint64_t id, Event **event,  PackageManager& manager, GameObject& obj)
+{
+    if(IdToEvent.find(id) == IdToEvent.end())
+        return ErrorNum::EventNotFound;
+
+    *event = new Event(0, id);
+    auto& filtersInEvent = IdToEvent[id];
+
+    for(auto sFilter : filtersInEvent)
+    {
+        Filter<float>* filter;
+        sFilter->BuildFilter(&filter, manager, obj);
+
+        (*event)->AddFilter(filter);
+    }
+    return ErrorNum::NoErrors;
+}
+
 EventParser::~EventParser()
 {
     for(auto& event : IdToEvent)

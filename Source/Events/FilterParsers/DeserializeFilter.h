@@ -24,6 +24,7 @@ public:
      * @return Wether filter was made or not
      */
     virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager) = 0;
+    virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj) = 0;
     virtual ~DeserializedFilter() {};
 };
 

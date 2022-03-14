@@ -105,12 +105,12 @@ ISE_API void ISoundEngine::SetListernerPosition(const IVector3& position)
 
 ISE_API void ISoundEngine::SetParam(const char* id, float value)
 {
-    GameObject::SetParam(id, value);
+    GameObject::SetParamStatic(id, value);
 }
 
 ISE_API float ISoundEngine::GetParam(const char* id)
 {
-    return GameObject::GetParam<float>(id);
+    return GameObject::GetParamStatic<float>(id);
 }
 
 #ifdef OS_Windows

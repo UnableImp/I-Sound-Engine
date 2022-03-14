@@ -24,7 +24,7 @@ public:
 
         T theta = 2 * pi * (cutoff / sampleRate);
 
-        T d = 1 / GameObject::GetParam<float>("Q");
+        T d = 1 / GameObject::GetParamStatic<float>("Q");
 
         T beta = 0.5 * ((1 - (d/2.0) * std::sin(theta)) /
                         (1 + (d/2.0) * std::sin(theta)));

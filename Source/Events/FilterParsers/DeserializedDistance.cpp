@@ -15,10 +15,10 @@ DeserializedDistance::DeserializedDistance(rapidjson::Value& object)
 
 ErrorNum DeserializedDistance::BuildFilter(Filter<float>** filter,  PackageManager& manager)
 {
-    if(GameObject::GetParam<float>("UseDistanceAtten"))
+    if(GameObject::GetParamStatic<float>("UseDistanceAtten"))
     {
         Biquad<float>* lowpass;
-        switch (static_cast<int>(GameObject::GetParam<float>("LowpassType")))
+        switch (static_cast<int>(GameObject::GetParamStatic<float>("LowpassType")))
         {
             case 0:
                 lowpass = new FirstOrderLowpass<float>;
@@ -37,4 +37,10 @@ ErrorNum DeserializedDistance::BuildFilter(Filter<float>** filter,  PackageManag
         *filter = new Filter<float>();
     }
     return NoErrors;
+}
+
+
+ErrorNum DeserializedDistance::BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj)
+{
+    return BuildFilter(filter, manager);
 }

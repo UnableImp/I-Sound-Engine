@@ -12,7 +12,7 @@ DeserializedITD::DeserializedITD(rapidjson::Value &object)
 
 ErrorNum DeserializedITD::BuildFilter(Filter<float> **filter,  PackageManager& manager)
 {
-    if(GameObject::GetParam<float>("UseITD"))
+    if(GameObject::GetParamStatic<float>("UseITD"))
     {
         *filter = new ITD();
     }
@@ -21,4 +21,9 @@ ErrorNum DeserializedITD::BuildFilter(Filter<float> **filter,  PackageManager& m
         *filter = new Filter<float>();
     }
     return NoErrors;
+}
+
+ErrorNum DeserializedITD::BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj)
+{
+    return BuildFilter(filter, manager);
 }

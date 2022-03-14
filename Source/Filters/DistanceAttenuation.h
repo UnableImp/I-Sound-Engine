@@ -59,9 +59,10 @@ public:
         levelScaler = std::max(std::min(levelScaler, 1.0f), 0.0f);
 
         float lowpassScaler = levelScaler;
-        int power = GameObject::GetParam<float>("DistanceIntensity");
-       for(int i = 0; i < power; ++i)
-           lowpassScaler *= lowpassScaler;
+        // TODO fxi power cacluation
+//        int power = GameObject::GetParam<float>("DistanceIntensity");
+//       for(int i = 0; i < power; ++i)
+//           lowpassScaler *= lowpassScaler;
 
 
         if(lowpass)

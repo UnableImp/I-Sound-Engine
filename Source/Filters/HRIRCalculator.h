@@ -21,7 +21,7 @@ public:
                                                                                    currentEvel(0),
                                                                                    currentAngle(0),
                                                                                    step(-1),
-                                                                                   collection(static_cast<int>(GameObject::GetParam<float>("HRIRSet")))
+                                                                                   collection(static_cast<int>(GameObject::GetParamStatic<float>("HRIRSet")))
     {}
 
     virtual ~HRIRCalculator() {}

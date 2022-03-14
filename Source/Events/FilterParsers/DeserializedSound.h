@@ -12,6 +12,7 @@ class DeserializedSound : public DeserializedFilter
 public:
     DeserializedSound(rapidjson::Value& object);
     virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager) override;
+    virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj) override;
 
 private:
     uint64_t playID;

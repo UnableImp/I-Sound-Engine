@@ -11,7 +11,8 @@ class Deserialize3DSound : public DeserializedFilter
 {
 public:
     Deserialize3DSound(rapidjson::Value& object);
-    virtual ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager) override;
+    ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager) override;
+    ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj) override;
 
     virtual ~Deserialize3DSound() {};
 };

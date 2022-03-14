@@ -316,6 +316,25 @@ TEST(EventParser, EventFromIDWav)
     simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav", 512);
 }
 
+TEST(EventParser, EventFromIDWavWithGameObj)
+{
+    BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");
+    IO::MemoryMappedFile package("TestFiles/TESTEventPack.pak");
+//    std::unordered_map<uint64_t, SoundData> data;
+//    PackageDecoder::DecodePackage(data, package);
+    PackageManager data;
+    data.LoadPack("TestFiles/TESTEventPack.pak");
+
+    GameObjectManager objectManager;
+    objectManager.AddObject(10);
+    EventManager eventManager(data, objectManager);
+
+    eventManager.ParseEvents("TestFiles/EventLevel.json");
+    eventManager.AddEvent((uint64_t)10, 10);
+    simulateEventManager(eventManager, "TestFiles/TESTPaserEvent.wav", 512);
+}
+
+
 TEST(EventParser, EventFromNameWav)
 {
     BuildPackageAllPCM(0,"TestFiles/TESTEventPack.pak", "TestFiles/level.wav");

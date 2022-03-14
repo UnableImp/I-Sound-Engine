@@ -11,7 +11,7 @@ Deserialize3DSound::Deserialize3DSound(rapidjson::Value &object)
 
 ErrorNum Deserialize3DSound::BuildFilter(Filter<float> **filter,  PackageManager& manager)
 {
-    if(GameObject::GetParam<float>("UseHRTF"))
+    if(GameObject::GetParamStatic<float>("UseHRTF"))
     {
         HRIRCalculator<float> *hrir = new HRIRCalculator<float>(manager);
 
@@ -22,4 +22,9 @@ ErrorNum Deserialize3DSound::BuildFilter(Filter<float> **filter,  PackageManager
         *filter = new Filter<float>();
     }
     return NoErrors;
+}
+
+ErrorNum Deserialize3DSound::BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj)
+{
+    return BuildFilter(filter, manager);
 }

@@ -21,6 +21,9 @@ public:
     ErrorNum GetEvent(const std::string& name, Event** event,  PackageManager& manager);
     ErrorNum GetEvent(uint64_t id, Event** Event, PackageManager& manager);
 
+    ErrorNum GetEvent(const std::string& name, Event** event,  PackageManager& manager, GameObject& obj);
+    ErrorNum GetEvent(uint64_t id, Event** Event, PackageManager& manager, GameObject& obj);
+
     ~EventParser();
 
 private:

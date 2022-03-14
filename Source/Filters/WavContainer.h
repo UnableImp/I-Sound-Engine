@@ -36,18 +36,29 @@ public:
 
     virtual int GetNextSamples(int numSamples, float* left, float* right, const GameObject& obj) override
     {
-      if(this->playbackModifier == 1.0f)
-      {
-          if (data.channels == ChannelType::Mono)
-          {
-              return GetNextSamplesStatic(numSamples, left, right, obj);
-          }
-          else
-          {
-              return GetNextSamplesStaticStereo(numSamples, left, right, obj);
-          }
-      }
-      return GetNextSamplesNonStatic(numSamples, left, right, obj);
+        float sVolume = obj.GetParam<float>("Volume");
+        int returnValue;
+        if(this->playbackModifier == 1.0f)
+        {
+            if (data.channels == ChannelType::Mono)
+            {
+                returnValue = GetNextSamplesStatic(numSamples, left, right, obj);
+            }
+            else
+            {
+                returnValue = GetNextSamplesStaticStereo(numSamples, left, right, obj);
+            }
+        }
+        else
+        {
+            returnValue = GetNextSamplesNonStatic(numSamples, left, right, obj);
+        }
+        for(int i = 0; i < numSamples; ++i)
+        {
+            left[i] *= sVolume;
+            right[i] *= sVolume;
+        }
+        return returnValue;
     }
 
     void Seek(int position)

@@ -39,7 +39,7 @@ public:
         auto leftDir = IVector3{0,0,0} - rightDir;
 
         // Calculate were left and right ear are located
-        float headRadius = GameObject::GetParam<float>("HeadRadius");
+        float headRadius = obj.GetParam<float>("HeadRadius");
 
         // TODO test if normalization is needed
         auto leftEar = (leftDir * headRadius) + listenerTransform.postion;
@@ -50,13 +50,13 @@ public:
         float rightEarDist = IVector3::Distance(rightEar, obj.GetPosition());
 
         // Convert to sample rate delay
-        float speedScaler = GameObject::GetParam<float>("DistanceScaler");
+        float speedScaler = obj.GetParam<float>("DistanceScaler");
         const float speedOfSound = 343 * speedScaler; // Speed of sound?
 
         int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate;
         int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate;
 
-         float ShouldWoodworth = GameObject::GetParam<float>("Woodworth");
+         float ShouldWoodworth = obj.GetParam<float>("Woodworth");
         if(ShouldWoodworth)
         {
             const auto& headToObj =  (obj.GetPosition() - listenerTransform.postion).Normalized();
@@ -143,7 +143,7 @@ public:
 
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<float> time = end - start;
-        GameObject::SetParam("ITDLoadTemp", GameObject::GetParam<float>("ITDLoadTemp") + time.count());
+        GameObject::SetParamStatic("ITDLoadTemp", GameObject::GetParamStatic<float>("ITDLoadTemp") + time.count());
         return 0;
     }
 

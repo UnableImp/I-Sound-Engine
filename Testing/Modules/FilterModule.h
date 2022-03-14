@@ -1193,7 +1193,7 @@ TEST(Audio3D, DoppleLeftRight)
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
-    GameObject::SetParam("RolloffFunc", 2.0f);
+    GameObject::SetParamStatic("RolloffFunc", 2.0f);
 
     eventManager.AddEvent(10, sample, da, convolver, itd);
     simulateEventManagerWithDirection(eventManager, "TestFiles/TEST3DAudioDopplerRightLeft.wav", 512, 10,  objectManager, {0,0,1/4.0f});
@@ -1224,7 +1224,7 @@ TEST(Audio3D, DoppleForward)
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
-    GameObject::SetParam("RolloffFunc", 1.0f);
+    GameObject::SetParamStatic("RolloffFunc", 1.0f);
 
     eventManager.AddEvent(10, sample, da, convolver, itd);
     simulateEventManagerWithDirection(eventManager, "TestFiles/TEST3DAudioDopplerForward.wav", 512, 10,  objectManager, {1/4.0f,0,0});
@@ -1459,7 +1459,7 @@ void DistanceHelper(char* outName, float value)
 
     WavContainer<float>* sample = new WavContainer<float>(packageManager.GetSounds()[0]);
 
-    GameObject::SetParam("RolloffFunc", value);
+    GameObject::SetParamStatic("RolloffFunc", value);
 
     eventManager.AddEvent(10, sample, dualFilter);
     simulateEventManagerWithDirection(eventManager, outName, 512, 10,  objectManager, {0,0,1/4.0f});

@@ -12,6 +12,7 @@ class DeserializedDistance : public DeserializedFilter
 public:
     DeserializedDistance(rapidjson::Value& object);
     ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager);
+    ErrorNum BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj);
 };
 
 

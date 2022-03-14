@@ -11,30 +11,30 @@ GameObjectManager manager; // TODO temp until somebetter to make sure its inited
 
 GameObjectManager::GameObjectManager()
 {
-    GameObject::SetParam("HRIRSet", 1.0f);
-    GameObject::SetParam("Overlap", 512.0f);
-    GameObject::SetParam("Preprocess", 1.0f);
-    GameObject::SetParam("PhaseAlign", 1.0f);
-    GameObject::SetParam("CrossFade", 1.0f);
-    GameObject::SetParam("HeadRadius", 0.0875f);
-    GameObject::SetParam("DistanceScaler", 1.0f);
-    GameObject::SetParam("Telemetries", 0.0f);
-    GameObject::SetParam("DSPLoad", 0.0f);
-    GameObject::SetParam("HRTFLoad", 0.0f);
-    GameObject::SetParam("ITDLoad", 0.0f);
-    GameObject::SetParam("HRTFLoadTemp", 0.0f);
-    GameObject::SetParam("ITDLoadTemp", 0.0f);
-    GameObject::SetParam("LerpHRIR", 0.0f);
-    GameObject::SetParam("Woodworth", 1.0f);
-    GameObject::SetParam("UseHRTF", 1.0f);
-    GameObject::SetParam("UseITD" , 1.0f);
-    GameObject::SetParam("UseDistanceAtten", 1.0f);
-    GameObject::SetParam("Q", 0.7f);
-    GameObject::SetParam("LowpassType", 0.0f);
-    GameObject::SetParam("MaxSoundDistance", 100.0f);
-    GameObject::SetParam("RolloffFunc", 0.0f);
-    GameObject::SetParam("UseLowpass", 1.0f);
-    GameObject::SetParam("DistanceIntensity", 1.0f);
+    GameObject::SetParamStatic("HRIRSet", 1.0f);
+    GameObject::SetParamStatic("Overlap", 512.0f);
+    GameObject::SetParamStatic("Preprocess", 1.0f);
+    GameObject::SetParamStatic("PhaseAlign", 1.0f);
+    GameObject::SetParamStatic("CrossFade", 1.0f);
+    GameObject::SetParamStatic("HeadRadius", 0.0875f);
+    GameObject::SetParamStatic("DistanceScaler", 1.0f);
+    GameObject::SetParamStatic("Telemetries", 0.0f);
+    GameObject::SetParamStatic("DSPLoad", 0.0f);
+    GameObject::SetParamStatic("HRTFLoad", 0.0f);
+    GameObject::SetParamStatic("ITDLoad", 0.0f);
+    GameObject::SetParamStatic("HRTFLoadTemp", 0.0f);
+    GameObject::SetParamStatic("ITDLoadTemp", 0.0f);
+    GameObject::SetParamStatic("Woodworth", 1.0f);
+    GameObject::SetParamStatic("UseHRTF", 1.0f);
+    GameObject::SetParamStatic("UseITD" , 1.0f);
+    GameObject::SetParamStatic("UseDistanceAtten", 1.0f);
+    GameObject::SetParamStatic("Q", 0.7f);
+    GameObject::SetParamStatic("LowpassType", 0.0f);
+    GameObject::SetParamStatic("MaxSoundDistance", 100.0f);
+    GameObject::SetParamStatic("RolloffFunc", 0.0f);
+    GameObject::SetParamStatic("UseLowpass", 1.0f);
+    GameObject::SetParamStatic("DistanceIntensity", 1.0f);
+    GameObject::SetParamStatic("Volume", 1.0f);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)
@@ -66,6 +66,11 @@ int GameObjectManager::GetGameObject(uint64_t id, GameObject& obj) const
         return 1;
     }
     return -1;
+}
+
+GameObject& GameObjectManager::operator[](uint64_t id)
+{
+    return gameObjects[id];
 }
 
 void GameObjectManager::SetGameObjectTransform(uint64_t id, const Transform& transform)

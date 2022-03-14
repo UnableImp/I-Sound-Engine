@@ -48,3 +48,8 @@ ErrorNum DeserializedSound::BuildFilter(Filter<float> **filter,  PackageManager&
 
     return ErrorNum::NoErrors;
 }
+
+ErrorNum DeserializedSound::BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj)
+{
+    return BuildFilter(filter, manager);
+}

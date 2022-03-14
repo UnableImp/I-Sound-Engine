@@ -25,13 +25,13 @@ public:
     const IVector3& GetForward() const;
 
     template<typename T>
-    inline static void SetParam(std::basic_string<char> id, T item)
+    inline static void SetParamStatic(std::basic_string<char> id, T item)
     {
         globalParams[id] = item;
     }
 
     template<typename T>
-    inline static const T GetParam(std::basic_string<char> id)
+    inline static const T GetParamStatic(std::basic_string<char> id)
     {
         const auto result = globalParams.find(id);
         if(result != globalParams.end())
@@ -40,10 +40,35 @@ public:
         return T();
     }
 
+    template<typename T>
+    inline void SetParamLocal(std::basic_string<char> id, T item)
+    {
+        localParams[id] = item;
+    }
+
+    template<typename T>
+    inline const T GetParam(std::basic_string<char> id) const
+    {
+        // Check if locally exists
+        const auto localResult = localParams.find(id);
+        if(localResult != localParams.end())
+            return std::any_cast<T>(localResult->second);
+
+        // Go get globlal
+        const auto result = globalParams.find(id);
+        if(result != globalParams.end())
+            return std::any_cast<T>(result->second);
+
+        // Didint find key
+        assert(!"Failed to find key");
+        return T();
+    }
+
 private:
 
     Transform transform;
     static std::unordered_map<std::basic_string<char>, std::any> globalParams;
+    std::unordered_map<std::basic_string<char>, std::any> localParams;
 
 };
 

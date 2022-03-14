@@ -19,7 +19,7 @@ class ConvolutionFreq : public Filter<float>
 public:
     ConvolutionFreq(int size, HRIRCalculator<float>& HRIR) : fft(BlockSize * 2),
     HRIR(HRIR),
-    Overlap(static_cast<int>((GameObject::GetParam<float>("Overlap")))),
+    Overlap(static_cast<int>((GameObject::GetParamStatic<float>("Overlap")))),
     leftOverlap( 1024,((BlockSize * 2) - Overlap) - 1),
     rightOverlap( 1024,((BlockSize * 2) - Overlap) - 1)
     {
@@ -93,7 +93,7 @@ public:
         }
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<float> time = end - start;
-        GameObject::SetParam("HRTFLoadTemp", GameObject::GetParam<float>("HRTFLoadTemp") + time.count());
+        GameObject::SetParamStatic("HRTFLoadTemp", GameObject::GetParamStatic<float>("HRTFLoadTemp") + time.count());
         return 0;
     }
 
