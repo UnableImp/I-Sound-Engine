@@ -1906,6 +1906,25 @@ static void DistanceAttenuation512Samples(benchmark::State& state)
 }
 BENCHMARK(DistanceAttenuation512Samples);
 
+static void HRIR512Samples(benchmark::State& state)
+{
+    CreateKEMARAudioPack();
+    PackageManager packageManager;
+    packageManager.LoadPack("TestFiles/TESTKEMARHRIR.pck");
+    GameObjectManager objectManager;
+    EventManager eventManager(packageManager,objectManager);
+    Frame<float> buff[1024];
+
+    HRIRCalculator<float> hrir(packageManager);
+    GameObject obj;
+
+    for(auto _ : state)
+    {
+        hrir.GetNextSamples(1024, &buff->leftChannel, &buff[256].leftChannel, obj);
+    }
+}
+BENCHMARK(HRIR512Samples);
+
 static void HRTF512Samples(benchmark::State& state)
 {
     CreateKEMARAudioPack();
