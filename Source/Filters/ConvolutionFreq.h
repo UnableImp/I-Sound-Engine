@@ -117,7 +117,7 @@ private:
         fft.forwardToInternalLayout(leftIR, reinterpret_cast<float *>(rightComplex));
 
         fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 0.5f / (numSamples * 2));
+                     reinterpret_cast<float *>(currentComplex), 0.8f / (numSamples * 2));
 
         fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), leftS);
 
@@ -128,7 +128,7 @@ private:
         fft.forwardToInternalLayout(rightIR, reinterpret_cast<float *>(rightComplex));
 
         fft.convolve(reinterpret_cast<const float *>(leftComplex), reinterpret_cast<const float *>(rightComplex),
-                     reinterpret_cast<float *>(currentComplex), 0.5f / (numSamples * 2));
+                     reinterpret_cast<float *>(currentComplex), 0.8f / (numSamples * 2));
 
         fft.inverseFromInternalLayout(reinterpret_cast<const float *>(currentComplex), rightS);
 

@@ -1713,7 +1713,7 @@ static void RingBufferRemove(benchmark::State& state)
         }
     }
 }
-BENCHMARK(RingBufferWrite);
+BENCHMARK(RingBufferRemove);
 
 static void ReadMono512Samples(benchmark::State& state)
 {
@@ -1762,12 +1762,12 @@ static void ReadStereo512Samples(benchmark::State& state)
     Frame<float> buff[512];
 
     GameObject obj;
-    event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+    event.GetSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
 
     for(auto _ : state)
     {
 
-        event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
+        event.GetSamples(512, &buff->leftChannel, &buff->leftChannel, obj);
         sample->Reset();
     }
 }
@@ -1917,7 +1917,7 @@ static void HRIR512Samples(benchmark::State& state)
 
     HRIRCalculator<float> hrir(packageManager);
     GameObject obj;
-
+    obj.SetPosition(IVector3{100,0,100});
     for(auto _ : state)
     {
         hrir.GetNextSamples(1024, &buff->leftChannel, &buff[256].leftChannel, obj);
@@ -1951,6 +1951,7 @@ static void HRTF512Samples(benchmark::State& state)
     Frame<float> buff[512];
 
     GameObject obj;
+    obj.SetPosition(IVector3{100,0,100});
     event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
 
     for(auto _ : state)
@@ -2026,6 +2027,7 @@ static void Combined512Samples(benchmark::State& state)
     Frame<float> buff[512];
 
     GameObject obj;
+    obj.SetPosition(IVector3{100,0,100});
     event.GetSamples(512, &buff->leftChannel, &buff[256].leftChannel, obj);
 
     for(auto _ : state)

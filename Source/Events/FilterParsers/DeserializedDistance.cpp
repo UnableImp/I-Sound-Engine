@@ -8,8 +8,14 @@
 #include "Filters/Biqaud/SecondOrderLowpass.h"
 #include "Filters/Biqaud/LinkwitzRileyLowpass.h"
 
-DeserializedDistance::DeserializedDistance(rapidjson::Value& object)
+DeserializedDistance::DeserializedDistance(rapidjson::Value& object) : maxDist(-1), rollOffFunc(-1)
 {
+    auto wavObject = object.GetObject();
+
+    if(wavObject.HasMember("MaxDistance"))
+        maxDist = wavObject["MaxDistance"].GetFloat();
+    if(wavObject.HasMember("RolloffFunc"))
+        rollOffFunc = wavObject["RolloffFunc"].GetFloat();
 
 }
 
@@ -42,5 +48,9 @@ ErrorNum DeserializedDistance::BuildFilter(Filter<float>** filter,  PackageManag
 
 ErrorNum DeserializedDistance::BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj)
 {
+    if(maxDist >= 0)
+        obj.SetParamLocal("MaxSoundDistance", maxDist);
+    if(rollOffFunc >= 0)
+        obj.SetParamLocal("RolloffFunc", rollOffFunc);
     return BuildFilter(filter, manager);
 }

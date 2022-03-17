@@ -21,7 +21,7 @@ public:
                                                                                    currentEvel(0),
                                                                                    currentAngle(0),
                                                                                    step(-1),
-                                                                                   collection(static_cast<int>(GameObject::GetParamStatic<float>("HRIRSet")))
+                                                                                   collection(1)
     {}
 
     virtual ~HRIRCalculator() {}
@@ -30,6 +30,8 @@ public:
     {
         memset(left, 0, numSamples * sizeof(float));
         memset(right, 0, numSamples * sizeof(float));
+
+        collection = static_cast<int>(GameObject::GetParamStatic<float>("HRIRSet"));
 
         const auto& listener = GameObjectManager::GetListenerPosition();
         const auto& source = obj.GetTransform();

@@ -81,8 +81,8 @@ private:
         {
             float* sampleArray = reinterpret_cast<float*>(data.data);
 
-            left[i] += sampleArray[static_cast<int>(totalOffset)];;
-            right[i] += sampleArray[static_cast<int>(totalOffset + 1)];;
+            left[i] += sampleArray[static_cast<int>(totalOffset)];
+            right[i] += sampleArray[static_cast<int>(totalOffset + 1)];
 
             totalOffset += 2;
         }
@@ -179,10 +179,10 @@ private:
         {
             float* sampleArray = reinterpret_cast<float*>(data.data);
 
-            left[i] += sampleArray[static_cast<int>(totalOffset)];;
-            right[i] += sampleArray[static_cast<int>(totalOffset)];;
+            left[i] += sampleArray[static_cast<int>(totalOffset)];
+            right[i] += left[i];
 
-            totalOffset += 1;
+            ++totalOffset;
         }
 
         if(toRead != numSamples)
