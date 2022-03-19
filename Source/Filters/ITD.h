@@ -14,10 +14,12 @@
 #include "Constants.h"
 #include "RingDeque.h"
 
+constexpr float frameLength = 512.0f / 44100.0f;
+
 class ITD : public Filter<float>
 {
 public:
-    ITD() : rightDelaySamplesOld(-1), leftDelaySamplesOld(-1), leftDelay(1<<17), rightDelay(1<<17) {}
+    ITD() : rightDelaySamplesOld(-1), leftDelaySamplesOld(-1), leftDistOld(-1), rightDistOld(-1), leftDelay(1<<17), rightDelay(1<<17) {}
     virtual ~ITD() {}
     /*!
      * Fills a buffer with audio samples, if no audio data is available zeros are filled
@@ -53,8 +55,7 @@ public:
         float speedScaler = obj.GetParam<float>("DistanceScaler");
         const float speedOfSound = 343 * speedScaler; // Speed of sound?
 
-        int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate;
-        int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate;
+
 
          float ShouldWoodworth = obj.GetParam<float>("Woodworth");
         if(ShouldWoodworth)
@@ -73,11 +74,20 @@ public:
             float itd = (headRadius / speedOfSound) * (std::sin(angle) + angle);
             int ITDDelay = itd * sampleRate;
 
-            if(rightDelaySamplesNew < leftDelaySamplesNew)
-                leftDelaySamplesNew = rightDelaySamplesNew + ITDDelay;
+            if(rightEarDist < leftEarDist)
+                leftEarDist = rightEarDist + ITDDelay;
             else
-                rightDelaySamplesNew = leftDelaySamplesNew + ITDDelay;
+                rightEarDist = leftEarDist + ITDDelay;
 
+        }
+
+        int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate;
+        int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate;
+
+        if(leftDistOld == -1)
+        {
+            leftDistOld = leftEarDist;
+            rightDistOld = rightEarDist;
         }
 
         if(rightDelaySamplesNew < 3)
@@ -91,50 +101,66 @@ public:
             rightDelaySamplesOld = rightDelaySamplesNew;
         }
 
-        for(int i = 0; i < numSamples; ++i)
+        if(leftDelay.size() == 0)
         {
-            int leftDelaySamples = this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(i)  / (numSamples));
-            int rightDelaySamples = this->lerp(rightDelaySamplesOld, rightDelaySamplesNew, static_cast<float>(i)  / (numSamples));
-
-            while (leftDelay.size() < leftDelaySamples + i)
+            for(int i = 0; i < leftDelaySamplesNew; ++i)
                 leftDelay.push_back(0);
-            while (rightDelay.size() < rightDelaySamples + i)
+            for(int i = 0; i < rightDelaySamplesNew; ++i)
                 rightDelay.push_back(0);
-
-            if (i + leftDelaySamples < leftDelay.size())
-            {
-                leftDelay[i + leftDelaySamples] += left[i];
-                leftDelay[i + leftDelaySamples] /= 2;
-            } else
-                leftDelay.push_back(left[i]);
-
-            if (i + rightDelaySamples < rightDelay.size())
-            {
-                rightDelay[i + rightDelaySamples] += right[i];
-                rightDelay[i + rightDelaySamples] /= 2;
-            } else
-                rightDelay.push_back(right[i]);
         }
+
+        float velLeft = std::min(static_cast<float>((leftEarDist - leftDistOld)) / frameLength, speedOfSound);
+        float stepLeft = speedOfSound / (speedOfSound + velLeft);
+
+        float velRight = std::min(static_cast<float>((rightEarDist - rightDistOld)) / frameLength, speedOfSound);
+        float stepRight = speedOfSound / (speedOfSound + velRight);
+
+        rightDistOld = rightEarDist;
+        leftDistOld = leftEarDist;
+
+//        if(velRight != velLeft)
+//        {
+//            //std::cout << "Left: " << velLeft << " Right: " << velRight;
+//            std::cout << "Left: " << stepLeft << ", " << velLeft << " Right: " << stepRight << ", " << velRight << std::endl;
+//        }
+//        else
+//        {
+//            std::cout << "good" << std::endl;
+//        }
+
+        float step = 1.0f;
+        while(step < static_cast<float>(numSamples))
+        {
+            int lower = static_cast<int>(step);
+            int upper = lower + 1;
+            float diff = step - static_cast<float>(lower);
+            leftDelay.push_back(this->lerp(left[lower], left[upper],diff));
+            step += stepLeft;
+        }
+
+        step = 1.0f;
+        while(step < static_cast<float>(numSamples))
+        {
+            int lower = static_cast<int>(step);
+            int upper = lower + 1;
+            float diff = step - static_cast<float>(lower);
+            rightDelay.push_back(this->lerp(right[lower], right[upper],diff));
+            step += stepRight;
+        }
+
 
         leftDelaySamplesOld = leftDelaySamplesNew;
         rightDelaySamplesOld = rightDelaySamplesNew;
 
 
 
-        assert(rightDelay.size() >= numSamples);
-        assert(leftDelay.size() >= numSamples);
+        //assert(rightDelay.size() >= numSamples);
+        //assert(leftDelay.size() >= numSamples);
 
         for(int i = 0; i < numSamples; ++i)
         {
-            if(leftDelay[1] == 0)
-                left[i] = this->lerp(leftDelay.front(), leftDelay[2], 1/2.0f);
-            else
-                left[i] = leftDelay[1];
-
-            if(rightDelay[1] == 0)
-                right[i] = this->lerp(rightDelay.front(), rightDelay[2], 1/2.0f);
-            else
-                right[i] = rightDelay[1];
+            left[i] = leftDelay.front();
+            right[i] = rightDelay.front();
 
             leftDelay.pop_front();
             rightDelay.pop_front();
@@ -153,6 +179,9 @@ private:
     RingDeque<float> rightDelay;
     int leftDelaySamplesOld;
     int rightDelaySamplesOld;
+    float leftDistOld;
+    float rightDistOld;
+
 };
 
 #endif //I_SOUND_ENGINE_ITD_H

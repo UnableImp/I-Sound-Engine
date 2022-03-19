@@ -111,7 +111,6 @@ int SOFAToPck(char* sofaIn, char* packOut, uint64_t HRIRid)
             float y = s2c[1];
             float z = s2c[2];
 
-
             mysofa_getfilter_float_nointerp(hrtf, x, y, z, leftIR, rightIR, &leftDelay, &rightDelay);
 
             std::string path = elv;
