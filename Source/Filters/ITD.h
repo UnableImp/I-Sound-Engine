@@ -91,10 +91,21 @@ public:
             rightDelaySamplesOld = rightDelaySamplesNew;
         }
 
+        //std::cout << leftDelaySamplesOld - this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(1)  / (numSamples)) << std::endl;
+
+        float stepLeft = this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(1)  / (numSamples));
+        float stepRight = this->lerp(rightDelaySamplesOld, rightDelaySamplesNew, static_cast<float>(1)  / (numSamples));
+
+        float leftCollection = leftDelaySamplesOld;
+        float rightCollection = rightDelaySamplesOld;
+
         for(int i = 0; i < numSamples; ++i)
         {
-            int leftDelaySamples = this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(i)  / (numSamples));
-            int rightDelaySamples = this->lerp(rightDelaySamplesOld, rightDelaySamplesNew, static_cast<float>(i)  / (numSamples));
+            int leftDelaySamples = static_cast<int>(leftCollection);
+            int rightDelaySamples = static_cast<int>(rightCollection);
+
+            leftCollection += stepLeft;
+            rightCollection += stepRight;
 
             while (leftDelay.size() < leftDelaySamples + i)
                 leftDelay.push_back(0);
