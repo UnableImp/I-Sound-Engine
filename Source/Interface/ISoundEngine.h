@@ -84,6 +84,10 @@ namespace ISoundEngine
 
     ISE_API uint64_t PostEventObject(uint64_t id, uint64_t gameobject);
 
+    ISE_API uint64_t StopEvent(uint64_t id);
+
+    ISE_API uint64_t StopEventObject(uint64_t id, uint64_t gameobject);
+
     /*!
      * Adds a game object to internals, required for 3d sounds
      * @param id ID to reference the obj by
