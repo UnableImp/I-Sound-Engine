@@ -73,6 +73,19 @@ ISE_API uint64_t ISoundEngine::PostEventObject(uint64_t id, uint64_t gameobject)
     return eventManager->AddEvent(id, gameobject);
 }
 
+
+ISE_API uint64_t ISoundEngine::StopEvent(uint64_t id)
+{
+    eventManager->StopEvent(id);
+    return id;
+}
+
+ISE_API uint64_t ISoundEngine::StopEventObject(uint64_t id, uint64_t gameobject)
+{
+    eventManager->StopEvent(id);
+    return id;
+}
+
 ISE_API uint64_t ISoundEngine::AddObject(uint64_t id)
 {
     return gameObjectManager->AddObject(id);
