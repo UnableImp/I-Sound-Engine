@@ -100,52 +100,28 @@ public:
             float leftDelaySamples = this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(i)  / (numSamples)) + i;
             float rightDelaySamples = this->lerp(rightDelaySamplesOld, rightDelaySamplesNew, static_cast<float>(i)  / (numSamples)) + i;
 
-            while (leftDelay.size() < static_cast<int>(leftDelaySamples) - 1)
+            while (leftDelay.size() < static_cast<int>(leftDelaySamples))
                 leftDelay.push_back(0);
-            while (rightDelay.size() < static_cast<int>(rightDelaySamples) - 1)
+            while (rightDelay.size() < static_cast<int>(rightDelaySamples))
                 rightDelay.push_back(0);
 
-            float low = leftLast.first - static_cast<int>(leftLast.first);
-            float high = leftDelaySamples - static_cast<int>(leftDelaySamples);
             float totalDist = leftDelaySamples - leftLast.first;
-            for(int j = static_cast<int>(leftLast.first), k = 1; j < static_cast<int>(leftDelaySamples); ++j, ++k)
+            for(int j = static_cast<int>(leftLast.first); j < static_cast<int>(leftDelaySamples); ++j)
             {
                 float traveled = j - leftLast.first;
                 leftDelay[j] = this->lerp(leftLast.second, left[i], traveled / totalDist);
             }
 
+            totalDist = rightDelaySamples - rightLast.first;
             for(int j = static_cast<int>(rightLast.first); j < static_cast<int>(rightDelaySamples); ++j)
             {
-                float low = rightLast.first - static_cast<int>(rightLast.first);
-                float high = rightDelaySamples - static_cast<int>(rightDelaySamples);
-                rightDelay[j] = this->lerp(rightLast.second, right[i], (high + low / 2.0f));
+               float traveled = j - rightLast.first;
+                rightDelay[j] = this->lerp(rightLast.second, right[i], traveled/totalDist);
 
             }
 
-
             leftLast = std::make_pair(leftDelaySamples, left[i]);
             rightLast = std::make_pair(rightDelaySamples, right[i]);
-            //std::cout << "   " << this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(i)  / (numSamples)) << std::endl;
-            //std::cout << "   " << this->lerp(rightDelaySamplesOld, rightDelaySamplesNew, static_cast<float>(i)  / (numSamples)) << std::endl;
-
-
-
-//
-//            if (i + leftDelaySamples < leftDelay.size())
-//            {
-//                leftDelay[i + leftDelaySamples] += left[i];
-//                leftDelay[i + leftDelaySamples] /= 2;
-//            } else
-//                leftDelay.push_back(left[i]);
-//
-//            if (i + rightDelaySamples < rightDelay.size())
-//            {
-//                rightDelay[i + rightDelaySamples] += right[i];
-//                rightDelay[i + rightDelaySamples] /= 2;
-//            } else
-//                rightDelay.push_back(right[i]);
-//
-//
         }
 
         leftDelaySamplesOld = leftDelaySamplesNew;
