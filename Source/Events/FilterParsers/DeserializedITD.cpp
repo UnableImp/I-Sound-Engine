@@ -7,8 +7,11 @@
 #include "Filters/Filter.h"
 #include "RealTimeParameters/GameObject.h"
 
-DeserializedITD::DeserializedITD(rapidjson::Value &object)
-{}
+DeserializedITD::DeserializedITD(rapidjson::Value &object) : dopplerStength(-1)
+{
+    if(object.HasMember("Doppler"))
+        dopplerStength = object["Doppler"].GetFloat();
+}
 
 ErrorNum DeserializedITD::BuildFilter(Filter<float> **filter,  PackageManager& manager)
 {
@@ -25,5 +28,7 @@ ErrorNum DeserializedITD::BuildFilter(Filter<float> **filter,  PackageManager& m
 
 ErrorNum DeserializedITD::BuildFilter(Filter<float>** filter,  PackageManager& manager, GameObject& obj)
 {
+    if(dopplerStength > -1)
+        obj.SetParamLocal("DistanceScaler", dopplerStength);
     return BuildFilter(filter, manager);
 }

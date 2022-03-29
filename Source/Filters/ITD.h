@@ -51,10 +51,10 @@ public:
 
         // Convert to sample rate delay
         float speedScaler = obj.GetParam<float>("DistanceScaler");
-        const float speedOfSound = 343 * speedScaler; // Speed of sound?
+        const float speedOfSound = 343; // Speed of sound?
 
-        int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate;
-        int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate;
+        int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate * speedScaler;
+        int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate * speedScaler;
 
          float ShouldWoodworth = obj.GetParam<float>("Woodworth");
         if(ShouldWoodworth)
