@@ -238,6 +238,15 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
     int totalSamples = 0;
     do
     {
+
+        totalSamples += samples;
+        {
+            angle += speed;
+
+            IVector3 newPos{std::cos(angle * 3.145f / 180.0f) * 3, 0,std::sin(angle * 3.145f / 180.0f) * 3};
+            objManager.SetGameObjectPosition(id, newPos);
+        }
+
         samples = eventManager.GetSamplesFromAllEvents(frameSize, frame);
         for(int i = 0; i < frameSize; ++i)
         {
@@ -246,14 +255,6 @@ static void simulateEventManagerWithCalulator(EventManager& eventManager, const 
 
             tesConvert.write(reinterpret_cast<char *>(&left), sizeof(short));
             tesConvert.write(reinterpret_cast<char *>(&right), sizeof(short));
-        }
-
-        totalSamples += samples;
-        {
-            angle += speed;
-
-            IVector3 newPos{std::cos(angle * 3.145f / 180.0f) * 3, 0,std::sin(angle * 3.145f / 180.0f) * 3};
-            objManager.SetGameObjectPosition(id, newPos);
         }
 
     } while (samples > 0);
@@ -2038,7 +2039,7 @@ static void Combined512Samples(benchmark::State& state)
 }
 BENCHMARK(Combined512Samples);
 
-//TEST(buildBank, testBank)
-//{
-//    BuildPackageAllPCM(0, "TestFiles/TESTEventPack.pck", "TestFiles/DrySignal.wav", "TestFiles/level.wav", "TestFiles/Siren.wav");
-//}
+TEST(buildBank, testBank)
+{
+    BuildPackageAllPCM(0, "TestFiles/TESTEventPack.pck", "TestFiles/DrySignalShort.wav", "TestFiles/level.wav", "TestFiles/SirenLoop.wav");
+}
