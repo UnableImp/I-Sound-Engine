@@ -51,10 +51,10 @@ public:
 
         // Convert to sample rate delay
         float speedScaler = obj.GetParam<float>("DistanceScaler");
-        const float speedOfSound = 343 * speedScaler; // Speed of sound?
+        const float speedOfSound = 343; // Speed of sound?
 
-        int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate;
-        int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate;
+        int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate * speedScaler;
+        int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate * speedScaler;
 
          float ShouldWoodworth = obj.GetParam<float>("Woodworth");
         if(ShouldWoodworth)
@@ -89,43 +89,69 @@ public:
         {
             leftDelaySamplesOld = leftDelaySamplesNew;
             rightDelaySamplesOld = rightDelaySamplesNew;
-        }
+            leftLast = 0;
+            rightLast = 0;
 
-        //std::cout << leftDelaySamplesOld - this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(1)  / (numSamples)) << std::endl;
+            leftOffset = 512.0;
+            rightOffset = 512.0;
 
-        float stepLeft = this->lerp(leftDelaySamplesOld, leftDelaySamplesNew, static_cast<float>(1)  / (numSamples));
-        float stepRight = this->lerp(rightDelaySamplesOld, rightDelaySamplesNew, static_cast<float>(1)  / (numSamples));
-
-        float leftCollection = leftDelaySamplesOld;
-        float rightCollection = rightDelaySamplesOld;
-
-        for(int i = 0; i < numSamples; ++i)
-        {
-            int leftDelaySamples = static_cast<int>(leftCollection);
-            int rightDelaySamples = static_cast<int>(rightCollection);
-
-            leftCollection += stepLeft;
-            rightCollection += stepRight;
-
-            while (leftDelay.size() < leftDelaySamples + i)
+            for(int i = 0; i < leftDelaySamplesNew; ++i)
+            {
                 leftDelay.push_back(0);
-            while (rightDelay.size() < rightDelaySamples + i)
+            }
+            for(int i = 0; i < rightDelaySamplesNew; ++i)
+            {
                 rightDelay.push_back(0);
-
-            if (i + leftDelaySamples < leftDelay.size())
-            {
-                leftDelay[i + leftDelaySamples] += left[i];
-                leftDelay[i + leftDelaySamples] /= 2;
-            } else
-                leftDelay.push_back(left[i]);
-
-            if (i + rightDelaySamples < rightDelay.size())
-            {
-                rightDelay[i + rightDelaySamples] += right[i];
-                rightDelay[i + rightDelaySamples] /= 2;
-            } else
-                rightDelay.push_back(right[i]);
+            }
         }
+
+        leftOffset -= 512.0;
+        rightOffset -= 512.0;
+
+        float leftVel = (static_cast<float>(leftDelaySamplesOld - leftDelaySamplesNew) / 512) * 343;
+        float rightVel = (static_cast<float>(rightDelaySamplesOld - rightDelaySamplesNew) / 512) * 343;
+        float leftStep = (343 + leftVel) / 343;
+        float rightStep =(343 + rightVel) / 343;
+
+        //std::cout << leftStep << " " << rightStep << std::endl;
+
+
+
+        // Left Delay
+        while(leftOffset < numSamples - 1)
+        {
+            float value = 0;
+            float offset = leftOffset - static_cast<int>(leftOffset);
+            if (leftOffset < 0)
+            {
+                value = this->lerp(leftLast, left[0], offset);
+            } else
+            {
+                value = this->lerp(left[static_cast<int>(leftOffset)], left[static_cast<int>(leftOffset) + 1], offset);
+            }
+            leftDelay.push_back(value);
+
+            leftOffset += leftStep;
+        }
+
+        while(rightOffset < numSamples - 1)
+        {
+            float value = 0;
+            float offset = rightOffset - static_cast<int>(rightOffset);
+            if (rightOffset < 0)
+            {
+                value = this->lerp(rightLast, right[0], offset);
+            } else
+            {
+                value = this->lerp(right[static_cast<int>(rightOffset)], right[static_cast<int>(rightOffset) + 1], offset);
+            }
+            rightDelay.push_back(value);
+
+            rightOffset += rightStep;
+        }
+
+        leftLast = left[numSamples - 1];
+        rightLast = right[numSamples - 1];
 
         leftDelaySamplesOld = leftDelaySamplesNew;
         rightDelaySamplesOld = rightDelaySamplesNew;
@@ -137,15 +163,18 @@ public:
 
         for(int i = 0; i < numSamples; ++i)
         {
-            if(leftDelay[1] == 0)
-                left[i] = this->lerp(leftDelay.front(), leftDelay[2], 1/2.0f);
-            else
-                left[i] = leftDelay[1];
+//            if(leftDelay[1] == 0)
+//                left[i] = this->lerp(leftDelay.front(), leftDelay[2], 1/2.0f);
+//            else
+//                left[i] = leftDelay[1];
+////
+//            if(rightDelay[1] == 0)
+//                right[i] = this->lerp(rightDelay.front(), rightDelay[2], 1/2.0f);
+//            else
+//                right[i] = rightDelay[1];
 
-            if(rightDelay[1] == 0)
-                right[i] = this->lerp(rightDelay.front(), rightDelay[2], 1/2.0f);
-            else
-                right[i] = rightDelay[1];
+            left[i] = leftDelay.front();
+            right[i] = rightDelay.front();
 
             leftDelay.pop_front();
             rightDelay.pop_front();
@@ -164,6 +193,12 @@ private:
     RingDeque<float> rightDelay;
     int leftDelaySamplesOld;
     int rightDelaySamplesOld;
+
+    float leftLast;
+    float rightLast;
+
+    double leftOffset;
+    double rightOffset;
 };
 
 #endif //I_SOUND_ENGINE_ITD_H
