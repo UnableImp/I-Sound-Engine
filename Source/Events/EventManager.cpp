@@ -35,6 +35,7 @@ EventManager::~EventManager()
 
 void EventManager::Update()
 {
+    std::lock_guard lock(m);
     auto itemToRemove = actionList.begin();
     while (itemToRemove != actionList.end() && (*itemToRemove)->GetActionIndex() < lastActedID)
     {
@@ -52,38 +53,39 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
     memset(buffer, 0, numSamples * sizeof(Frame<float>));
 
     int totalSamplesGenerated = 0;
-
-    for(auto iter = actionList.begin(); iter != actionList.end(); ++iter)
     {
-        if((*iter)->GetActionIndex() > lastActedID)
+        std::lock_guard lock(m);
+        for (auto iter = actionList.begin(); iter != actionList.end(); ++iter)
         {
-            lastActedID = (*iter)->GetActionIndex();
-            switch((*iter)->GetActionType())
+            if ((*iter)->GetActionIndex() > lastActedID)
             {
-                case ActionType::PostEvent:
+                lastActedID = (*iter)->GetActionIndex();
+                switch ((*iter)->GetActionType())
                 {
-                    PostEventAction* action = dynamic_cast<PostEventAction*>(*iter);
-                    events[action->GetEventId()] = action->GetEvent();
-                    break;
-                }
-                case ActionType::StopEvent:
-                {
-                    StopEventAction* action = dynamic_cast<StopEventAction*>(*iter);
-                    for (auto event = events.begin(); event != events.end(); ++event)
+                    case ActionType::PostEvent:
                     {
-                        if(event->second->GetEventID() == action->GetEventId())
+                        PostEventAction *action = dynamic_cast<PostEventAction *>(*iter);
+                        events[action->GetEventId()] = action->GetEvent();
+                        break;
+                    }
+                    case ActionType::StopEvent:
+                    {
+                        StopEventAction *action = dynamic_cast<StopEventAction *>(*iter);
+                        for (auto event = events.begin(); event != events.end(); ++event)
                         {
-                            events.erase(event);
-                            break;
+                            if (event->second->GetEventID() == action->GetEventId())
+                            {
+                                events.erase(event);
+                                break;
+                            }
                         }
                     }
+                    default:
+                        assert("Unknown action type in buffer");
                 }
-                default:
-                    assert("Unknown action type in buffer");
             }
         }
     }
-
     int generated = 0;
     while (numSamples - generated > 0)
     {

@@ -12,7 +12,7 @@
 #include "RealTimeParameters/GameObjectManager.h"
 #include "Actions/Action.h"
 #include "Actions/PostEvent.h"
-
+#include <mutex>
 
 constexpr int buffSize =  2048;
 
@@ -72,6 +72,7 @@ private:
 
     int AddEvent(Event* event)
     {
+        std::lock_guard lock(m);
         PostEventAction* newEvent = new PostEventAction(nextActionID, event, eventID);
         actionList.push_back(newEvent);
 
@@ -91,6 +92,7 @@ private:
     std::unordered_map<int, Event*> events; //!< TODO  MAKE THREAD SAFE
     //std::unordered_map<uint64_t, SoundData>& soundData;
     PackageManager& soundData;
+    std::mutex m;
 
     float* leftLocalBuffer;
     float* rightLocalBuffer;

@@ -41,7 +41,7 @@ public:
     }
 
     template<typename T>
-    inline void SetParamLocal(std::basic_string<char> id, T item)
+    inline void SetParamLocal(std::basic_string<char> id, T item) const
     {
         localParams[id] = item;
     }
@@ -68,7 +68,7 @@ private:
 
     Transform transform;
     static std::unordered_map<std::basic_string<char>, std::any> globalParams;
-    std::unordered_map<std::basic_string<char>, std::any> localParams;
+    mutable std::unordered_map<std::basic_string<char>, std::any> localParams;
 
 };
 

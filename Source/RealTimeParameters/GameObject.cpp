@@ -12,20 +12,24 @@
 void GameObject::SetPosition(const IVector3 &pos)
 {
     transform.postion = pos;
+    SetParamLocal("Updated", true);
 }
 
 void GameObject::SetTransform(const Transform &trans)
 {
     transform = trans;
+    SetParamLocal("Updated", true);
 }
 
 void GameObject::SetUp(IVector3 const& up)
 {
     transform.up = up;
+    SetParamLocal("Updated", true);
 }
 void GameObject::SetForward(IVector3 const& forward)
 {
     transform.forward = forward;
+    SetParamLocal("Updated", true);
 }
 
 const Transform& GameObject::GetTransform() const
