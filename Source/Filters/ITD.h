@@ -53,8 +53,8 @@ public:
         float speedScaler = obj.GetParam<float>("DistanceScaler");
         const float speedOfSound = 343; // Speed of sound?
 
-        int leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate * speedScaler;
-        int rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate * speedScaler;
+        float leftDelaySamplesNew = (leftEarDist / speedOfSound) * sampleRate * speedScaler;
+        float rightDelaySamplesNew = (rightEarDist / speedOfSound) * sampleRate * speedScaler;
 
          float ShouldWoodworth = obj.GetParam<float>("Woodworth");
         if(ShouldWoodworth)
@@ -95,6 +95,9 @@ public:
             leftOffset = 512.0;
             rightOffset = 512.0;
 
+            leftVelLast = 0;
+            rightVelLast = 0;
+
             for(int i = 0; i < leftDelaySamplesNew; ++i)
             {
                 leftDelay.push_back(0);
@@ -108,14 +111,16 @@ public:
         leftOffset -= 512.0;
         rightOffset -= 512.0;
 
-        float leftVel = (static_cast<float>(leftDelaySamplesOld - leftDelaySamplesNew) / 512) * 343;
-        float rightVel = (static_cast<float>(rightDelaySamplesOld - rightDelaySamplesNew) / 512) * 343;
+        float leftVel = ((static_cast<float>(leftDelaySamplesOld - leftDelaySamplesNew) / 512) * 343) ;
+        float rightVel = ((static_cast<float>(rightDelaySamplesOld - rightDelaySamplesNew) / 512) * 343) ;
+
+        leftVel += leftVelLast;
+        leftVel /= 2.0f;
+        rightVel += rightVelLast;
+        rightVel /= 2.0f;
+
         float leftStep = (343 + leftVel) / 343;
         float rightStep =(343 + rightVel) / 343;
-
-        //std::cout << leftStep << " " << rightStep << std::endl;
-
-
 
         // Left Delay
         while(leftOffset < numSamples - 1)
@@ -155,24 +160,14 @@ public:
 
         leftDelaySamplesOld = leftDelaySamplesNew;
         rightDelaySamplesOld = rightDelaySamplesNew;
-
-
+        leftVelLast = leftVel;
+        rightVelLast = rightVel;
 
         assert(rightDelay.size() >= numSamples);
         assert(leftDelay.size() >= numSamples);
 
         for(int i = 0; i < numSamples; ++i)
         {
-//            if(leftDelay[1] == 0)
-//                left[i] = this->lerp(leftDelay.front(), leftDelay[2], 1/2.0f);
-//            else
-//                left[i] = leftDelay[1];
-////
-//            if(rightDelay[1] == 0)
-//                right[i] = this->lerp(rightDelay.front(), rightDelay[2], 1/2.0f);
-//            else
-//                right[i] = rightDelay[1];
-
             left[i] = leftDelay.front();
             right[i] = rightDelay.front();
 
@@ -191,11 +186,14 @@ public:
 private:
     RingDeque<float> leftDelay;
     RingDeque<float> rightDelay;
-    int leftDelaySamplesOld;
-    int rightDelaySamplesOld;
+    float leftDelaySamplesOld;
+    float rightDelaySamplesOld;
 
     float leftLast;
     float rightLast;
+
+    float leftVelLast;
+    float rightVelLast;
 
     double leftOffset;
     double rightOffset;
