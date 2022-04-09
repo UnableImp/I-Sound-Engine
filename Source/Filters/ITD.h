@@ -111,8 +111,8 @@ public:
         leftOffset -= 512.0;
         rightOffset -= 512.0;
 
-        float leftVel = ((static_cast<float>(leftDelaySamplesOld - leftDelaySamplesNew) / 512) * 343) / 2.0f;
-        float rightVel = ((static_cast<float>(rightDelaySamplesOld - rightDelaySamplesNew) / 512) * 343) / 2.0f;
+        float leftVel = ((static_cast<float>(leftDelaySamplesOld - leftDelaySamplesNew) / 512) * 343) ;
+        float rightVel = ((static_cast<float>(rightDelaySamplesOld - rightDelaySamplesNew) / 512) * 343) ;
 
         leftVel += leftVelLast;
         leftVel /= 2.0f;
