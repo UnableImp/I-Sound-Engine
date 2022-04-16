@@ -53,10 +53,12 @@ public:
         {
             returnValue = GetNextSamplesNonStatic(numSamples, left, right, obj);
         }
+        float scaler = this->volume * sVolume;
+        assert(scaler > -0.001f && scaler < 1.001f);
         for(int i = 0; i < numSamples; ++i)
         {
-            left[i] *= sVolume;
-            right[i] *= sVolume;
+            left[i] *= scaler ;
+            right[i] *= scaler;
         }
         return returnValue;
     }

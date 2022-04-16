@@ -27,6 +27,8 @@ ISE_API ErrorNum ISoundEngine::Init()
 ISE_API ErrorNum ISoundEngine::Update()
 {
     // TODO switch events to be buffer baised
+    eventManager->Update();
+    GameObject::SetParamStatic("Updated", 1.0f);
     return  NoErrors;
 }
 

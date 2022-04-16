@@ -42,7 +42,8 @@ public:
                         pitchShiftCeil(0),
                         pitchShiftFloor(0),
                         pitchShiftStart(0),
-                        currentLoopCount(0)
+                        currentLoopCount(0),
+                        volume(1)
                         {}
 
     /*!

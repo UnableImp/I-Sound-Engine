@@ -8,6 +8,8 @@
 #include "deque"
 #include <assert.h>
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <chrono>
 #include "RealTimeParameters/GameObjectManager.h"
 #include "HRIRCalculator.h"
@@ -17,7 +19,12 @@
 class ITD : public Filter<float>
 {
 public:
-    ITD() : rightDelaySamplesOld(-1), leftDelaySamplesOld(-1), leftDelay(1<<17), rightDelay(1<<17) {}
+    ITD() : rightDelaySamplesOld(-1), leftDelaySamplesOld(-1), leftDelay(1<<17), rightDelay(1<<17)
+    {
+        static int count = 0;
+        outfile.open(std::to_string(count) + "_ITD.txt");
+        count++;
+    }
     virtual ~ITD() {}
     /*!
      * Fills a buffer with audio samples, if no audio data is available zeros are filled
@@ -29,11 +36,11 @@ public:
     {
 
         auto start = std::chrono::steady_clock::now();
-        bool didUpdate = obj.GetParam<bool>("Updated");
-
+        float didUpdate = GameObject::GetParamStatic<float>("Updated");
+        outfile << didUpdate << " - ";
         float leftVel;
         float rightVel;
-        if(didUpdate)
+        if(didUpdate > 0)
         {
             // Get listeners transform
             const auto &listenerTransform = GameObjectManager::GetListenerPosition();
@@ -103,6 +110,8 @@ public:
 
                 leftVelLast = 0;
                 rightVelLast = 0;
+                leftStepLast = 1;
+                rightStepLast = 1;
 
                 for (int i = 0; i < leftDelaySamplesNew; ++i)
                 {
@@ -114,16 +123,17 @@ public:
                 }
             }
 
-            leftVel = ((static_cast<float>(leftDelaySamplesOld - leftDelaySamplesNew) / 512) * 343) / 2.0f;
-            rightVel = ((static_cast<float>(rightDelaySamplesOld - rightDelaySamplesNew) / 512) * 343) / 2.0f;
+            leftVel = ((static_cast<float>(leftDelaySamplesOld - leftDelaySamplesNew) / 512) * 343);
+            rightVel = ((static_cast<float>(rightDelaySamplesOld - rightDelaySamplesNew) / 512) * 343);
 
             leftDelaySamplesOld = leftDelaySamplesNew;
             rightDelaySamplesOld = rightDelaySamplesNew;
 
-            obj.SetParamLocal("Updated", false);
+
         }
         else
         {
+            outfile << "Using last - ";
             leftVel = leftVelLast;
             rightVel = rightVelLast;
         }
@@ -132,6 +142,8 @@ public:
         float rightStep = (343 + rightVel) / 343;
         leftOffset -= 512.0;
         rightOffset -= 512.0;
+
+        outfile <<"L: " << std::setw(7) << leftStep << " R: " << std::setw(7) << rightStep << std::endl;
 
         // Left Delay
         while(leftOffset < numSamples - 1)
@@ -146,8 +158,8 @@ public:
                 value = this->lerp(left[static_cast<int>(leftOffset)], left[static_cast<int>(leftOffset) + 1], offset);
             }
             leftDelay.push_back(value);
-
-            leftOffset += leftStep;
+            float nextStep = this->lerp(leftStepLast, leftStep, leftOffset / 512.0f);
+            leftOffset += nextStep;
         }
 
         while(rightOffset < numSamples - 1)
@@ -162,16 +174,18 @@ public:
                 value = this->lerp(right[static_cast<int>(rightOffset)], right[static_cast<int>(rightOffset) + 1], offset);
             }
             rightDelay.push_back(value);
-
+            float nextStep = this->lerp(rightStepLast, rightStep, rightOffset / 512.0f);
             rightOffset += rightStep;
         }
 
         leftLast = left[numSamples - 1];
         rightLast = right[numSamples - 1];
 
-
         leftVelLast = leftVel;
         rightVelLast = rightVel;
+
+        leftStepLast = leftStep;
+        rightStepLast = rightStep;
 
         assert(rightDelay.size() >= numSamples);
         assert(leftDelay.size() >= numSamples);
@@ -199,14 +213,19 @@ private:
     float leftDelaySamplesOld;
     float rightDelaySamplesOld;
 
-    float leftLast;
-    float rightLast;
+    float leftLast = 0;
+    float rightLast = 0;
 
-    float leftVelLast;
-    float rightVelLast;
+    float leftVelLast = 0;
+    float rightVelLast = 0;
 
-    double leftOffset;
-    double rightOffset;
+    float leftStepLast = 1;
+    float rightStepLast = 1;
+
+    double leftOffset = 0;
+    double rightOffset = 0;
+
+    std::ofstream outfile;
 };
 
 #endif //I_SOUND_ENGINE_ITD_H

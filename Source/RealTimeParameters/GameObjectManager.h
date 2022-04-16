@@ -9,6 +9,7 @@
 #include <cstdint>
 #include "GameObject.h"
 #include "unordered_map"
+#include <mutex>
 
 class GameObjectManager
 {
@@ -32,6 +33,7 @@ public:
     static const Transform& GetListenerPosition();
 
 private:
+    mutable std::mutex m;
     std::unordered_map<uint64_t, GameObject> gameObjects;
     static GameObject listener;
 };

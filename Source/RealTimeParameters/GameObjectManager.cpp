@@ -35,10 +35,12 @@ GameObjectManager::GameObjectManager()
     GameObject::SetParamStatic("UseLowpass", 1.0f);
     GameObject::SetParamStatic("DistanceIntensity", 1.0f);
     GameObject::SetParamStatic("Volume", 1.0f);
+    GameObject::SetParamStatic("Updated", 1.0f);
 }
 
 uint64_t GameObjectManager::AddObject(uint64_t id)
 {
+    std::lock_guard lock(m);
     GameObject object;
     auto result = gameObjects.try_emplace(id, object);
     if(result.second)
@@ -48,6 +50,7 @@ uint64_t GameObjectManager::AddObject(uint64_t id)
 
 uint64_t GameObjectManager::RemoveObject(uint64_t  id)
 {
+    std::lock_guard lock(m);
     auto obj = gameObjects.find(id);
     if (obj != gameObjects.end())
     {
@@ -59,6 +62,7 @@ uint64_t GameObjectManager::RemoveObject(uint64_t  id)
 
 int GameObjectManager::GetGameObject(uint64_t id, GameObject& obj) const
 {
+    std::lock_guard lock(m);
     auto objToGet = gameObjects.find(id);
     if(objToGet != gameObjects.end())
     {
@@ -70,11 +74,13 @@ int GameObjectManager::GetGameObject(uint64_t id, GameObject& obj) const
 
 GameObject& GameObjectManager::operator[](uint64_t id)
 {
+    std::lock_guard lock(m);
     return gameObjects[id];
 }
 
 void GameObjectManager::SetGameObjectTransform(uint64_t id, const Transform& transform)
 {
+    std::lock_guard lock(m);
     auto obj = gameObjects.find(id);
     if(obj == gameObjects.end())
         return;
@@ -84,6 +90,7 @@ void GameObjectManager::SetGameObjectTransform(uint64_t id, const Transform& tra
 
 void GameObjectManager::SetGameObjectPosition(uint64_t id, const IVector3& position)
 {
+    std::lock_guard lock(m);
     auto obj = gameObjects.find(id);
     if(obj == gameObjects.end())
         return;

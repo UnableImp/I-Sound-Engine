@@ -119,6 +119,9 @@ int EventManager::GetSamplesFromAllEvents(int numSamples, Frame<float> *buffer)
         }
         generated += samplesToGet;
     }
+
+    GameObject::SetParamStatic("Updated", -1.0f);
+
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float> seconds = end-start;
     GameObject::SetParamStatic("DSPLoad", seconds.count() / (512.0f/44100.0f));

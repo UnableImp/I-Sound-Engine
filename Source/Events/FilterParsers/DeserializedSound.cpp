@@ -45,6 +45,11 @@ ErrorNum DeserializedSound::BuildFilter(Filter<float> **filter,  PackageManager&
         newSound->SetRandomPitchRange(shiftUp, shiftDown);
         newSound->SetVolume(volume);
     }
+    else
+    {
+        newSound->SetLoopCount(1);
+        newSound->SetVolume(1);
+    }
 
     return ErrorNum::NoErrors;
 }

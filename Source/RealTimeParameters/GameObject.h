@@ -14,6 +14,9 @@
 class GameObject
 {
 public:
+    GameObject()
+    {
+    }
     void SetTransform(Transform const& trans);
     void SetPosition(IVector3 const& pos);
     void SetUp(IVector3 const& up);
