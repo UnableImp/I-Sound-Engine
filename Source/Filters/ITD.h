@@ -21,9 +21,7 @@ class ITD : public Filter<float>
 public:
     ITD() : rightDelaySamplesOld(-1), leftDelaySamplesOld(-1), leftDelay(1<<17), rightDelay(1<<17)
     {
-        static int count = 0;
-        outfile.open(std::to_string(count) + "_ITD.txt");
-        count++;
+
     }
     virtual ~ITD() {}
     /*!
@@ -37,7 +35,6 @@ public:
 
         auto start = std::chrono::steady_clock::now();
         float didUpdate = GameObject::GetParamStatic<float>("Updated");
-        outfile << didUpdate << " - ";
         float leftVel;
         float rightVel;
         if(didUpdate > 0)
@@ -133,7 +130,6 @@ public:
         }
         else
         {
-            outfile << "Using last - ";
             leftVel = leftVelLast;
             rightVel = rightVelLast;
         }
@@ -143,7 +139,6 @@ public:
         leftOffset -= 512.0;
         rightOffset -= 512.0;
 
-        outfile <<"L: " << std::setw(7) << leftStep << " R: " << std::setw(7) << rightStep << std::endl;
 
         // Left Delay
         while(leftOffset < numSamples - 1)
@@ -224,8 +219,6 @@ private:
 
     double leftOffset = 0;
     double rightOffset = 0;
-
-    std::ofstream outfile;
 };
 
 #endif //I_SOUND_ENGINE_ITD_H
